@@ -1,0 +1,109 @@
+export getFaceMassMatrix, getdFaceMassMatrix
+
+
+function getFaceMassMatrix(M::AbstractMesh,sigma::Vector)
+#  M = getFaceMassMatrix(M,sigma)
+	Af    = getFaceAverageMatrix(M)
+	V     = getVolume(M)
+	Massf = sdiag(Af'*(V*sigma))
+	return Massf
+end
+
+function getdFaceMassMatrix(M::AbstractMesh,v::Vector)
+   # Derivative
+#  M = getFaceMassMatrix(M,sigma)
+	Af    = getFaceAverageMatrix(M)
+	V     = getVolume(M)
+	Massf = sdiag(v)*Af'*V
+	return Massf
+end
+
+function getFaceMassMatrix(M::OcTreeMeshFV,sigma::Vector)
+    sig2d        = zeros(length(sigma),6)
+    sig2d[:,1:3] = [sigma sigma sigma]
+    return getFaceMassMatrix(M.S,M.h,sig2d)
+end
+
+function getFaceMassMatrix(M::OcTreeMeshFV,sigma::Array{Float64,2})
+    return getFaceMassMatrix(M.S,M.h,sigma)
+end
+
+function getFaceMassMatrix(S::SparseArray3D,h,sigma::Array{Float64,2})
+#  M = getFaceMassMatrix(S,h,sigma)
+#
+
+n = S.sz;
+nex = n + [1, 0, 0]
+ney = n + [0, 1, 0]
+nez = n + [0, 0, 1]
+
+i,j,k,bsz = find3(S)
+ex,ey,ez = getFaceNumbering(S)
+
+nx = nnz(ex)
+ny = nnz(ey)
+nz = nnz(ez)
+nc = nnz(S)
+
+Px1 = ex.SV[sub2ind(nex,i,j,k),1]
+Py1 = ey.SV[sub2ind(ney,i,j,k),1]
+Pz1 = ez.SV[sub2ind(nez,i,j,k),1]
+
+Px2 = ex.SV[sub2ind(nex,i+bsz,j,k),1]
+Py2 = ey.SV[sub2ind(ney,i,j,k),1]
+Pz2 = ez.SV[sub2ind(nez,i,j,k),1]
+
+Px3 = ex.SV[sub2ind(nex,i,j,k),1]
+Py3 = ey.SV[sub2ind(ney,i,j+bsz,k),1]
+Pz3 = ez.SV[sub2ind(nez,i,j,k),1]
+
+Px4 = ex.SV[sub2ind(nex,i+bsz,j,k),1]
+Py4 = ey.SV[sub2ind(ney,i,j+bsz,k),1]
+Pz4 = ez.SV[sub2ind(nez,i,j,k),1]
+
+Px5 = ex.SV[sub2ind(nex,i,j,k),1]
+Py5 = ey.SV[sub2ind(ney,i,j,k),1]
+Pz5 = ez.SV[sub2ind(nez,i,j,k+bsz),1]
+
+Px6 = ex.SV[sub2ind(nex,i+bsz,j,k),1]
+Py6 = ey.SV[sub2ind(ney,i,j,k),1]
+Pz6 = ez.SV[sub2ind(nez,i,j,k+bsz),1]
+
+Px7 = ex.SV[sub2ind(nex,i,j,k),1]
+Py7 = ey.SV[sub2ind(ney,i,j+bsz,k),1]
+Pz7 = ez.SV[sub2ind(nez,i,j,k+bsz),1]
+
+Px8 = ex.SV[sub2ind(nex,i+bsz,j,k),1]
+Py8 = ey.SV[sub2ind(ney,i,j+bsz,k),1]
+Pz8 = ez.SV[sub2ind(nez,i,j,k+bsz),1]
+
+
+sp1(Q) = sparse(1:Base.nnz(Q),Q.nzval,ones(Base.nnz(Q)),nc,nx)
+sp2(Q) = sparse(1:Base.nnz(Q),Q.nzval,ones(Base.nnz(Q)),nc,ny)
+sp3(Q) = sparse(1:Base.nnz(Q),Q.nzval,ones(Base.nnz(Q)),nc,nz)
+# sp1(Q) = sparse(1:Base.nnz(Q),Base.nonzeros(Q),ones(Base.nnz(Q)),nc,nx)
+# sp2(Q) = sparse(1:Base.nnz(Q),Base.nonzeros(Q),ones(Base.nnz(Q)),nc,ny)
+# sp3(Q) = sparse(1:Base.nnz(Q),Base.nonzeros(Q),ones(Base.nnz(Q)),nc,nz)
+
+P1 = blkdiag(sp1(Px1),sp2(Py1),sp3(Pz1))
+P2 = blkdiag(sp1(Px2),sp2(Py2),sp3(Pz2))
+P3 = blkdiag(sp1(Px3),sp2(Py3),sp3(Pz3))
+P4 = blkdiag(sp1(Px4),sp2(Py4),sp3(Pz4))
+P5 = blkdiag(sp1(Px5),sp2(Py5),sp3(Pz5))
+P6 = blkdiag(sp1(Px6),sp2(Py6),sp3(Pz6))
+P7 = blkdiag(sp1(Px7),sp2(Py7),sp3(Pz7))
+P8 = blkdiag(sp1(Px8),sp2(Py8),sp3(Pz8))
+
+v     = prod(h) * (bsz.^3)
+Sigma = [sdiag(sigma[:,1].*v)  sdiag(sigma[:,4].*v)  sdiag(sigma[:,5].*v);
+         sdiag(sigma[:,4].*v)  sdiag(sigma[:,2].*v)  sdiag(sigma[:,6].*v);
+         sdiag(sigma[:,5].*v)  sdiag(sigma[:,6].*v)  sdiag(sigma[:,3].*v)]
+
+
+Massf = 0.125*(P1'*Sigma*P1 + P2'*Sigma*P2 + P3'*Sigma*P3 + P4'*Sigma*P4 +
+               P5'*Sigma*P5 + P6'*Sigma*P6 + P7'*Sigma*P7 + P8'*Sigma*P8);
+
+return Massf
+
+end  # function getFaceMassMatrix
+
