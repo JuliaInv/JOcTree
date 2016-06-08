@@ -1,22 +1,22 @@
 export getFaceMassMatrix, getdFaceMassMatrix
 
 
-function getFaceMassMatrix(M::AbstractMesh,sigma::Vector)
-#  M = getFaceMassMatrix(M,sigma)
-	Af    = getFaceAverageMatrix(M)
-	V     = getVolume(M)
-	Massf = sdiag(Af'*(V*sigma))
-	return Massf
-end
-
-function getdFaceMassMatrix(M::AbstractMesh,v::Vector)
-   # Derivative
-#  M = getFaceMassMatrix(M,sigma)
-	Af    = getFaceAverageMatrix(M)
-	V     = getVolume(M)
-	Massf = sdiag(v)*Af'*V
-	return Massf
-end
+# function getFaceMassMatrix(M::AbstractMesh,sigma::Vector)
+# #  M = getFaceMassMatrix(M,sigma)
+# 	Af    = getFaceAverageMatrix(M)
+# 	V     = getVolume(M)
+# 	Massf = sdiag(Af'*(V*sigma))
+# 	return Massf
+# end
+# 
+# function getdFaceMassMatrix(M::AbstractMesh,v::Vector)
+#    # Derivative
+# #  M = getFaceMassMatrix(M,sigma)
+# 	Af    = getFaceAverageMatrix(M)
+# 	V     = getVolume(M)
+# 	Massf = sdiag(v)*Af'*V
+# 	return Massf
+# end
 
 function getFaceMassMatrix(M::OcTreeMeshFV,sigma::Vector)
     sig2d        = zeros(length(sigma),6)

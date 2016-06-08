@@ -1,17 +1,6 @@
 export getEdgeMassMatrix, getdEdgeMassMatrix
 
 
-
-function getEdgeMassMatrix(M::AbstractMesh,sigma::Vector)
-   # NOT for octree meshes.
-#  M = getEdgeMassMatrix(M,sigma)
-	Ae   = getEdgeAverageMatrix(M)
-	V    = getVolume(M)
-	Masse    = sdiag(Ae'*(V*vec(sigma)))
-	return Masse
-end
-
-
 function getEdgeMassMatrix(M::OcTreeMeshFV,sigma::Vector)
     # For octree meshes.
 	 P = getEdgeAverageMatrix(M)
@@ -45,16 +34,6 @@ function getEdgeMassMatrix(S::SparseArray3D,h,sigma::Array{Float64,2})
 end
 
 #-----------------------------------------------------
-
-
-function getdEdgeMassMatrix(M::AbstractMesh,v::Vector)
-   # Derivative
-#  M = getEdgeMassMatrix(S,h,sigma)
-	Ae   = getEdgeAverageMatrix(M)
-	V    = getVolume(M)
-	return sdiag(v)*Ae'*V
-end
-
 
 function getdEdgeMassMatrix(M::OcTreeMeshFV,v::Vector)
    # Derivative
