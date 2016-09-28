@@ -1,9 +1,16 @@
-export getEdgeMassMatrix, getdEdgeMassMatrix
+export getEdgeMassMatrix, getdEdgeMassMatrix, getEdgeMassMatrixNoWeight
 
 
 function getEdgeMassMatrix(M::OcTreeMeshFV,sigma::Vector)
     # For octree meshes.
 	 P = getEdgeAverageMatrix(M)
+	 M = P'* kron(speye(24),sdiag(sigma)) *P
+	 return M
+end
+
+function getEdgeMassMatrixNoWeight(M::OcTreeMeshFV,sigma::Vector)
+    # For octree meshes.
+	 P = getEdgeMassMatrixAnisotropic(M.S,M.h)
 	 M = P'* kron(speye(24),sdiag(sigma)) *P
 	 return M
 end
