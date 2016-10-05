@@ -98,7 +98,7 @@ x = float([1:nx+1;])
 y = float([1:ny+1;])
 z = float([1:nz+1;])
 
-# allocate space of source vector
+# allocate space for source vector
 sx = spzeros(nnz(EX),1)
 sy = spzeros(nnz(EY),1)
 sz = spzeros(nnz(EZ),1)
@@ -187,9 +187,9 @@ for ip = 1:np
 		jx = ix + bsz
 		jy = iy + bsz
 		jz = iz + bsz
-		kx = vec(EX[[ix;], [iy; jy;], [iz; jz;]])
-		ky = vec(EY[[ix; jx;], [iy;], [iz; jz;]])
-		kz = vec(EZ[[ix; jx;], [iy; jy;], [iz;]])
+    kx = [EX[ix,iy,iz]; EX[ix,jy,iz]; EX[ix,iy,jz]; EX[ix,jy,jz];]
+    ky = [EY[ix,iy,iz]; EY[jx,iy,iz]; EY[ix,iy,jz]; EY[jx,iy,jz];]
+    kz = [EZ[ix,iy,iz]; EZ[jx,iy,iz]; EZ[ix,jy,iz]; EZ[jx,jy,iz];]
 		
 		# add to source vector
 		sx[kx] += sxloc
