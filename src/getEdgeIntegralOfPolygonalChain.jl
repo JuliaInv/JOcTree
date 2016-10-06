@@ -107,6 +107,9 @@ sz = spzeros(nnz(EZ),1)
 sxloc = zeros(4)
 syloc = zeros(4)
 szloc = zeros(4)
+kx    = zeros(Int64,4)
+ky    = zeros(Int64,4)
+kz    = zeros(Int64,4)
 tol   = 0.0
 
 # integrate each line segment
@@ -187,9 +190,18 @@ for ip = 1:np
 		jx = ix + bsz
 		jy = iy + bsz
 		jz = iz + bsz
-    kx = [EX[ix,iy,iz]; EX[ix,jy,iz]; EX[ix,iy,jz]; EX[ix,jy,jz];]
-    ky = [EY[ix,iy,iz]; EY[jx,iy,iz]; EY[ix,iy,jz]; EY[jx,iy,jz];]
-    kz = [EZ[ix,iy,iz]; EZ[jx,iy,iz]; EZ[ix,jy,iz]; EZ[jx,jy,iz];]
+		kx[1] = EX[ix,iy,iz]
+		kx[2] = EX[ix,jy,iz]
+		kx[3] = EX[ix,iy,jz]
+		kx[4] = EX[ix,jy,jz]
+		ky[1] = EY[ix,iy,iz]
+		ky[2] = EY[jx,iy,iz]
+		ky[3] = EY[ix,iy,jz]
+		ky[4] = EY[jx,iy,jz]
+		kz[1] = EZ[ix,iy,iz]
+		kz[2] = EZ[jx,iy,iz]
+		kz[3] = EZ[ix,jy,iz]
+		kz[4] = EZ[jx,jy,iz]
 		
 		# add to source vector
 		sx[kx] += sxloc
