@@ -39,3 +39,17 @@ function uniteOcTrees(M1::OcTreeMeshFV, M2::OcTreeMeshFV)
     MU = getOcTreeMeshFV(MU_S, M1.h; x0=M1.x0);
     return MU
 end
+
+function uniteOcTrees(SL::Array{SparseArray3D,1})
+  n = length(SL)
+  if n > 2
+    n1 = div(n,2)
+    S1 = uniteOcTrees(SL[1:n1])
+    S2 = uniteOcTrees(SL[n1+1:end])
+    return uniteOcTrees(S1,S2)
+  elseif n == 2
+    return uniteOcTrees(SL[1],SL[2])
+  else
+    return SL[1]
+  end
+end
