@@ -8,8 +8,8 @@ import Base.setindex!
 import Base.ndims 
 
 type SparseArray3D
-        SV::SparseMatrixCSC{Int}
-        sz::Vector{Int}    # size of fine mesh
+        SV::SparseMatrixCSC{Int64}
+        sz::Vector{Int64}    # size of fine mesh
 end
 
 Base.size(S::SparseArray3D) = (S.sz[1], S.sz[2], S.sz[3])
@@ -17,8 +17,8 @@ Base.size(S::SparseArray3D,dim::Int) = S.sz[dim]
 Base.find(S::SparseArray3D) = find(S.SV)
 Base.ndims(S::SparseArray3D) = 3
 
-import jInv.Utils.clear
-clear(S::SparseArray3D) = sparse3(S.sz)
+import Base.clear!
+clear!(S::SparseArray3D) = sparse3(S.sz)
 
 function sparse3(sz::Vector{Int})
         S = spzeros(Int,prod(sz),1)
