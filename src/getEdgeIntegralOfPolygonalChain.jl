@@ -29,11 +29,11 @@ function getEdgeIntegralOfPolygonalChain(mesh::OcTreeMesh, polygon::Array{Float6
 # For a closed current loop, specify polygon such that
 #   polygon[1,:] == polygon[end,:]
 #
-# NOTE: The polygonal chain has to be contained in the fine cell region of
-#       the OcTree mesh.
-#
+# NOTE: The edge integration ignores hanging edges. If the polygon traverses cells
+#       with hanging edges, it is imperative that hanging edges are eliminated
+#       (getEdgeConstraints).
 
-# Christoph Schwarzbach, June 2014
+# Christoph Schwarzbach, January 2016
 
 # OcTree mesh
 S        = mesh.S
@@ -98,10 +98,7 @@ x = float([1:nx+1;])
 y = float([1:ny+1;])
 z = float([1:nz+1;])
 
-# edge numbering
-#EX,EY,EZ = getEdgeNumbering(S)
-
-# allocate space of source vector
+# allocate space for source vector
 sx = spzeros(nnz(EX),1)
 sy = spzeros(nnz(EY),1)
 sz = spzeros(nnz(EZ),1)
@@ -110,6 +107,9 @@ sz = spzeros(nnz(EZ),1)
 sxloc = zeros(4)
 syloc = zeros(4)
 szloc = zeros(4)
+kx    = zeros(Int64,4)
+ky    = zeros(Int64,4)
+kz    = zeros(Int64,4)
 tol   = 0.0
 
 # integrate each line segment
@@ -169,11 +169,8 @@ for ip = 1:np
 		iy = floor(Integer,ay + tc * dy)
 		iz = floor(Integer,az + tc * dz)
 		ix,iy,iz,bsz = findBlocks(S,ix,iy,iz)
-		if (bsz > 1) || isnan(bsz)
-			error("Polygon must be contained in fine cell region of OcTree")
-		end
 		
-		# integration domain in local coordinates
+		# integration limits in local coordinates
 		axloc = ax + t[iq]   * dx - x[ix]
 		ayloc = ay + t[iq]   * dy - y[iy]
 		azloc = az + t[iq]   * dz - z[iz]
@@ -181,18 +178,30 @@ for ip = 1:np
 		byloc = ay + t[iq+1] * dy - y[iy]
 		bzloc = az + t[iq+1] * dz - z[iz]
 		
+		# basis functions are defined on cube of size bsz^3
+		b = bsz * 1.0
+		
 		# integrate
 		getStraightLineCurrentIntegral!(
-			1.0, 1.0, 1.0, axloc, ayloc, azloc, bxloc, byloc, bzloc,
+			b, b, b, axloc, ayloc, azloc, bxloc, byloc, bzloc,
 			sxloc, syloc, szloc)
 		
 		# find edge numbers
-		jx = ix + 1
-		jy = iy + 1
-		jz = iz + 1
-		kx = vec(EX[[ix;], [iy; jy;], [iz; jz;]])
-		ky = vec(EY[[ix; jx;], [iy;], [iz; jz;]])
-		kz = vec(EZ[[ix; jx;], [iy; jy;], [iz;]])
+		jx = ix + bsz
+		jy = iy + bsz
+		jz = iz + bsz
+		kx[1] = EX[ix,iy,iz]
+		kx[2] = EX[ix,jy,iz]
+		kx[3] = EX[ix,iy,jz]
+		kx[4] = EX[ix,jy,jz]
+		ky[1] = EY[ix,iy,iz]
+		ky[2] = EY[jx,iy,iz]
+		ky[3] = EY[ix,iy,jz]
+		ky[4] = EY[jx,iy,jz]
+		kz[1] = EZ[ix,iy,iz]
+		kz[2] = EZ[jx,iy,iz]
+		kz[3] = EZ[ix,jy,iz]
+		kz[4] = EZ[jx,jy,iz]
 		
 		# add to source vector
 		sx[kx] += sxloc
