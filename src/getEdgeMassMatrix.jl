@@ -2,17 +2,20 @@ export getEdgeMassMatrix, getdEdgeMassMatrix, getEdgeMassMatrixNoWeight
 
 
 function getEdgeMassMatrix(M::OcTreeMeshFV,sigma::Vector)
-    # For octree meshes.
-	 P = getEdgeAverageMatrix(M)
-	 M = P'* kron(speye(24),sdiag(sigma)) *P
-	 return M
+        # For octree meshes.
+        if isempty(M.Pe)
+          M.Pe = getEdgeMassMatrixAnisotropic(M.S,M.h)
+        end
+	P = M.Pe
+	M = P'* kron(speye(24),sdiag(sigma)) *P
+	return M
 end
 
 function getEdgeMassMatrixNoWeight(M::OcTreeMeshFV,sigma::Vector)
     # For octree meshes.
-	 P = getEdgeMassMatrixAnisotropic(M.S,M.h)
-	 M = P'* kron(speye(24),sdiag(sigma)) *P
-	 return M
+	P = getEdgeMassMatrixAnisotropicNoWeight(M.S,M.h)
+	M = P'* kron(speye(24),sdiag(sigma)) *P
+	return M
 end
 
 
@@ -23,7 +26,10 @@ end
 
 
 function getEdgeMassMatrix(S::SparseArray3D,h,sigma::Array{Float64,2})
-	P = getEdgeMassMatrixAnisotropic(S,h)
+        if isempty(M.Pe)
+          M.Pe = getEdgeMassMatrixAnisotropic(M.S,M.h)
+        end
+        P = M.Pe
 	S11 = sdiag(sigma[:,1])
 	S22 = sdiag(sigma[:,2])
 	S33 = sdiag(sigma[:,3])
@@ -43,10 +49,13 @@ end
 #-----------------------------------------------------
 
 function getdEdgeMassMatrix(M::OcTreeMeshFV,v::Vector)
-   # Derivative
-	 P = getEdgeAverageMatrix(M)
-	 dM = P'* sdiag(P*v) *  kron(ones(24),speye(nnz(M.S)))
-	return dM
+        # Derivative
+        if isempty(M.Pe)
+          M.Pe = getEdgeMassMatrixAnisotropic(M.S,M.h)
+        end
+	P = M.Pe
+	dM = P'* sdiag(P*v) *  kron(ones(24),speye(nnz(M.S)))
+        return dM
 end
 
 

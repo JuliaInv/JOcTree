@@ -61,28 +61,31 @@ while true
    # neighbouring cells who are smaller than the j-th cell.
   # L = N .> N'
 
-   L = speye(Bool, size(N,1), size(N,2))
+   #L = speye(Bool, size(N,1), size(N,2))
+   m = size(N,1)
+   n = size(N,2)
    nnzN = nnz(N)
-   L.colptr = Array{Int64}(length(N.colptr))
-   L.rowval = Array{Int64}(nnzN)
-   L.nzval  = Array{Bool}(nnzN)
+   Lcolptr = Array{Int64}(length(N.colptr))
+   Lrowval = Array{Int64}(nnzN)
+   Lnzval  = Array{Bool}(nnzN)
    nnzL = 1
    for ir = 1:length(bsz)
       j1 = N.colptr[ir]
       j2 = N.colptr[ir+1] - 1
-      L.colptr[ir] = nnzL
+      Lcolptr[ir] = nnzL
       for ic = j1:j2
       	rval = N.rowval[ic]
       	if bsz[rval] > bsz[ir]
-      	   L.nzval[ nnzL] = true
-      	   L.rowval[nnzL] = rval
+      	   Lnzval[ nnzL] = true
+      	   Lrowval[nnzL] = rval
       		nnzL += 1
       	end
       end # ic
    end  # ir
-   L.colptr[length(L.colptr)] = nnzL
-   deleteat!(L.nzval,  nnzL:nnzN)
-   deleteat!(L.rowval, nnzL:nnzN)
+   Lcolptr[length(Lcolptr)] = nnzL
+   deleteat!(Lnzval,  nnzL:nnzN)
+   deleteat!(Lrowval, nnzL:nnzN)
+   L = SparseMatrixCSC{Bool,Int64}(m,n,Lcolptr,Lrowval,Lnzval)
    N = 0
    
    

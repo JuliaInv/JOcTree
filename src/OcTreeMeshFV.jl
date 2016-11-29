@@ -14,8 +14,10 @@ type OcTreeMeshFV <: OcTreeMesh
 	Div::SparseMatrixCSC
 	Grad::SparseMatrixCSC
 	Curl::SparseMatrixCSC
-	Af::SparseMatrixCSC # FaceAverageMatrix
-	Ae::SparseMatrixCSC # EdgeMassMatrixAnisotropic
+	Pf::SparseMatrixCSC # FaceMassMatrixIntegrationMatrix
+	Pe::SparseMatrixCSC # EdgeMassMatrixIntegrationMatrix
+	Af::SparseMatrixCSC # Face to cell-centre matrix
+	Ae::SparseMatrixCSC # Edge to cell-centre matrix
 	V::SparseMatrixCSC # cell volume
 	L::SparseMatrixCSC # edge lengths
 	Ne::SparseMatrixCSC # Edge nullspace matrix
@@ -65,7 +67,7 @@ function getOcTreeMeshFV(S,h;x0=zeros(3))
 		return OcTreeMeshFV(S, h, x0,
                     		  S.sz,nc,nf,ne,
                     		  empt,empt,empt,       # no Div, Grad, Curl
-                    		  empt,empt,empt,empt,empt,empt,  # no Af,Ae,V,L,Ne,Qe
+                    		  empt,empt,empt,empt,empt,empt,empt,empt,  # no Pf,Pe,Af,Ae,V,L,Ne,Qe
                     		  empt,empt,empt,empt, #no Nn,Qn,Nf,Qf
    							  FX,FY,FZ, EX,EY,EZ,
    							  empt3,empt3,empt3,  # no NFX,NFY,NFZ
@@ -74,34 +76,36 @@ end  # function getOcTreeMeshFV
 
 
 
-import jInv.Utils.clear
-function clear(M::OcTreeMeshFV)
-	M.S    = clear(M.S)
-	M.Div  = clear(M.Div )
-	M.Grad = clear(M.Grad)
-	M.Curl = clear(M.Curl)
-	M.Af   = clear(M.Af  )
-	M.Ae   = clear(M.Ae  )
-	M.V    = clear(M.V   )
-	M.L    = clear(M.L   )
-	M.FX   = clear(M.FX )
-	M.FY   = clear(M.FY )
-	M.FZ   = clear(M.FZ )
-	M.Ne   = clear(M.Ne )
-	M.Qe   = clear(M.Qe )
-	M.Nn   = clear(M.Nn )
-	M.Qn   = clear(M.Qn )
-	M.Nf   = clear(M.Nf )
-	M.Qf   = clear(M.Qf )
-	M.EX   = clear(M.EX )
-	M.EY   = clear(M.EY )
-	M.EZ   = clear(M.EZ )
-	M.NFX  = clear(M.NFX)
-	M.NFY  = clear(M.NFY)
-	M.NFZ  = clear(M.NFZ)
-	M.NEX  = clear(M.NEX)
-	M.NEY  = clear(M.NEY)
-	M.NEZ  = clear(M.NEZ)
+import Base.clear!
+function clear!(M::OcTreeMeshFV)
+	M.S    = clear!(M.S)
+	M.Div  = clear!(M.Div )
+	M.Grad = clear!(M.Grad)
+	M.Curl = clear!(M.Curl)
+	M.Pf   = clear!(M.Pf  )
+	M.Pe   = clear!(M.Pe  )
+	M.Ae   = clear!(M.Ae  )
+	M.Af   = clear!(M.Af  )
+	M.V    = clear!(M.V   )
+	M.L    = clear!(M.L   )
+	M.FX   = clear!(M.FX )
+	M.FY   = clear!(M.FY )
+	M.FZ   = clear!(M.FZ )
+	M.Ne   = clear!(M.Ne )
+	M.Qe   = clear!(M.Qe )
+	M.Nn   = clear!(M.Nn )
+	M.Qn   = clear!(M.Qn )
+	M.Nf   = clear!(M.Nf )
+	M.Qf   = clear!(M.Qf )
+	M.EX   = clear!(M.EX )
+	M.EY   = clear!(M.EY )
+	M.EZ   = clear!(M.EZ )
+	M.NFX  = clear!(M.NFX)
+	M.NFY  = clear!(M.NFY)
+	M.NFZ  = clear!(M.NFZ)
+	M.NEX  = clear!(M.NEX)
+	M.NEY  = clear!(M.NEY)
+	M.NEZ  = clear!(M.NEZ)
 	
 end  # function clear
 

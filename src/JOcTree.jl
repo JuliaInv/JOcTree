@@ -1,7 +1,5 @@
 module JOcTree
 
-include("sparse3.jl")
-
 # using jInv.Mesh.AbstractMesh
 # using jInv.Mesh.ndgrid
 importall jInv.Mesh
@@ -9,7 +7,7 @@ using jInv.Utils
 export OcTreeMesh
 abstract OcTreeMesh <: AbstractMesh
 
-
+include("sparse3.jl")
 include("OcTreeMeshFV.jl")
 include("OcTreeMeshFEM.jl")
 
@@ -55,7 +53,6 @@ include("createOcTreeFromImage.jl")
 include("initCoarseOcTree.jl")
 
 include("display.jl")
-include("sparse3.jl")
 
 include("getEdgeConstraints.jl")
 include("createOcTreeMesh.jl")
