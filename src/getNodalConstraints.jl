@@ -3,8 +3,9 @@ export getNodalConstraints
 function getNodalConstraints(M::OcTreeMesh)
   if isempty(M.Nn)
     if all(M.S.SV.nzval.==M.S.SV.nzval[1]) # uniform mesh
-      M.Nn = speye(prod(M.n+1))
-      M.Qn = speye(prod(M.n+1))
+      Nn   = nnz(getNodalNumbering(M))
+      M.Nn = speye(Nn)
+      M.Qn = speye(Nn)
     else
       M.Nn,M.Qn, = getNodalConstraints(M.S)
     end

@@ -1,5 +1,7 @@
 export getEdgeMassMatrixAnisotropicNoWeight
 
+# This function is for testing purposes. P matrices
+# are not scaled by cell volume.
 function getEdgeMassMatrixAnisotropicNoWeight(S, h)
 # P = getEdgeMassMatrixAnisotropic2(S, h)
 # Compute a matrix P such that the edge function mass matrix
@@ -197,24 +199,4 @@ P = [P1; P2; P3; P4; P5; P6; P7; P8;]
 
 return P
 
-end
-
-function merge(a, b)
-# copy entries of b into a for zero entries of a
-c = copy(a)
-idz    = c .== 0;
-c[idz] = b[idz]
-
-return c
-
-end
-
-function getNodesFromIndices(sv,mm,i0::Vector{Int},j0::Vector{Int},k0::Vector{Int})
-	
-	jj = sub2ind([mm[1],mm[2],mm[3]],i0,j0,k0);
-	v = zeros(Int64,length(jj));
-	for i=1:length(v); v[i] = sv[jj[i]]; end;
-	
-	return v
-	
 end
