@@ -193,8 +193,10 @@ Py = sparse(c, ey111, uc, nc, ney); # Py8
 Pz = sparse(c, ez111, uc, nc, nez); # Pz8
 P8 = blkdiag(Px, Py, Pz);
 
-P = [P1; P2; P3; P4; P5; P6; P7; P8;]
-
+#P = [P1; P2; P3; P4; P5; P6; P7; P8;]
+# Following line faster than line above because hcat + transpose is
+# faster than vcat.
+P = [P1' P2' P3' P4' P5' P6' P7' P8']' 
 return P
 
 end

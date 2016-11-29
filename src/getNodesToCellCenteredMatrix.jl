@@ -9,11 +9,12 @@ end
 
 function getNodeToCellCenteredMatrix(M::OcTreeMesh)
 
-G = copy(getNodalGradientMatrix(M))
-G.nzval = ones(nnz(G))
+Gtmp = getNodalGradientMatrix(M)
+G    = SparseMatrixCSC(copy(Gtmp.m),copy(Gtmp.n),copy(Gtmp.colptr),
+                       copy(Gtmp.rowval),ones(nnz(Gtmp)))
 A = getEdgeToCellCenteredMatrix(M.S)[1]
 A = A*G
-D = spdiags(1./sum(A,2), [0], size(A,1.), size(A,1.))
+D = spdiagm(vec(1./sum(A,2)), 0, size(A,1.), size(A,1.))
 A = D*A
 return A
 

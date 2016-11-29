@@ -1,5 +1,7 @@
 export getEdgeMassMatrixAnisotropicNoWeight
 
+# This function is for testing purposes. P matrices
+# are not scaled by cell volume.
 function getEdgeMassMatrixAnisotropicNoWeight(S, h)
 # P = getEdgeMassMatrixAnisotropic2(S, h)
 # Compute a matrix P such that the edge function mass matrix

@@ -53,17 +53,14 @@ function getFaceToCellCenteredMatrix(S)
 
 DIV      = getDivergenceMatrixRec(S,[1,1,1])
 FX,FY,FZ = getFaceSize(S)
-
-HF = sdiag([nonzeros(FX);nonzeros(FY);nonzeros(FZ)])
-
-A = DIV;
-A.nzval = ones(nnz(A))
-A  = A*(HF.^2);
+HF       = sdiag([nonzeros(FX);nonzeros(FY);nonzeros(FZ)])
+A        = SparseMatrixCSC(DIV.m,DIV.n,DIV.colptr,DIV.rowval,ones(nnz(DIV)))
+A        = A*(HF.^2);
 
 NF1 = nnz(FX); NF2 = nnz(FY); NF3 = nnz(FZ);
 A1 = A[:,1:NF1]; A2 = A[:,(1+NF1):(NF1+NF2)];  A3 = A[:,(1+NF1+NF2):end]; 
 
-# make shure it sums to 1.
+# make sure it sums to 1.
 W1 = sdiag(1./vec(sum(A1,2)));
 W2 = sdiag(1./vec(sum(A2,2)));
 W3 = sdiag(1./vec(sum(A3,2)));

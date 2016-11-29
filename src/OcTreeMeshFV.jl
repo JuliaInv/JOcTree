@@ -14,8 +14,10 @@ type OcTreeMeshFV <: OcTreeMesh
 	Div::SparseMatrixCSC
 	Grad::SparseMatrixCSC
 	Curl::SparseMatrixCSC
-	Af::SparseMatrixCSC # FaceAverageMatrix
-	Ae::SparseMatrixCSC # EdgeMassMatrixAnisotropic
+	Pf::SparseMatrixCSC # FaceMassMatrixIntegrationMatrix
+	Pe::SparseMatrixCSC # EdgeMassMatrixIntegrationMatrix
+	Af::SparseMatrixCSC # Face to cell-centre matrix
+	Ae::SparseMatrixCSC # Edge to cell-centre matrix
 	V::SparseMatrixCSC # cell volume
 	L::SparseMatrixCSC # edge lengths
 	Ne::SparseMatrixCSC # Edge nullspace matrix
@@ -65,7 +67,7 @@ function getOcTreeMeshFV(S,h;x0=zeros(3))
 		return OcTreeMeshFV(S, h, x0,
                     		  S.sz,nc,nf,ne,
                     		  empt,empt,empt,       # no Div, Grad, Curl
-                    		  empt,empt,empt,empt,empt,empt,  # no Af,Ae,V,L,Ne,Qe
+                    		  empt,empt,empt,empt,empt,empt,empt,empt,  # no Pf,Pe,Af,Ae,V,L,Ne,Qe
                     		  empt,empt,empt,empt, #no Nn,Qn,Nf,Qf
    							  FX,FY,FZ, EX,EY,EZ,
    							  empt3,empt3,empt3,  # no NFX,NFY,NFZ
@@ -80,8 +82,10 @@ function clear!(M::OcTreeMeshFV)
 	M.Div  = clear!(M.Div )
 	M.Grad = clear!(M.Grad)
 	M.Curl = clear!(M.Curl)
-	M.Af   = clear!(M.Af  )
+	M.Pf   = clear!(M.Pf  )
+	M.Pe   = clear!(M.Pe  )
 	M.Ae   = clear!(M.Ae  )
+	M.Af   = clear!(M.Af  )
 	M.V    = clear!(M.V   )
 	M.L    = clear!(M.L   )
 	M.FX   = clear!(M.FX )
