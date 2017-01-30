@@ -40,32 +40,33 @@ function findBlocks(S::SparseArray3D,i::Vector{Int},j::Vector{Int},k::Vector{Int
 	return bi,bj,bk,bsz
 end
 
-function findBlocks(S,i::Int,j::Int,k::Int)
-	
+function findBlocks(S::SparseArray3D, i::Int,j::Int,k::Int)
+
 	if (i < 1) | (i > S.sz[1]) | (j < 1) | (j > S.sz[2]) | (k < 1) | (k > S.sz[3]) 
 		return -1, -1, -1, -1
 	end
 	
 	bsz = 0
-	bi  = copy(i)
-	bj  = copy(j)
-	bk  = copy(k)
-	
+	bi  = i
+	bj  = j
+	bk  = k
+
+	sz = (S.sz[1], S.sz[2], S.sz[3])
 	block = 1
 	
 	while true
-		
-		bsz = S.SV[sub2ind((S.sz[1],S.sz[2],S.sz[3]),bi,bj,bk),1]
+
+		bsz = S.SV[sub2ind(sz, bi,bj,bk)]
 		if bsz != 0
 			break
 		end
+
+		block *= 2
+		bi     = 1 + block * div(i-1, block)
+		bj     = 1 + block * div(j-1, block)
+		bk     = 1 + block * div(k-1, block)           
 		
-	    block *= 2
-	    bi     = 1 + block * floor(Integer,(i-1)/block)
-	    bj     = 1 + block * floor(Integer,(j-1)/block)
-	    bk     = 1 + block * floor(Integer,(k-1)/block)   	      
-		
-	end
+		end
 	
 	return bi,bj,bk,bsz
 end

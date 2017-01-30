@@ -17,8 +17,10 @@ end # function initializeOctree
 #--------------------------------------------
 
 function OctreeBox( S::SparseArray3D,
-	                 i1,i2, j1,j2, k1,k2,
-	                 cellsize )
+                    i1::Int64, i2::Int64,
+                    j1::Int64, j2::Int64,
+                    k1::Int64, k2::Int64,
+                    cellsize::Int64 )
 # S( i1:i2, j1:j2, k1:k2 ) = cellsize
 
 if  i1>i2 || j1>j2 || k1>k2 ||
@@ -31,34 +33,39 @@ end
 
 while true
    i,j,k,bsz = find3(S)
-   tau = zeros(nnz(S))
+  # tau = zeros(nnz(S))
+   nns = nnz(S)
+   splitcells = Array{Int64}(nns)
+   nsplit = 0  # counter for the number of cells to split.
 
-   for ic = 1:nnz(S)
-      ii = i[ic]
-      jj = j[ic]
-      kk = k[ic]
+   for ic = 1:nns
       bb = bsz[ic]
 
       if bb <= cellsize
       	continue  # cell is already small
       end
 
+      ii = i[ic]
+      jj = j[ic]
+      kk = k[ic]
 
       if ii+bb-1 >= i1 && ii <= i2 &&
          jj+bb-1 >= j1 && jj <= j2 &&
          kk+bb-1 >= k1 && kk <= k2 
          
-	      tau[ic] = 1  # large cell to split
+         # large cell to split
+         nsplit += 1
+         splitcells[nsplit] = ic
       end
 
    end  # ic
    
 
-   if all(tau .== 0) 
+   if nsplit == 0 
       break  # we are done
    end
     
-   S = refineOcTree(S,tau,0.9)
+   S = splitCells(i,j,k,bsz, S.sz, splitcells[1:nsplit])
 
 end  # while
 
@@ -70,7 +77,8 @@ end # function OctreeBox
 
 function octreeRegion( S::SparseArray3D,
 	                    i1::Vector{Int64}, j1::Vector{Int64}, k1::Vector{Int64},
-	                    cellsize )
+                      cellsize::Int64 )
+
 #  S( i1, j1, k1 ) = cellsize
 
 npts = length(i1)
@@ -96,17 +104,21 @@ end
 while true
 
    i,j,k,bsz = find3(S)
-   tau = zeros(nnz(S))
 
-   for ic = 1:nnz(S)
-      ii = i[ic]
-      jj = j[ic]
-      kk = k[ic]
+   nns = nnz(S)
+   splitcells = Array{Int64}(nns)
+   nsplit = 0  # counter for the number of cells to split.
+
+   for ic = 1:nns
       bb = bsz[ic]
 
       if bb <= cellsize
       	continue  # cell is already small
       end
+
+      ii = i[ic]
+      jj = j[ic]
+      kk = k[ic]
 
       if ii+bb-1 < min_i || ii > max_i || 
          jj+bb-1 < min_j || jj > max_j || 
@@ -121,8 +133,10 @@ while true
             jj+bb-1 >= j1[ipts] && jj <= j1[ipts] &&
             kk+bb-1 >= k1[ipts] && kk <= k1[ipts] 
 
-  	         tau[ic] = 1  # large cell to split
-  	         break
+            # large cell to split
+            nsplit += 1
+            splitcells[nsplit] = ic
+            break
          end
 
       end  # ipts
@@ -130,11 +144,11 @@ while true
    end  # ic
    
 
-   if all(tau .== 0) 
+   if nsplit == 0 
       break  # we are done
    end
     
-   S = refineOcTree(S,tau,0.9)
+   S = splitCells(i,j,k,bsz, S.sz, splitcells[1:nsplit])
 
 end  # while
 

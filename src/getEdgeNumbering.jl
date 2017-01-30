@@ -20,21 +20,21 @@ ii          = [  i      ;   i       ;   i       ;   i       ;]
 jj          = [  j      ;   j+bsz   ;   j       ;   j+bsz   ;]
 kk          = [  k      ;   k       ;   k+bsz   ;   k+bsz   ;]
 ii,jj,kk  = ind2sub(sizeEX,sort(unique(sub2ind(sizeEX,ii,jj,kk))))  # make em unique
-EX          = sparse3(ii,jj,kk,1:length(ii),[m1;m2+1;m3+1;])
+EX          = sparse3(ii,jj,kk,1:length(ii), collect(sizeEX))
 
 sizeEY      = (m1+1,m2,m3+1)
 ii          = [  i      ;   i+bsz   ;   i       ;   i+bsz   ;]
 jj          = [  j      ;   j       ;   j       ;   j       ;]
 kk          = [  k      ;   k       ;   k+bsz   ;   k+bsz   ;]
 ii,jj,kk  = ind2sub(sizeEY,sort(unique(sub2ind(sizeEY,ii,jj,kk))))  # make em unique
-EY          = sparse3(ii,jj,kk,1:length(ii),[m1+1;m2;m3+1;]);
+EY          = sparse3(ii,jj,kk,1:length(ii), collect(sizeEY))
 
 sizeEZ      = (m1+1,m2+1,m3)
 ii          = [  i       ;    i+bsz   ;   i       ;   i+bsz   ;]
 jj          = [  j       ;    j       ;   j+bsz   ;   j+bsz   ;]
 kk          = [  k       ;    k       ;   k       ;   k       ;]
 ii,jj,kk  = ind2sub(sizeEZ,sort(unique(sub2ind(sizeEZ,ii,jj,kk))))  # make em unique
-EZ          = sparse3(ii,jj,kk,1:length(ii),[m1+1;m2+1;m3;])
+EZ          = sparse3(ii,jj,kk,1:length(ii), collect(sizeEZ))
 
 return EX, EY, EZ
 

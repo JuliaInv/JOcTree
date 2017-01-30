@@ -93,15 +93,30 @@ if n > 0
 	error(msg)
 end
 
+
+# unit cube to actual cell size
+scaleX = hx
+scaleY = hy
+scaleZ = hz
+
+if normalize
+   scale = getNormalizeVal(polygon)
+   scaleX /= scale
+   scaleY /= scale
+   scaleZ /= scale
+end  # normalize
+
+
 # fine mesh nodal grid
 x = float([1:nx+1;])
 y = float([1:ny+1;])
 z = float([1:nz+1;])
 
 # allocate space for source vector
-sx = spzeros(nnz(EX),1)
-sy = spzeros(nnz(EY),1)
-sz = spzeros(nnz(EZ),1)
+nnX = nnz(EX)
+nnY = nnz(EY)
+nnZ = nnz(EZ)
+ss = spzeros(nnX+nnY+nnZ,1)
 
 # allocate local variables
 sxloc = zeros(4)
@@ -195,65 +210,24 @@ for ip = 1:np
 		kx[3] = EX[ix,iy,jz]
 		kx[4] = EX[ix,jy,jz]
 		ky[1] = EY[ix,iy,iz]
-		ky[2] = EY[jx,iy,iz]
+		ky[2] = ky[1] + 1
 		ky[3] = EY[ix,iy,jz]
-		ky[4] = EY[jx,iy,jz]
+		ky[4] = ky[3] + 1
 		kz[1] = EZ[ix,iy,iz]
-		kz[2] = EZ[jx,iy,iz]
+		kz[2] = kz[1] + 1
 		kz[3] = EZ[ix,jy,iz]
-		kz[4] = EZ[jx,jy,iz]
+		kz[4] = kz[3] + 1
 		
 		# add to source vector
-		sx[kx] += sxloc
-		sy[ky] += syloc
-		sz[kz] += szloc
-		
-	end
-end
+		for ii = 1:4
+			ss[kx[ii]]         += sxloc[ii] * scaleX
+			ss[ky[ii]+nnX]     += syloc[ii] * scaleY
+			ss[kz[ii]+nnX+nnY] += szloc[ii] * scaleZ
+		end  # ii
+   end  # iq
+end  # ip
 
-# unit cube to actual cell size
-sx *= hx
-sy *= hy
-sz *= hz
-s   = [sx; sy; sz;]
-
-# normalize
-if normalize
-	
-	if all(polygon[1,:] .== polygon[np+1,:])
-		
-		# closed polygon: divide by enclosed area
-		a  = 0.0
-		px = polygon[2:np,1] .- polygon[1,1]
-		py = polygon[2:np,2] .- polygon[1,2]
-		pz = polygon[2:np,3] .- polygon[1,3]
-		for ip = 1:np-2
-			cx = py[ip] * pz[ip+1] - pz[ip] * py[ip+1]
-			cy = pz[ip] * px[ip+1] - px[ip] * pz[ip+1]
-			cz = px[ip] * py[ip+1] - py[ip] * px[ip+1]
-			a += sqrt(cx * cx + cy * cy + cz * cz)
-		end
-		a *= 0.5
-		
-	else
-		
-		# open polygon: divide by length
-		a = 0.0
-		for ip = 1:np
-			dx = polygon[ip+1,1] - polygon[ip,1]
-			dy = polygon[ip+1,2] - polygon[ip,2]
-			dz = polygon[ip+1,3] - polygon[ip,3]
-			a += sqrt(dx * dx + dy * dy + dz * dz)
-		end
-		
-	end
-	
-	s /= a
-	
-end
-
-return s
-
+return ss
 end # function getEdgeIntegralOfPolygonalChain
 
 
@@ -326,6 +300,43 @@ BLAS.scal!(4, lx / 6.0, sx, 1)
 BLAS.scal!(4, ly / 6.0, sy, 1)
 BLAS.scal!(4, lz / 6.0, sz, 1)
 
-return sx, sy, sz
+return  #sx, sy, sz
 
-end
+end  # function getStraightLineCurrentIntegral!
+
+#-----------------------------------------------------
+
+function getNormalizeVal( polygon::Array{Float64,2} )
+# number of line segments
+np = size(polygon, 1) - 1
+   
+   if all(polygon[1,:] .== polygon[np+1,:])
+      
+      # closed polygon: divide by enclosed area
+      a  = 0.0
+      px = polygon[2:np,1] .- polygon[1,1]
+      py = polygon[2:np,2] .- polygon[1,2]
+      pz = polygon[2:np,3] .- polygon[1,3]
+      for ip = 1:np-2
+         cx = py[ip] * pz[ip+1] - pz[ip] * py[ip+1]
+         cy = pz[ip] * px[ip+1] - px[ip] * pz[ip+1]
+         cz = px[ip] * py[ip+1] - py[ip] * px[ip+1]
+         a += sqrt(cx * cx + cy * cy + cz * cz)
+      end
+      a *= 0.5
+      
+   else
+      
+      # open polygon: divide by length
+      a = 0.0
+      for ip = 1:np
+         dx = polygon[ip+1,1] - polygon[ip,1]
+         dy = polygon[ip+1,2] - polygon[ip,2]
+         dz = polygon[ip+1,3] - polygon[ip,3]
+         a += sqrt(dx * dx + dy * dy + dz * dz)
+      end
+      
+   end
+   
+   return a
+end  # getNormalizeVal

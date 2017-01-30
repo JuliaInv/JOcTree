@@ -2,9 +2,15 @@ export getCellNumbering
 
 function getCellNumbering(S::SparseArray3D)
 
-m1,m2,m3  = S.sz
-i,j,k     = find3(S)
+sz = collect(size(S.SV))
+colptr = copy(S.SV.colptr)
+rowval = copy(S.SV.rowval)
 
-return sparse3(i,j,k,1:length(i),[m1;m2;m3;]);
+nz = length(rowval)
+nzval = collect(1:nz)
 
-end
+SV = SparseMatrixCSC(sz[1],sz[2], colptr, rowval, nzval)
+
+CN = SparseArray3D(SV, S.sz)
+return CN
+end  # function getCellNumbering

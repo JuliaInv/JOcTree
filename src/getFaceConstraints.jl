@@ -24,10 +24,6 @@ function getFaceConstraints(S::SparseArray3D)
   #                     new face number = p(old face number)
   #                     (returns zero for deleted faces)
   i0,j0,k0,bsz = find3(S);
-  i0       = round(Int64,i0)
-  j0       = round(Int64,j0)
-  k0       = round(Int64,k0)
-  bsz      = round(Int64,bsz)
   
   i1 = round(Int64,i0 + bsz / 2)
   i2 = round(Int64,i0 + bsz)
