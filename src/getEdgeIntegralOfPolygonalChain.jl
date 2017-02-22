@@ -2,8 +2,7 @@ export getEdgeIntegralOfPolygonalChain
 
 using Base.BLAS
 
-function getEdgeIntegralOfPolygonalChain(mesh::OcTreeMesh, polygon::Array{Float64,2},
-   EX,EY,EZ;normalize=false)
+function getEdgeIntegralOfPolygonalChain(mesh::OcTreeMesh, polygon::Array{Float64,2}; normalize=false)
 # s = getEdgeIntegralPolygonalChain(mesh,polygon)
 # s = getEdgeIntegralPolygonalChain(mesh,polygon,normalize)
 #
@@ -44,6 +43,8 @@ x0       = mesh.x0[1]
 y0       = mesh.x0[2]
 z0       = mesh.x0[3]
 nx,ny,nz = mesh.n
+
+EX, EY, EZ = getEdgeNumbering(mesh)
 
 # number of line segments
 np = size(polygon, 1) - 1
