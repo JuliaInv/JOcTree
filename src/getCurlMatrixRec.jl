@@ -8,8 +8,28 @@ function getCurlMatrix(M::OcTreeMeshFV)
      return M.Curl
 end
 
+function DiagTimesMTimesDiag( d::Vector, A::SparseMatrixCSC, e::Vector )
+# Return diag{d} * A * diag{e}
+    
+   n = size(A,2)
+   if (length(d) != size(A,1) || length(e) != n)
+    error("length(d) != size(A,1) || length(e) != n")
+   end
+   
+   for ir = 1:n
 
-using MaxwellUtils.DiagTimesMTimesDiag
+      j1 = A.colptr[ir]
+      j2 = A.colptr[ir+1] - 1
+      dge = e[ir]
+
+      for ic = j1:j2
+         jcol = A.rowval[ic]
+         A.nzval[ic] = d[jcol] * A.nzval[ic] * dge
+      end # ic
+   end # ir
+
+return A    
+end # function DiagTimesMTimesDiag
 
 #function getCurlMatrixRec(S,h)
 function getCurlMatrixRec(M)
