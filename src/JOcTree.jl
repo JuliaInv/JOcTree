@@ -64,7 +64,6 @@ include("OctreeBoxPolygon.jl")
 include("regularizeOcTree2.jl")
 include("splitCells.jl")
 include("getInterfaceWeights.jl")
-include("getBoundaryEdges.jl")
 
 #include("getLocalElementMatrices.jl") 
 #include("getMassMatrixFEM.jl") 
