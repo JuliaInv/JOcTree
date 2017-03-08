@@ -51,11 +51,10 @@ end
 function getFaceToCellCenteredMatrix(S)
 # [A, A1, A2, A3] = getFaceToCellCenteredMatrix(S)
 
-DIV      = getDivergenceMatrixRec(S,[1,1,1])
+A      = getDivergenceMatrixRec(S,[1,1,1])
 FX,FY,FZ = getFaceSize(S)
 HF       = sdiag([nonzeros(FX);nonzeros(FY);nonzeros(FZ)])
 
-A = DIV;
 for ii = 1:nnz(A)
    A.nzval[ii] = 1.0
 end
