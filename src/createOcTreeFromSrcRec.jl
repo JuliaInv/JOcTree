@@ -32,8 +32,8 @@ function createOcTreeFromSrcRec(x0,n,src,rec,h,w,sigback)
 	 Msh  = getOcTreeMeshFV(S,h)	
 	 	
 	 EX,EY,EZ = getEdgeNumbering(MFor.S)
-	 Smat     = getEdgeIntegralOfPolygonalChain(Msh,src,EX,EY,EZ)	
-     Rmat     = getEdgeIntegralOfPolygonalChain(Msh,rec,EX,EY,EZ)		
+	 Smat     = getEdgeIntegralOfPolygonalChain(Msh,src)	
+     Rmat     = getEdgeIntegralOfPolygonalChain(Msh,rec)		
 
 	 return Msh, Smat, Rmat
 end

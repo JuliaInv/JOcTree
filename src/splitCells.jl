@@ -47,12 +47,15 @@ for icel = 1:nidx
    id1 = old_mesh_size + (icel-1)*7 + 1 
    id2 = id1 + 7-1
 
-   ii[id1:id2] = [           i1+bsz12, i1,       i1+bsz12,   
-                   i1,       i1+bsz12, i1,       i1+bsz12 ]
-   jj[id1:id2] = [           j1,       j1+bsz12, j1+bsz12,   
-                   j1,       j1,       j1+bsz12, j1+bsz12 ]
-   kk[id1:id2] = [           k1,       k1,       k1,        
-                   k1+bsz12, k1+bsz12, k1+bsz12, k1+bsz12 ]
+   i1b = i1 + bsz12
+   j1b = j1 + bsz12
+   k1b = k1 + bsz12
+
+   ii[id1:id2] = vcat( i1b, i1,  i1b,  i1,  i1b, i1,  i1b )
+   jj[id1:id2] = vcat( j1,  j1b, j1b,  j1,  j1,  j1b, j1b )
+   kk[id1:id1+2] = k1
+   kk[id1+3:id2] = k1b
+  
    vv[id1:id2] = bsz12
 
 end # icel   

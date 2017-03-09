@@ -1,7 +1,7 @@
 export getNodalNumbering
 
 function getNodalNumbering(M::OcTreeMesh)
-	return getNodalNumbering(M.S)
+   return getNodalNumbering(M.S)
 end
 
 
@@ -10,7 +10,7 @@ function getNodalNumbering(S)
 # Numbering of the nodes of an OcTree structure
 
 m1,m2,m3 = S.sz
-i,j,k,bsz = find3(S); bsz = round(Int64,bsz)
+i,j,k,bsz = find3(S)
 
 nind = [i        j       k;
         i        j       k+bsz;

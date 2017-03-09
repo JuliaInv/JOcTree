@@ -6,12 +6,12 @@ function  getNumberOfNeighbors(S)
 m1,m2,m3  = S.sz
 i,j,k,bsz = find3(S)
 
-left  = round(Int64,zeros(length(i)))
-right = round(Int64,zeros(length(i)))
-upper = round(Int64,zeros(length(i)))
-lower = round(Int64,zeros(length(i)))
-front = round(Int64,zeros(length(i)))
-back  = round(Int64,zeros(length(i)))
+left  = zeros(Int64,length(i))
+right = zeros(Int64,length(i))
+upper = zeros(Int64,length(i))
+lower = zeros(Int64,length(i))
+front = zeros(Int64,length(i))
+back  = zeros(Int64,length(i))
 
 ## UPPER ================================================
 Iin   = find((i-bsz).>=1)
@@ -23,8 +23,8 @@ for kk = 1:length(Itmp)
 end
 
 ##   CHECK FOR 4 NEIGHBORS IF i-sz/2 >=1
-Iin   = find(((i-bsz/2) .>= 1) .== true & (mod(bsz,2) .== 0) .== true)
-Itmp  = sub2ind(S.sz,i[Iin]-round(Int64,bsz[Iin]/2),j[Iin],k[Iin]);
+Iin   = find(((i-div(bsz,2)) .>= 1) & bsz.>1 )
+Itmp  = sub2ind(S.sz,i[Iin]-div(bsz[Iin],2),j[Iin],k[Iin]);
 for kk = 1:length(Iin); if S.SV[Itmp[kk]] > 0; upper[Iin[kk]] = 4; end; end
 
 ## LOWER ==============================================
@@ -48,15 +48,15 @@ for kk = 1:length(Itmp)
         if S.SV[Itmp[kk],1] == 0;left[Iin[kk]] = 1; end
 end
 ##   CHECK FOR 4 NEIGHBORS IF j-sz/2 >=1
-Iin   = find(((j-bsz/2) .>= 1) .== true &  (mod(bsz,2) .== 0) .== true)
-Itmp  = sub2ind(S.sz,i[Iin],j[Iin]-round(Int64,bsz[Iin]/2),k[Iin])
+Iin   = find(((j-div(bsz,2)) .>= 1) &  bsz.>1 )
+Itmp  = sub2ind(S.sz,i[Iin],j[Iin]-div(bsz[Iin],2),k[Iin])
 for kk = 1:length(Itmp)
         if S.SV[Itmp[kk],1] > 0; left[Iin[kk]] = 4; end
 end
 left[Iin[find(S.SV[Itmp,1].>0)]] = 4
 
 ## RIGHT ===============================================================
-Iin   = find((j+bsz.<=m2))
+Iin   = find(j+bsz.<=m2)
 Itmp = sub2ind(S.sz,i[Iin],j[Iin]+bsz[Iin],k[Iin])
 right[Iin] = 4
 for kk = 1:length(Itmp)
@@ -75,12 +75,12 @@ for kk = 1:length(Itmp)
         if S.SV[Itmp[kk],1] == 0;front[Iin[kk]] = 1; end
 end
 ##   CHECK FOR 4 NEIGHBORS IF j-sz/2 >=1
-Iin   = find(((k-bsz/2) .>= 1) .== true & (mod(bsz,2) .== 0) .== true)
-Itmp  = sub2ind(S.sz,i[Iin],j[Iin],k[Iin]-round(Int64,bsz[Iin]/2))
+Iin   = find(((k-div(bsz,2)) .>= 1)  & bsz.>1 )
+Itmp  = sub2ind(S.sz,i[Iin],j[Iin],k[Iin]-div(bsz[Iin],2))
 front[Iin[find(S.SV[Itmp,1].>0)]] = 4
 
 ## Back ==========================================================
-Iin   = find((k+bsz.<=m3))
+Iin   = find(k+bsz.<=m3)
 Itmp = sub2ind(S.sz,i[Iin],j[Iin],k[Iin]+bsz[Iin])
 back[Iin] = 4
 for kk = 1:length(Itmp)

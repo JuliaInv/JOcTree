@@ -3,7 +3,7 @@ export getNodalConstraints
 function getNodalConstraints(M::OcTreeMesh)
   if isempty(M.Nn)
     if all(M.S.SV.nzval.==M.S.SV.nzval[1]) # uniform mesh
-      Nn   = nnz(getNodalNumbering(M))
+      Nn = prod(M.n+1)
       M.Nn = speye(Nn)
       M.Qn = speye(Nn)
     else
@@ -15,10 +15,6 @@ end
 
 function getNodalConstraints(S::SparseArray3D)
   i,j,k,bsz = find3(S)
-  i       = round(Int64,i)
-  j       = round(Int64,j)
-  k       = round(Int64,k)
-  bsz     = round(Int64,bsz)
   
   upper,lower,left,right,front,back = getNumberOfNeighbors(S)
   nn = [upper; lower; left; right; front; back]

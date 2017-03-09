@@ -76,7 +76,9 @@ end
 function getindex(S::SparseArray3D,i::Vector{Int},j::Vector{Int},k::Vector{Int})
 	sz = (length(i), length(j), length(k))
 	I,J,K = ndgrid(i,j,k)
-	return reshape(full(S.SV[sub2ind(S.sz,vec(I),vec(J),vec(K))]), sz)
+	si = sub2ind(S.sz,vec(I),vec(J),vec(K))
+	idx = reshape(full(S.SV[si]), sz)   # SLOW  !!!!
+	return idx
 end
 
 function setindex!(S::SparseArray3D, v::Int, i::Int, j::Int, k::Int)

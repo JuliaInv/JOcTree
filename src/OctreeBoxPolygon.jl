@@ -27,18 +27,19 @@ max_y = maximum(y)
 while true
    i,j,k,bsz = find3(S)
    nns = nnz(S)
-   tau = zeros(nns)
+   splitcells = zeros(Int, nns)
+   nsplit = 0  # counter for the number of cells to split.
 
    for ic = 1:nns
-      ii = i[ic]
-      jj = j[ic]
-      kk = k[ic]
       bb = bsz[ic]
 
       if bb <= cellsize
          continue  # cell is already small
       end
 
+      ii = i[ic]
+      jj = j[ic]
+      kk = k[ic]
 
       if kk+bb-1 >= k1 && kk <= k2
          # X,Y points making up the cell
@@ -54,12 +55,16 @@ while true
 
          if poly_in_cell
             # Cell gets split if the polygon is inside the cell.
-   	      tau[ic] = 1  # large cell to split
+            # large cell to split
+            nsplit += 1
+            splitcells[nsplit] = ic
 
          elseif insidePolygon(x,y, xx0,yy0) || insidePolygon(x,y, xx0,yy1) ||
                 insidePolygon(x,y, xx1,yy0) || insidePolygon(x,y, xx1,yy1)
             # Cell gets split if any of the corners are inside the polygon.
-   	      tau[ic] = 1  # large cell to split
+            # large cell to split
+            nsplit += 1
+            splitcells[nsplit] = ic
          end
 
       end  # kk+bb-1 >= k1 && kk <= k2
@@ -67,11 +72,11 @@ while true
    end  # ic
 
 
-   if all(tau .== 0)
+   if nsplit == 0
       break  # we are done
    end
 
-   S = refineOcTree(S,tau,0.9)
+   S = splitCells(i,j,k,bsz, S.sz, splitcells[1:nsplit])
 
 end  # while
 
@@ -101,18 +106,20 @@ max_y = maximum(y)
 while true
    i,j,k,bsz = find3(S)
    nns = nnz(S)
-   tau = zeros(nns)
+ 
+   splitcells = zeros(Int, nnz(S))
+   nsplit = 0  # counter for the number of cells to split.
 
    for ic = 1:nns
-      ii = i[ic]
-      jj = j[ic]
-      kk = k[ic]
       bb = bsz[ic]
 
       if bb <= cellsize
       	continue  # cell is already small
       end
 
+      ii = i[ic]
+      jj = j[ic]
+      kk = k[ic]
 
       k1 = minimum(itopo[ii:ii+bb-1, jj:jj+bb-1])
       k2 = maximum(itopo[ii:ii+bb-1, jj:jj+bb-1])
@@ -131,12 +138,16 @@ while true
 
          if poly_in_cell
             # Cell gets split if the polygon is inside the cell.
-            tau[ic] = 1  # large cell to split
+            # large cell to split
+            nsplit += 1
+            splitcells[nsplit] = ic
 
          elseif insidePolygon(x,y, xx0,yy0) || insidePolygon(x,y, xx0,yy1) ||
                 insidePolygon(x,y, xx1,yy0) || insidePolygon(x,y, xx1,yy1)
             # Cell gets split if any of the corners are inside the polygon.
-            tau[ic] = 1  # large cell to split
+            # large cell to split
+            nsplit += 1
+            splitcells[nsplit] = ic
          end
 
       end  # kk+bb-1 >= k1 && kk <= k2
@@ -144,11 +155,11 @@ while true
    end  # ic
 
 
-   if all(tau .== 0)
+   if nsplit == 0 
       break  # we are done
    end
 
-   S = refineOcTree(S,tau,0.9)
+   S = splitCells(i,j,k,bsz, S.sz, splitcells[1:nsplit])
 
 end  # while
 
@@ -182,18 +193,20 @@ max_y = maximum(y)
 while true
    i,j,k,bsz = find3(S)
    nns = nnz(S)
-   tau = zeros(nns)
+ 
+   splitcells = zeros(Int, nnz(S))
+   nsplit = 0  # counter for the number of cells to split.
 
    for ic = 1:nns
-      ii = i[ic]
-      jj = j[ic]
-      kk = k[ic]
       bb = bsz[ic]
 
       if bb <= cellsize
       	continue  # cell is already small
       end
 
+      ii = i[ic]
+      jj = j[ic]
+      kk = k[ic]
 
       k1 = minimum(itopo[ii:ii+bb-1, jj:jj+bb-1]) - ndepth
       k2 = maximum(itopo[ii:ii+bb-1, jj:jj+bb-1])
@@ -212,12 +225,16 @@ while true
 
          if poly_in_cell
             # Cell gets split if the polygon is inside the cell.
-            tau[ic] = 1  # large cell to split
+            # large cell to split
+            nsplit += 1
+            splitcells[nsplit] = ic
 
          elseif insidePolygon(x,y, xx0,yy0) || insidePolygon(x,y, xx0,yy1) ||
                 insidePolygon(x,y, xx1,yy0) || insidePolygon(x,y, xx1,yy1)
             # Cell gets split if any of the corners are inside the polygon.
-            tau[ic] = 1  # large cell to split
+            # large cell to split
+            nsplit += 1
+            splitcells[nsplit] = ic
          end
 
       end  # kk+bb-1 >= k1 && kk <= k2
@@ -225,11 +242,11 @@ while true
    end  # ic
 
 
-   if all(tau .== 0)
+   if nsplit == 0
       break  # we are done
    end
 
-   S = refineOcTree(S,tau,0.9)
+   S = splitCells(i,j,k,bsz, S.sz, splitcells[1:nsplit])
 
 end  # while
 

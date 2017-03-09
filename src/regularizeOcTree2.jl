@@ -26,6 +26,7 @@ while true
   # Unit coefficient node to cell center matrix.
    m1,m2,m3 = S.sz
    i,j,k,bsz = find3(S)
+   meshsize = nnz(S)
 
    ii = vcat( i, i+bsz, i,     i+bsz, i,     i+bsz, i,     i+bsz )
    jj = vcat( j, j,     j+bsz, j+bsz, j,     j,     j+bsz, j+bsz )
@@ -37,9 +38,9 @@ while true
    j = uniqueidx( ijk )[3]
    ii=0; jj=0; kk=0;
    
-   i = repmat((1:nnz(S)), 8, 1)
+   i = vec( repmat((1:meshsize), 8, 1) )
    #N = spones(sparse(i,j,1))
-   N = sparse(vec(i), vec(j), ones(Int8,length(i)) )
+   N = sparse(i, j, ones(Int8,length(i)) )
 
 
    # Cell center to cell center matrix via nodal connectivity: cells are
@@ -47,8 +48,8 @@ while true
    #N = spones(N * N')
    # N = spones( A_mul_Bt(N,N) )
    N = A_mul_Bt(N,N)
-   fill!(N.nzval, 1)
-   #N = getNNT(N)
+ #  fill!(N.nzval, 1)
+ 
   
    # Sparse tabular lookup of cell sizes: the j-th column contains the cell
    # size of the j-th cell and of all its neighbours.
@@ -69,7 +70,7 @@ while true
    Lrowval = Array{Int64}(nnzN)
    Lnzval  = Array{Bool}(nnzN)
    nnzL = 1
-   for ir = 1:length(bsz)
+   for ir = 1:meshsize
       j1 = N.colptr[ir]
       j2 = N.colptr[ir+1] - 1
       Lcolptr[ir] = nnzL
@@ -105,69 +106,12 @@ while true
    end
   
    # Refine larger neighbours.
-  # tau = zeros(size(bsz))
-  # tau[i] = 1
   # S = refineOcTree_(S, tau, 0.9)
    S = splitCells(S, i)
-  # tau = 0
   
 end  # while
 
 return S
-
 end # function regularizeOcTree2
 
 #----------------------------------------------------
-
-#function getNNT( N::SparseMatrixCSC )
-#
-#m = size(N,1)
-#n = size(N,2)
-##NNT = spzeros(m,m)
-#
-#nnzNN = nnz(N) * 20
-#ii = Array{Int64}(nnzNN)
-#jj = Array{Int64}(nnzNN)
-#
-#idx = 0
-#
-#for i = 1:n
-#
-#   j1 = N.colptr[i]
-#   j2 = N.colptr[i+1] - 1
-#
-#   for j = j1:j2
-#      jcol1 = N.rowval[j]
-#	   
-#	   for k = j:j2
-#         jcol2 = N.rowval[k]
-#
-#		   idx += 1
-#		   ii[idx] = jcol1
-#		   jj[idx] = jcol2
-#         
-#         if k != j
-#			   idx += 1
-#			   ii[idx] = jcol2
-#			   jj[idx] = jcol1
-#		   end
-#
-#	   end  # k
-#   end  # j	
-#
-#end  # i
-#
-#vv = trues(idx)
-#
-##println(nnzNN," ", idx)
-##if ( idx > nnzNN )
-##   error("idx > nnzNN")
-##end
-#
-#NNT = sparse(ii[1:idx], jj[1:idx], vv, m,m)
-##println("nnz(NNT) idx  ", nnz(NNT)," ", idx)
-#
-#return NNT	
-#end # function getNNT
-
-
