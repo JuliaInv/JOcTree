@@ -1,75 +1,70 @@
 module JOcTree
 
-# using jInv.Mesh.AbstractMesh
-# using jInv.Mesh.ndgrid
-importall jInv.Mesh
-using jInv.Utils
-export OcTreeMesh
-abstract OcTreeMesh <: AbstractMesh
+    importall jInv.Mesh
+    using jInv.Utils
+    export OcTreeMesh
+    abstract OcTreeMesh <: AbstractMesh
 
-include("sparse3.jl")
-include("OcTreeMeshFV.jl")
-include("OcTreeMeshFEM.jl")
+    include("sparse3.jl")
+    include("OcTreeMeshFV.jl")
+    include("display.jl")
 
-include("findNonRegularBlocks.jl")
-include("findBlocks.jl")
-include("getCellNumbering.jl")
-include("getCellCenteredGrid.jl")
-include("getCurlMatrixRec.jl")
-include("getDivergenceMatrixRec.jl")
-include("getEdgeToCellCenteredMatrix.jl")
-include("getEdgeMassMatrix.jl")
-include("getEdgeMassMatrixAnisotropic.jl")
-include("getEdgeMassMatrixAnisotropicNoWeight.jl")
-include("getEdgeNumbering.jl")
-include("getEdgeGrids.jl")
-include("getEdgeSize.jl")
-include("getEdgeInterpolationMatrix.jl")
-include("getFaceToCellCenteredMatrix.jl")
-include("getFaceMassMatrix.jl")
-include("getFaceGrids.jl")
-include("getFaceSize.jl")
-include("getFaceNumbering.jl")
-include("getFaceInterpolationMatrix.jl")
-include("getInterpolationMatrix.jl")
-include("getNodalConstraints.jl")
-include("getFaceConstraints.jl")
-include("getNodalMassMatrix.jl")
-include("getNodalInterpolationMatrix.jl")
-include("getNodalNumbering.jl")
-include("getNodalGradientRec.jl")
-include("getNodalGrid.jl")
-include("getNodesToCellCenteredMatrix.jl")
-include("getNumberOfNeighbors.jl")
-include("regularizeOcTree.jl")
-include("refineOcTree.jl")
-include("getVolume.jl")
-include("getLength.jl")
-include("uniteOcTrees.jl")
+    include("getNumbering.jl")
+    include("getGrids.jl")
+    include("getEdgeSize.jl")
+    include("getFaceSize.jl")
 
-include("createOcTreeFromBox.jl")
-include("getEdgeIntegralOfPolygonalChain.jl")
-include("createOcTreeFromImage.jl")
-include("initCoarseOcTree.jl")
+    include("getCurlMatrixRec.jl")
+    include("getDivergenceMatrixRec.jl")
+    include("getNodalGradientRec.jl")
 
-include("display.jl")
+    include("getEdgeMassMatrix.jl")
+    include("getEdgeMassMatrixAnisotropic.jl")
+    include("getEdgeMassMatrixAnisotropicNoWeight.jl")
+    include("getFaceMassMatrix.jl")
+    include("getNodalMassMatrix.jl")
 
-include("getEdgeConstraints.jl")
-include("createOcTreeMesh.jl")
-include("OctreeBoxPolygon.jl")
+    include("getEdgeInterpolationMatrix.jl")
+    include("getFaceInterpolationMatrix.jl")
+    include("getNodalInterpolationMatrix.jl")
+    
+    include("getInterpolationMatrix.jl")
+    include("getEdgeToCellCenteredMatrix.jl")
+    include("getFaceToCellCenteredMatrix.jl")
+    include("getNodesToCellCenteredMatrix.jl")
 
-#include("createSmallMeshFromTX.jl")
-#include("createOcTreeFromTRX.jl")
+    include("findNonRegularBlocks.jl")
+    include("findBlocks.jl")
 
-include("regularizeOcTree2.jl")
-include("splitCells.jl")
-include("getInterfaceWeights.jl")
+    include("getNodalConstraints.jl")
+    include("getEdgeConstraints.jl")
+    include("getFaceConstraints.jl")
 
-#include("getLocalElementMatrices.jl") 
-#include("getMassMatrixFEM.jl") 
-#include("getDiffMassMatrixFEM.jl")
+    include("regularizeOcTree.jl")
+    include("regularizeOcTree2.jl")
 
-# include("plot.jl")
+    include("getNumberOfNeighbors.jl")
+    include("getVolume.jl")
+    include("getLength.jl")
 
+    include("getEdgeIntegralOfPolygonalChain.jl")
+    
+    include("refineOcTree.jl")    
+    include("splitCells.jl")
+    include("uniteOcTrees.jl")
+
+    include("getInterfaceWeights.jl")
+
+    # Mesh Creation
+    include("createOcTree/initCoarseOcTree.jl")
+    include("createOcTree/createOcTreeFromBox.jl")
+    include("createOcTree/createOcTreeFromImage.jl")
+    # include("createOcTree/createOcTreeFromPoints.jl")
+    # include("createOcTree/createOcTreeFromTopo.jl")
+    include("createOcTree/createOcTreeMesh.jl")
+    include("createOcTree/OctreeBoxPolygon.jl")
+
+    include("IO/importUBC.jl")
+    include("IO/exportUBC.jl")
 
 end
