@@ -30,10 +30,9 @@ while !isRegularTree
          #S = sparse3(ii,jj,kk,vv,[m1,m2,m3])
          
          S = splitCells(i,j,k,bsz, S.sz, Inr)
-    end
+    end  #  !isempty(Inr)
 
-end
+end  # while !isRegularTree
 
 return S
-
 end # function regularizeOcTree

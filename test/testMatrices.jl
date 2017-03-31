@@ -1,26 +1,19 @@
 
 using JOcTree
-using MaxwellUtils
 using Base.Test
 
 include("getFunction.jl")
- 
+include("randomOctreeMesh.jl") 
 
-#-------------------------------------------
 
-function randomOctreeMesh( n::Vector, nrand )
-# Create random octree mesh
-   S = initializeOctree(n)
+# Test the following matrices:
+#   getNodalGradientMatrix, getCurlMatrix, getDivergenceMatrix
+# These routines (mostly) depend on:
+#   getFaceSize, getEdgeSize, getFaceNumbering, getEdgeNumbering,
+#   getNodalNumbering, getNumberOfNeighbors, getCellNumbering
 
-   ii = rand(1:n[1], nrand)
-   jj = rand(1:n[2], nrand)
-   kk = rand(1:n[3], nrand)
 
-   S = octreeRegion(S, ii,jj,kk, 1)
-   S = regularizeOcTree2(S)
-
-return S
-end  # function randomOctreeMesh   
+println("Testing: getNodalGradientMatrix, getCurlMatrix, getDivergenceMatrix")
 
 #-------------------------------------------
 
@@ -33,16 +26,9 @@ S = randomOctreeMesh( n, nrand )
 
 M = getOcTreeMeshFV(S, h, x0=x0)
 
-exportOcTreeMeshRoman("mesh.txt", M)
+exportUBCOcTreeMesh("mesh.txt", M)
 
 #-------------------------------------------
-
-# Test the following matrices:
-#   getNodalGradientMatrix, getCurlMatrix, getDivergenceMatrix
-# These routines depend on:
-#   getFaceSize, getEdgeSize, getFaceNumbering, getEdgeNumbering,
-#   getNodalNumbering, getNumberOfNeighbors, getCellNumbering
-
 
 GRAD = getNodalGradientMatrix(M)
 CURL = getCurlMatrix(M)
@@ -66,11 +52,11 @@ println("nnz(CURLGRAD)  ", nnz(CURLGRAD))
 
 xyz = getCellCenteredGrid(M)
 f = getF( xyz[:,1], xyz[:,2], xyz[:,3] )
-exportOcTreeModelRoman("model.txt", M,f)
+exportUBCOcTreeModel("model.txt", M,f)
 
 
 println()
-println("   cells ||dG||inf ||dG||2    ||dD||inf ||dD||2    ||dC||inf ||dC||2")
+println("   cells  ||dG||inf  ||dD||inf  ||dC||inf")
 
 ntests = 4
 NdifGRAD = Array{Float64}(ntests)
@@ -142,41 +128,11 @@ for i = 1:ntests
    difCURL = Cf - aCf
    NdifCURL[i] = norm(difCURL, Inf)
 
-   #-------------------------------------------
 
-   #   Ae = getEdgeAverageMatrix(M)
-   #   EX,EY,EZ = getEdgeGrids(M)
-   #   fx = getF( EX[:,1], EX[:,2], EX[:,3] )
-   #   fy = getF( EY[:,1], EY[:,2], EY[:,3] )
-   #   fz = getF( EZ[:,1], EZ[:,2], EZ[:,3] )
-   #   f = [fx ; fy ; fz]  # on edges
-   #
-   #   Aef = Ae * f  # averaging from edges to cell centres
-   #   xyz = getCellCenteredGrid(M)
-   #   af = getF( xyz[:,1], xyz[:,2], xyz[:,3] )
-   #   difAe = Aef - repmat(af,24)
-   #
-   #   #-------------------------------------------
-   #
-   #   Af = getFaceAverageMatrix(M)
-   #   EX,EY,EZ = getFaceGrids(M)
-   #   fx = getF( EX[:,1], EX[:,2], EX[:,3] )
-   #   fy = getF( EY[:,1], EY[:,2], EY[:,3] )
-   #   fz = getF( EZ[:,1], EZ[:,2], EZ[:,3] )
-   #   f = [fx ; fy ; fz]  # on faces
-   #
-   #   Aff = Af * f  # averaging from faces to cell centres
-   #   xyz = getCellCenteredGrid(M)
-   #   af = getF( xyz[:,1], xyz[:,2], xyz[:,3] )
-   #   difAf = Aff - af
-
-
-   @printf("%8i %.3e  %.3e  %.3e \n",
-            ncells[i], NdifGRAD[i], 
-                       NdifDIV[i],  
-                       NdifCURL[i] )
-#                    norm(difAe, Inf),   norm(difAe),
-#                    norm(difAf, Inf),   norm(difAf) )
+   @printf("%8i  %.3e  %.3e  %.3e \n",
+               ncells[i], NdifGRAD[i], 
+                          NdifDIV[i],  
+                          NdifCURL[i] )
 
    if i < ntests
       S = refineOcTree(S, ones(nnz(S)), 0.1 )

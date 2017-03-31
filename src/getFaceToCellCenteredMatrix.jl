@@ -48,30 +48,42 @@ return Af, Ax, Ay, Az
 
 end
 
+
+using MaxwellUtils.DiagTimesM
+using MaxwellUtils.MTimesDiag
+
 function getFaceToCellCenteredMatrix(S)
 # [A, A1, A2, A3] = getFaceToCellCenteredMatrix(S)
 
-A      = getDivergenceMatrixRec(S,[1,1,1])
+DIV      = getDivergenceMatrixRec(S,[1,1,1])
 FX,FY,FZ = getFaceSize(S)
-HF       = sdiag([nonzeros(FX);nonzeros(FY);nonzeros(FZ)])
 
-for ii = 1:nnz(A)
-   A.nzval[ii] = 1.0
-end
+HF = vcat(nonzeros(FX), nonzeros(FY), nonzeros(FZ))
 
-A  = A*(HF.^2);
+A = DIV
+#for ii = 1:nnz(A)
+#   A.nzval[ii] = 1.0
+#end
+fill!(A.nzval, 1.0)
+
+HF = HF.^2
+#A  = A*(HF.^2);
+A = MTimesDiag(A, HF)
 
 NF1 = nnz(FX); NF2 = nnz(FY); NF3 = nnz(FZ);
 A1 = A[:,1:NF1]; A2 = A[:,(1+NF1):(NF1+NF2)];  A3 = A[:,(1+NF1+NF2):end]; 
 
 # make sure it sums to 1.
-W1 = sdiag(1./vec(sum(A1,2)));
-W2 = sdiag(1./vec(sum(A2,2)));
-W3 = sdiag(1./vec(sum(A3,2)));
+W1 = 1. ./ vec(sum(A1,2))
+W2 = 1. ./ vec(sum(A2,2))
+W3 = 1. ./ vec(sum(A3,2))
 
-A1 = W1*A1; A2 = W2*A2; A3 = W3*A3;
+#A1 = W1*A1; A2 = W2*A2; A3 = W3*A3;
+A1 = DiagTimesM(W1, A1)
+A2 = DiagTimesM(W2, A2)
+A3 = DiagTimesM(W3, A3)
 
-A = [A1  A2   A3]
+A = [A1  A2  A3]
 
 return A, A1, A2, A3
 

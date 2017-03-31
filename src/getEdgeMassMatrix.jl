@@ -1,4 +1,5 @@
-export getEdgeMassMatrix, getdEdgeMassMatrix, getEdgeMassMatrixNoWeight
+export getEdgeMassMatrix, getdEdgeMassMatrix, getEdgeMassMatrixNoWeight,
+       DerivativeTimesVector, DerivativeTrTimesVector
 
 
 function getEdgeMassMatrix(M::OcTreeMeshFV,sigma::Vector)
@@ -45,10 +46,54 @@ end
 #-----------------------------------------------------
 
 function getdEdgeMassMatrix(M::OcTreeMeshFV,v::Vector)
-
+    # Derivative
     if isempty(M.Pe)
         M.Pe = getEdgeMassMatrixAnisotropic(M.S,M.h)
     end
     dM = M.Pe'* sdiag(M.Pe*v) *  kron(ones(24),speye(nnz(M.S)))
     return dM
 end
+
+
+function DerivativeTimesVector(M::OcTreeMeshFV, v::Vector,
+                               x::Vector)
+   # Derivative (getdEdgeMassMatrix) times a vector(x)
+   if isempty(M.Pe)
+      M.Pe = getEdgeMassMatrixAnisotropic(M.S,M.h)
+   end
+
+  # dM = M.Pe'* sdiag(M.Pe*v) * kron(ones(24,1),speye(nnz(M.S)))
+
+   pv = M.Pe * v
+
+   dMw = M.Pe' * (pv .* repmat(x,24))
+   
+   return dMw
+end  # function DerivativeTimesVector
+
+function DerivativeTrTimesVector(M::OcTreeMeshFV, v::Vector,
+                                 x::Vector)
+   # Derivative (getdEdgeMassMatrix) transpose times a vector(x)
+   if isempty(M.Pe)
+      M.Pe = getEdgeMassMatrixAnisotropic(M.S,M.h)
+   end
+
+  # dM' = kron(ones(24,1),speye(nnz(M.S)))' * sdiag(M.Pe*v) * M.Pe
+
+   pv = M.Pe * v
+   dd = pv .* (M.Pe * conj(x)) 
+   pv = [] 
+
+   ns = nnz(M.S)
+   dMTw = dd[1:ns]
+
+   j = ns
+   for i = 2:24
+      @inbounds dMTw += dd[j+1 : j+ns]
+      j += ns
+   end  # i
+   dMTw = conj(dMTw)
+
+   return dMTw
+end  # function DerivativeTrTimesVector
+

@@ -1,9 +1,8 @@
 
-S = initializeOctree([256, 256, 256])
-for i in 1:4
-    refineInd = unique(rand(1:nnz(S),5))
-    S = splitCells(S, refineInd)
-end
+include("randomOctreeMesh.jl") 
+S = randomOctreeMesh( [256, 256, 256], 5 )
+
+
 meshOut = getOcTreeMeshFV(S, rand(1.:100.0,3); x0=rand(1.:100.0,3))
 modelOut = rand(1:0.1:100, meshOut.nc)
 exportUBCOcTreeMesh("mesh.msh", meshOut)

@@ -6,7 +6,8 @@ i,j,k,bsz = find3(S)
 
 
 #I = find([bsz .>1] .== true & [abs(tau) .>tol] .== true)
-I = find([bsz .>1;] .== true & [abs(tau) .>tol;] .== true)
+#I = find([bsz .>1;] .== true & [abs(tau) .>tol;] .== true)
+I = find( (bsz .> 1)  & (abs(tau) .> tol) )
 
 if !isempty(I)
     # compute entries stying unmodified (Ic = set complement of I)

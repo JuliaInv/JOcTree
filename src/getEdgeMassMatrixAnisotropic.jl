@@ -78,7 +78,7 @@ nez = nnz(EZ)
 
 # x-edges
 i0 = i;
-i1 = floor(Integer,i + bsz / 2);
+i1 = i + div(bsz, 2)
 j0 = j;
 j1 = j + bsz;
 k0 = k;
@@ -102,7 +102,7 @@ ex111 = merge(ex111, ex011);
 i0 = i;
 i1 = i + bsz;
 j0 = j;
-j1 = floor(Integer,j + bsz / 2);
+j1 = j + div(bsz, 2)
 k0 = k;
 k1 = k + bsz;
 
@@ -126,7 +126,7 @@ i1 = i + bsz;
 j0 = j;
 j1 = j + bsz;
 k0 = k;
-k1 = floor(Integer,k + bsz / 2);
+k1 = k + div(bsz, 2)
 
 ez000 = getNodesFromIndices(EZ.SV,[mx+1;my+1;mz;],i0,j0,k0)
 ez100 = getNodesFromIndices(EZ.SV,[mx+1;my+1;mz;],i1,j0,k0)

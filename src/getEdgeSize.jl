@@ -19,36 +19,36 @@ EYi = Int64[]; EYj = Int64[]; EYk = Int64[];
 EZi = Int64[]; EZj = Int64[]; EZk = Int64[]; 
 EV  = Int64[];
 
-for bsz = 2.^round(Int64,[0:log2(maximum(nonzeros(S)));])
+for bsz = 2.^round(Int64,[0:log2(maximum(BSZ));])
 	ind = find(BSZ.==bsz)
 	i = I[ind]; j = J[ind]; k = K[ind]
 	
-	if ~isempty(i)
-		EV =  [EV;fill(bsz,4*length(i));]
+	if !isempty(i)
+		append!(EV, fill(bsz,4*length(i)) )
 		
 		# get X edges
 		ii  = [  i      ;   i       ;   i       ;    i        ;]
 		jj  = [  j      ;   j.+bsz  ;   j       ;   j.+bsz    ;]
 		kk  = [  k      ;   k       ;   k.+bsz  ;   k.+bsz    ;]
-		EXi = [EXi; ii;]
-		EXj = [EXj; jj;]
-		EXk = [EXk; kk;]
+		append!(EXi, ii)
+		append!(EXj, jj)
+		append!(EXk, kk)
 		
 		# get Y edges
 		ii    = [  i      ;   i.+bsz   ;   i       ;   i.+bsz   ;]
 		jj    = [  j      ;   j        ;   j       ;   j        ;]
 		kk    = kk
-		EYi = [EYi; ii;]
-		EYj = [EYj; jj;]
-		EYk = [EYk; kk;]
+		append!(EYi, ii)
+		append!(EYj, jj)
+		append!(EYk, kk)
 		
 		# get Z edges
 		ii    = ii
 		jj    = [  j       ;    j       ;   j.+bsz   ;   j.+bsz  ; ]
 		kk    = [  k       ;    k       ;   k        ;   k       ; ]
-		EZi = [EZi; ii;]
-		EZj = [EZj; jj;]
-		EZk = [EZk; kk;]
+		append!(EZi, ii)
+		append!(EZj, jj)
+		append!(EZk, kk)
 	end
 end
 

@@ -1,16 +1,29 @@
 export initializeOctree, OctreeBox, octreeRegion
 
 
-function initializeOctree( n::Vector{Int64}) # number of underlying cells
+function initializeOctree( n::Vector{Int64},   # number of underlying cells
+                           bsz::Int64=0)  # cell size (0 for largest)
 # Initialize octree mesh to the coarsest cells
 
-nb = minimum(n)  # largest cell size
+if !(ispow2(n[1]) && ispow2(n[2]) && ispow2(n[3]))
+   error("n must be power of 2.")
+end
+
+if bsz == 0
+   nb = minimum(n)  # largest cell size
+else
+   if !ispow2(bsz) || bsz < 0
+      error("bsz must be power of 2.")
+   elseif any( n .< bsz )
+      error("bsz is too large.")
+   end
+   nb = bsz
+end
+
 i,j,k = ndgrid(1:nb:n[1], 1:nb:n[2], 1:nb:n[3])
-
 b = fill(nb, length(i))
-#S = sparse3(vec(i),vec(j),vec(k), ones(Int,prod(size(i)))*nb, n)
-S = sparse3(vec(i),vec(j),vec(k), b, n)
 
+S = sparse3(vec(i),vec(j),vec(k), b, n)
 return S	
 end # function initializeOctree
 
@@ -24,9 +37,9 @@ function OctreeBox( S::SparseArray3D,
 # S( i1:i2, j1:j2, k1:k2 ) = cellsize
 
 if  i1>i2 || j1>j2 || k1>k2 ||
-	 i1<1 || i2>S.sz[1] ||
-	 j1<1 || j2>S.sz[2] ||
-	 k1<1 || k2>S.sz[3]
+    i1<1 || i2>S.sz[1] ||
+    j1<1 || j2>S.sz[2] ||
+    k1<1 || k2>S.sz[3]
    error("i1>i2 || j1>j2 || k1>k2 ...")
 end
 
@@ -42,7 +55,7 @@ while true
       bb = bsz[ic]
 
       if bb <= cellsize
-      	continue  # cell is already small
+         continue  # cell is already small
       end
 
       ii = i[ic]
@@ -70,15 +83,13 @@ while true
 end  # while
 
 return S
-
 end # function OctreeBox
 
 #------------------------------------------------------------
 
 function octreeRegion( S::SparseArray3D,
-	                    i1::Vector{Int64}, j1::Vector{Int64}, k1::Vector{Int64},
-                      cellsize::Int64 )
-
+                       i1::Vector{Int64}, j1::Vector{Int64}, k1::Vector{Int64},
+                       cellsize::Int64 )
 #  S( i1, j1, k1 ) = cellsize
 
 npts = length(i1)
@@ -95,8 +106,8 @@ min_k = minimum(k1)
 max_k = maximum(k1)
 
 if  min_i<1 || max_i>S.sz[1] ||
-	 min_j<1 || max_j>S.sz[2] ||
-	 min_k<1 || max_k>S.sz[3]
+    min_j<1 || max_j>S.sz[2] ||
+    min_k<1 || max_k>S.sz[3]
    error("min_i<1 || max_i>S.sz[1] ...")
 end
 
@@ -113,7 +124,7 @@ while true
       bb = bsz[ic]
 
       if bb <= cellsize
-      	continue  # cell is already small
+         continue  # cell is already small
       end
 
       ii = i[ic]
@@ -123,7 +134,7 @@ while true
       if ii+bb-1 < min_i || ii > max_i || 
          jj+bb-1 < min_j || jj > max_j || 
          kk+bb-1 < min_k || kk > max_k
-      	continue  # cell outside of region
+         continue  # cell outside of region
       end
 
 
@@ -154,7 +165,6 @@ end  # while
 
 
 return S
-
 end # function octreeRegion
 
 
