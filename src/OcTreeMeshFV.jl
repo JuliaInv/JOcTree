@@ -23,6 +23,8 @@ type OcTreeMeshFV <: OcTreeMesh
 	Ne::SparseMatrixCSC # Edge nullspace matrix
 	Qe::SparseMatrixCSC # Edge projection matrix
 	activeEdges::Vector{Int64}   # lookup table for new edge enumeration
+	activeFaces::Vector{Int64}   # lookup table for new face enumeration
+	activeNodes::Vector{Int64}   # lookup table for new node enumeration
 	Nn::SparseMatrixCSC # Node nullspace matrix
 	Qn::SparseMatrixCSC # Node projection matrix
 	Nf::SparseMatrixCSC # Face nullspace matrix
@@ -62,7 +64,7 @@ function getOcTreeMeshFV(S,h;x0=zeros(3))
 		return OcTreeMeshFV(S, h, x0,
                     		  S.sz,nc,nf,ne,
                     		  empt,empt,empt,       # no Div, Grad, Curl
-                              empt,empt,empt,empt,empt,empt,empt,empt, [0],  # no Pf, Pe, Af,Ae,V,L,Ne,Qe,pe
+                              empt,empt,empt,empt,empt,empt,empt,empt, [0],[0],[0],  # no Pf, Pe, Af,Ae,V,L,Ne,Qe,pe,pf,pn
                     		  empt,empt,empt,empt, #no Nn,Qn,Nf,Qf
    							  FX,FY,FZ, EX,EY,EZ,
    							  empt3,empt3,empt3,  # no NFX,NFY,NFZ

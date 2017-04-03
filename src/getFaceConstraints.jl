@@ -6,11 +6,12 @@ function getFaceConstraints(M::OcTreeMesh)
 		if all(M.S.SV.nzval.==M.S.SV.nzval[1]) # uniform mesh
 			M.Nf = speye(sum(M.nf))
 			M.Qf = speye(sum(M.nf))
+			M.activeFaces = [1:sum(M.nf);]
 		else
-			M.Nf,M.Qf, = getFaceConstraints(M.S)
+			M.Nf,M.Qf,Cf,M.activeFaces = getFaceConstraints(M.S)
 		end
 	end
-	return M.Nf,M.Qf
+	return M.Nf,M.Qf,M.activeFaces
 end
 
 function getFaceConstraints(S::SparseArray3D)

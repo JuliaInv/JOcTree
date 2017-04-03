@@ -53,7 +53,7 @@ function getFaceToCellCenteredMatrix(S)
 
 A      = getDivergenceMatrixRec(S,[1,1,1])
 FX,FY,FZ = getFaceSize(S)
-HF       = sdiag([nonzeros(FX);nonzeros(FY);nonzeros(FZ)])
+HF       = Diagonal([nonzeros(FX);nonzeros(FY);nonzeros(FZ)])
 
 for ii = 1:nnz(A)
    A.nzval[ii] = 1.0
@@ -65,9 +65,9 @@ NF1 = nnz(FX); NF2 = nnz(FY); NF3 = nnz(FZ);
 A1 = A[:,1:NF1]; A2 = A[:,(1+NF1):(NF1+NF2)];  A3 = A[:,(1+NF1+NF2):end]; 
 
 # make sure it sums to 1.
-W1 = sdiag(1./vec(sum(A1,2)));
-W2 = sdiag(1./vec(sum(A2,2)));
-W3 = sdiag(1./vec(sum(A3,2)));
+W1 = Diagonal(1./vec(sum(A1,2)));
+W2 = Diagonal(1./vec(sum(A2,2)));
+W3 = Diagonal(1./vec(sum(A3,2)));
 
 A1 = W1*A1; A2 = W2*A2; A3 = W3*A3;
 

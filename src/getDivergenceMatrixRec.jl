@@ -185,12 +185,12 @@ function getDivergenceMatrixRec(S,h)
 
 	N   = [NX  NY  NZ]
 
-	CSZi = sdiag(1./(nonzeros(S).^3*prod(h)))
+	CSZi = Diagonal(1./(nonzeros(S).^3*prod(h)))
 
 	dd = [nonzeros(FX).^2*h[2]*h[3];
 	      nonzeros(FY).^2*h[1]*h[3];
 	      nonzeros(FZ).^2*h[1]*h[2];]
-	FSZ = sdiag(dd)
+	FSZ = Diagonal(dd)
 
 	DIV = CSZi * N * FSZ
 	return DIV

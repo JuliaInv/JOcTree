@@ -52,12 +52,31 @@ G3 = sparse(ii, jj, vv, nnz(EZ), nnz(N));
 G = [G1 ; G2 ; G3];
 
 
-ESZi = sdiag(1./[ nonzeros(EX)*h[1]  ;
-                          nonzeros(EY)*h[2] ;
-                          nonzeros(EZ)*h[3] ])
+ESZi = 1./[ nonzeros(EX)*h[1];
+            nonzeros(EY)*h[2];
+            nonzeros(EZ)*h[3] ]
 
-GRAD = ESZi * G
+G = unsafe_scale!(ESZi,G)
 
-return GRAD
+return G
 
+end
+
+import Base.scale!
+
+"""
+unsafe_scale! performs A = spdiagm(b)*A
+modifying A in place and avoiding overhead
+of converting b into a sparse matrix.
+It's unsafe because it doesn't check that
+b and A are of compatible sizes.
+"""
+function unsafe_scale!{T,N}(b::Vector{T}, A::SparseMatrixCSC{T,N})
+    m, n = size(A)
+    Anzval = A.nzval
+    Arowval = A.rowval
+    for col = 1:n, p = A.colptr[col]:(A.colptr[col+1]-1)
+        @inbounds Anzval[p] = Anzval[p] * b[Arowval[p]]
+    end
+    return A
 end
