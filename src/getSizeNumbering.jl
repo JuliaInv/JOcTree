@@ -1,6 +1,7 @@
 
 export getEdgeSizeNumbering, getEdgeSize, getEdgeNumbering,
-       getFaceSizeNumbering, getFaceSize, getFaceNumbering
+       getFaceSizeNumbering, getFaceSize, getFaceNumbering,
+       getNodalNumbering, getCellNumbering
 
 
 
@@ -227,3 +228,73 @@ return FX,  FY,  FZ,   # face sizes
        FXN, FYN, FZN   # face numbering
 end  # function getFaceSizeNumbering
 
+#-------------------------------------------------------------------------
+
+function getNodalNumbering(M::OcTreeMesh)
+    return getNodalNumbering(M.S)
+end
+
+function getNodalNumbering(S::SparseArray3D)
+    # Numbering of the nodes of an OcTree structure
+
+    m1,m2,m3 = S.sz
+    i,j,k,bsz = find3(S)
+
+    ns = nnz(S)
+    ns8 = ns*8
+    ii = Array{Int64}(ns8)
+    jj = Array{Int64}(ns8)
+    kk = Array{Int64}(ns8)
+
+    ii[1:8:ns8] = i
+    ii[2:8:ns8] = i + bsz
+    ii[3:8:ns8] = i
+    ii[4:8:ns8] = i + bsz
+    ii[5:8:ns8] = i
+    ii[6:8:ns8] = i + bsz
+    ii[7:8:ns8] = i
+    ii[8:8:ns8] = i + bsz
+
+    jj[1:8:ns8] = j
+    jj[2:8:ns8] = j
+    jj[3:8:ns8] = j + bsz
+    jj[4:8:ns8] = j + bsz
+    jj[5:8:ns8] = j
+    jj[6:8:ns8] = j
+    jj[7:8:ns8] = j + bsz
+    jj[8:8:ns8] = j + bsz
+
+    kk[1:8:ns8] = k
+    kk[2:8:ns8] = k
+    kk[3:8:ns8] = k
+    kk[4:8:ns8] = k
+    kk[5:8:ns8] = k + bsz
+    kk[6:8:ns8] = k + bsz
+    kk[7:8:ns8] = k + bsz
+    kk[8:8:ns8] = k + bsz
+
+    N = sparse3(ii,jj,kk, kk, [m1+1,m2+1,m3+1])
+    copy!(N.SV.nzval, 1:nnz(N) )
+
+    return N
+end  # function getNodalNumbering
+
+#-------------------------------------------------------------------------
+
+function getCellNumbering(M::OcTreeMesh)
+    return getCellNumbering(M.S)
+end
+
+function getCellNumbering(S::SparseArray3D)
+    sz = collect(size(S.SV))
+    colptr = copy(S.SV.colptr)
+    rowval = copy(S.SV.rowval)
+
+    nz = length(rowval)
+    nzval = collect(1:nz)
+
+    SV = SparseMatrixCSC(sz[1],sz[2], colptr, rowval, nzval)
+
+    CN = SparseArray3D(SV, S.sz)
+    return CN
+end  # function getCellNumbering

@@ -9,7 +9,7 @@ module JOcTree
     include("OcTreeMeshFV.jl")
     include("display.jl")
 
-    include("getNumbering.jl")
+   # include("getNumbering.jl")
     include("getGrids.jl")
    # include("getEdgeSize.jl")
    # include("getFaceSize.jl")
