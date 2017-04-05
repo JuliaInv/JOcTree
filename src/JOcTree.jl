@@ -11,8 +11,8 @@ module JOcTree
 
     include("getNumbering.jl")
     include("getGrids.jl")
-    include("getEdgeSize.jl")
-    include("getFaceSize.jl")
+   # include("getEdgeSize.jl")
+   # include("getFaceSize.jl")
     include("getSizeNumbering.jl")
 
     include("getCurlMatrixRec.jl")
