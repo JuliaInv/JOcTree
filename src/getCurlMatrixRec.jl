@@ -19,10 +19,13 @@ function getCurlMatrixRec(M)
 S = M.S; h = M.h
 
 m1,m2,m3    = S.sz
-FX,FY,FZ    = getFaceSize(M)
-EX,EY,EZ    = getEdgeSize(M)
-NFX,NFY,NFZ = getFaceNumbering(M)
-NEX,NEY,NEZ = getEdgeNumbering(M)
+#FX,FY,FZ    = getFaceSize(M)
+#EX,EY,EZ    = getEdgeSize(M)
+#NFX,NFY,NFZ = getFaceNumbering(M)
+#NEX,NEY,NEZ = getEdgeNumbering(M)
+FX,FY,FZ, NFX,NFY,NFZ = getFaceSizeNumbering(M)
+EX,EY,EZ, NEX,NEY,NEZ = getEdgeSizeNumbering(M)
+
 
 ######################################################################
 ######################################################################

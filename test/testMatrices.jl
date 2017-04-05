@@ -9,8 +9,8 @@ include("randomOctreeMesh.jl")
 # Test the following matrices:
 #   getNodalGradientMatrix, getCurlMatrix, getDivergenceMatrix
 # These routines (mostly) depend on:
-#   getFaceSize, getEdgeSize, getFaceNumbering, getEdgeNumbering,
-#   getNodalNumbering, getNumberOfNeighbors, getCellNumbering
+#   getFaceSizeNumbering, getEdgeSizeNumbering, getCellNumbering,
+#   getNodalNumbering, getNumberOfNeighbors, sparse3, etc.
 
 
 println("Testing: getNodalGradientMatrix, getCurlMatrix, getDivergenceMatrix")

@@ -21,7 +21,8 @@ function getDivergenceMatrixRec(S::SparseArray3D,h)
   # S = M.S; h = M.h
 
    CN           = getCellNumbering(S)
-   FXN,FYN,FZN  = getFaceNumbering(S)
+   #FXN,FYN,FZN  = getFaceNumbering(S)
+   FX,FY,FZ, FXN,FYN,FZN = getFaceSizeNumbering(S)
    i,j,k,bsz    = find3(S)
    e1           = ones(length(i))
    upper,lower,left,right,front,back = getNumberOfNeighbors(S)
@@ -186,7 +187,7 @@ function getDivergenceMatrixRec(S::SparseArray3D,h)
    NZ += sparse(iind,jind,e,nnz(CN),nnz(FZN))
 
 
-   FX,FY,FZ = getFaceSize(S)
+  # FX,FY,FZ = getFaceSize(S)
 
 
 #   N   = [NX  NY  NZ]

@@ -50,15 +50,17 @@ function getOcTreeMeshFV(S,h;x0=zeros(3))
 		# get number of cells
 		nc   = nnz(S)
 		
-		# get number of faces
-		FX,FY,FZ = getFaceSize(S)
-		nf   = [nnz(FX); nnz(FY); nnz(FZ)]
-		
-		# get number of edges
-		EX,EY,EZ = getEdgeSize(S)
-		ne   = [nnz(EX); nnz(EY); nnz(EZ)]
-		
-		empt3 = sparse3([size(S,1),size(S,2),size(S,3)])
+      # get number of faces
+   #  FX,FY,FZ = getFaceSize(S)
+      FX,FY,FZ, NFX, NFY, NFZ = getFaceSizeNumbering(S)
+      nf   = [nnz(FX); nnz(FY); nnz(FZ)]
+      
+      # get number of edges
+    #  EX,EY,EZ = getEdgeSize(S)
+      EX,EY,EZ, NEX, NEY, NEZ = getEdgeSizeNumbering(S)
+      ne   = [nnz(EX); nnz(EY); nnz(EZ)]
+      
+      empt3 = sparse3([size(S,1),size(S,2),size(S,3)])
 
       return OcTreeMeshFV(S, h, x0,
                           S.sz,nc,nf,ne,
@@ -67,8 +69,8 @@ function getOcTreeMeshFV(S,h;x0=zeros(3))
                           empt,empt,empt,empt, [0],  # no  V,L,Ne,Qe,activeEdges
                           empt,empt,empt,empt, #no Nn,Qn,Nf,Qf
                           FX,FY,FZ, EX,EY,EZ,
-                          empt3,empt3,empt3,  # no NFX,NFY,NFZ
-                          empt3,empt3,empt3)  # no NEX,NEY,NEZ 
+                          NFX, NFY, NFZ, 
+                          NEX, NEY, NEZ)
 end  # function getOcTreeMeshFV
 
 

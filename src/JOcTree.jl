@@ -13,6 +13,7 @@ module JOcTree
     include("getGrids.jl")
     include("getEdgeSize.jl")
     include("getFaceSize.jl")
+    include("getSizeNumbering.jl")
 
     include("getCurlMatrixRec.jl")
     include("getDivergenceMatrixRec.jl")

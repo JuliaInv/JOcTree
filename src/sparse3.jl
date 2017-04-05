@@ -36,22 +36,23 @@ function sparse3(i::Vector{Int},j::Vector{Int},k::Vector{Int},v::Range,sz::Vecto
 end
 
 function sparse3(i::Vector{Int},j::Vector{Int},k::Vector{Int},v::Vector{Int},sz::Vector{Int})
-	IND = sub2ind(sz,i,j,k)
-	p, IND = sortpermFast(IND)
-	v = v[p]
-	# S = sparse(round(Int64,IND),round(Int64,ones(length(IND))),v,round(Int64,prod(sz)),1)
-	S = sparsevec(IND,v,round(Int64,prod(sz)))
-	S3 = SparseArray3D(S,sz)
-	return S3
+   IND = sub2ind(sz,i,j,k)
+   
+   # Note that the following line would sort IND, and v would be permuted.  For
+   # duplicate IND values, a SMALLEST v would be used.
+   IND, v = sortpermFast(IND, v)
+   #v = v[p]
+   S = sparsevec(IND,v, prod(sz))
+   S3 = SparseArray3D(S,sz)
+   return S3
 end
-
 
 
 function sparse3(i::Vector{Int},j::Vector{Int},k::Vector{Int},v::Vector{Int},sz::Vector{Int},combine::Function)
 
         IND = sub2ind(sz,i,j,k)
         # S = sparse(round(Int64,IND),round(Int64,ones(length(IND))),v,round(Int64,prod(sz)),1)
-   	  S = sparsevec(IND,v,round(Int64,prod(sz)),combine)
+   	  S = sparsevec(IND,v, prod(sz), combine)
         return SparseArray3D(S,sz)
 end
 
@@ -93,5 +94,5 @@ end
 
 import Base.==
 function ==(S1::SparseArray3D,S2::SparseArray3D)
-	return (S1.SV==S2.SV) & (S1.sz == S2.sz)
+	return (S1.SV==S2.SV) && (S1.sz == S2.sz)
 end

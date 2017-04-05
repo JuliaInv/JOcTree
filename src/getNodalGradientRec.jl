@@ -18,8 +18,9 @@ function getNodalGradientRec(M)
 
 S = M.S; h = M.h
 N           = getNodalNumbering(M)
-ENX,ENY,ENZ = getEdgeNumbering(M)
-EX,EY,EZ    = getEdgeSize(M)
+#ENX,ENY,ENZ = getEdgeNumbering(M)
+#EX,EY,EZ    = getEdgeSize(M)
+EX,EY,EZ, ENX,ENY,ENZ = getEdgeSizeNumbering(M)
 
 i,j,k,esz = find3(EX)  #; esz = round(Int64,esz)
 
