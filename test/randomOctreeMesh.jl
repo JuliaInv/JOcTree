@@ -8,7 +8,7 @@ function randomOctreeMesh( n::Vector, nrand )
    kk = rand(1:n[3], nrand)
 
    S = octreeRegion(S, ii,jj,kk, 1)
-   S = regularizeOcTree2(S)
+   S = regularizeOcTree(S)
 
 return S
 end  # function randomOctreeMesh   

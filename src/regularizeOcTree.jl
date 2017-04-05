@@ -3,7 +3,7 @@ export regularizeOcTree, regularizeOcTreeFaceNeighbours
 """
 function regularizeOcTree(S::SparseArray3D)
 
-regularizeOcTree2 refines an OcTree mesh such that each OcTree cell only has nodal neighbours that are of the same size, 
+regularizeOcTree refines an OcTree mesh such that each OcTree cell only has nodal neighbours that are of the same size, 
 that are half the size or that are twice the size. In addition, regularizeOcTree2 checks that each OcTree cell has either 
 neighbours that are half the size or neighbours that are twice the size, not both.
 Pairs of cells are face neighbours or nodal neighbours if they share a face or a node.
@@ -127,7 +127,8 @@ end # function regularizeOcTree
 #----------------------------------------------------
 
 function regularizeOcTreeFaceNeighbours(S::SparseArray3D)
-# S = regularizeOcTree(S)
+# S = regularizeOcTreeFaceNeighbours(S)  
+# OLD name regularizeOcTree
 
 isRegularTree = false
 
@@ -160,9 +161,5 @@ while !isRegularTree
 end  # while !isRegularTree
 
 return S
-<<<<<<< HEAD
-end # function regularizeOcTree
-=======
 
 end # function regularizeOcTree
->>>>>>> 623eeedc401ce98db0adfc8ff8bec159758cdff3

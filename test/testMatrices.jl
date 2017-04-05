@@ -136,7 +136,7 @@ for i = 1:ntests
 
    if i < ntests
       S = refineOcTree(S, ones(nnz(S)), 0.1 )
-      S = regularizeOcTree2(S)
+      S = regularizeOcTree(S)
       M = getOcTreeMeshFV(S, h, x0=x0)
    end
 
