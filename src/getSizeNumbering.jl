@@ -1,7 +1,7 @@
 
 export getEdgeSizeNumbering, getEdgeSize, getEdgeNumbering,
        getFaceSizeNumbering, getFaceSize, getFaceNumbering,
-       getNodalNumbering, getCellNumbering
+       getNodalNumbering, getCellNumbering, getVolume, getLength
 
 
 
@@ -126,6 +126,20 @@ function getEdgeSizeNumbering(S::SparseArray3D)
 return EX,  EY,  EZ,   # edge sizes
        EXN, EYN, EZN   # edge numbering
 end  # function getEdgeSizeNumbering
+
+"""
+Mesh.L = getLength(Mesh::OcTreeMesh) computes edge lengths l, returns spdiagm(l)
+"""
+function getLength(Mesh::OcTreeMesh)
+    if isempty(Mesh.L)
+        l1, l2, l3 = getEdgeSize(Mesh)
+        l1 = nonzeros(l1)*Mesh.h[1]
+        l2 = nonzeros(l2)*Mesh.h[2]
+        l3 = nonzeros(l3)*Mesh.h[3]
+        Mesh.L = spdiagm([l1;l2;l3])
+    end
+    return Mesh.L
+end
 
 #-------------------------------------------------------------------------
 
@@ -298,3 +312,15 @@ function getCellNumbering(S::SparseArray3D)
     CN = SparseArray3D(SV, S.sz)
     return CN
 end  # function getCellNumbering
+
+"""
+Mesh.V = getVolume(M::OcTreeMesh) returns diagonal matrix of cell volumes
+"""
+function getVolume(M::OcTreeMesh)
+    if isempty(M.V)
+    	i,j,k,bsz = find3(M.S)
+    	h         = M.h
+    	M.V 		 = spdiagm(bsz.^3*prod(h))
+    end
+    return M.V
+end

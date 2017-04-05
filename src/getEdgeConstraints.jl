@@ -2,11 +2,10 @@ export getEdgeConstraints
 
 function getEdgeConstraints(M::OcTreeMesh)
    if isempty(M.Ne)
-      
       if all(M.S.SV.nzval.==M.S.SV.nzval[1]) # uniform mesh
          M.Ne = speye(sum(M.ne))
          M.Qe = speye(sum(M.ne))
-         M.activeEdges = [1:sum(msh.ne);]
+         M.activeEdges = [1:sum(M.ne);]
       else
          M.Ne,M.Qe, Ce, M.activeEdges = getEdgeConstraints(M.S)
       end

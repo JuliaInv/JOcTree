@@ -7,10 +7,10 @@ function getNodalConstraints(M::OcTreeMesh)
       M.Nn = speye(Nn)
       M.Qn = speye(Nn)
     else
-      M.Nn,M.Qn, = getNodalConstraints(M.S)
+      M.Nn,M.Qn,Cn,M.activeNodes = getNodalConstraints(M.S)
     end
   end
-  return M.Nn,M.Qn
+  return M.Nn,M.Qn,M.activeNodes
 end
 
 function getNodalConstraints(S::SparseArray3D)
