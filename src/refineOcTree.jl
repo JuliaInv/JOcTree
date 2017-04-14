@@ -5,8 +5,6 @@ function refineOcTree(S::SparseArray3D, tau::Vector, tol)
 i,j,k,bsz = find3(S)
 
 
-#I = find([bsz .>1] .== true & [abs(tau) .>tol] .== true)
-#I = find([bsz .>1;] .== true & [abs(tau) .>tol;] .== true)
 I = find( (bsz .> 1)  & (abs(tau) .> tol) )
 
 if !isempty(I)

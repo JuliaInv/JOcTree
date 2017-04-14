@@ -300,7 +300,7 @@ function DerivativeTrTimesVector(M::OcTreeMeshFV, v::Vector,
    # Derivative (getdEdgeMassMatrix) transpose times a vector(x)
    if isempty(M.Pe)
       M.Pe = getEdgeMassMatrixIntegrationMatrix(M.S,M.h)
-   end
+end
 
   # dM' = kron(ones(24,1),speye(nnz(M.S)))' * sdiag(M.Pe*v) * M.Pe
 

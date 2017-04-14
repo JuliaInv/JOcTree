@@ -156,4 +156,3 @@ using PyPlot
 loglog( ncells, NdifGRAD, "r.-")
 loglog( ncells, NdifDIV,  "g.-")
 loglog( ncells, NdifCURL, "b.-")
-

@@ -15,10 +15,6 @@ end
 
 function getNodalConstraints(S::SparseArray3D)
   i,j,k,bsz = find3(S)
-#  i       = round(Int64,i)
-#  j       = round(Int64,j)
-#  k       = round(Int64,k)
-#  bsz     = round(Int64,bsz)
   
   upper,lower,left,right,front,back = getNumberOfNeighbors(S)
   nn = [upper; lower; left; right; front; back]

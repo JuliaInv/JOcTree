@@ -61,7 +61,7 @@ end
 Iin   = find(((j-div(bsz,2)) .>= 1) &  bsz.>1 )
 Itmp  = sub2ind(S.sz,i[Iin],j[Iin]-div(bsz[Iin],2),k[Iin])
 for kk = 1:length(Itmp)
-   if S.SV[Itmp[kk],1] > 0; left[Iin[kk]] = 4; end
+        if S.SV[Itmp[kk],1] > 0; left[Iin[kk]] = 4; end
 end
 left[Iin[find(S.SV[Itmp,1].>0)]] = 4
 

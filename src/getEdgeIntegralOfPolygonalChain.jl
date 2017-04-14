@@ -2,8 +2,7 @@ export getEdgeIntegralOfPolygonalChain
 
 using Base.BLAS
 
-function getEdgeIntegralOfPolygonalChain(mesh::OcTreeMesh, polygon::Array{Float64,2};
-                                         normalize=false)
+function getEdgeIntegralOfPolygonalChain(mesh::OcTreeMesh, polygon::Array{Float64,2}; normalize=false)
 # s = getEdgeIntegralPolygonalChain(mesh,polygon)
 # s = getEdgeIntegralPolygonalChain(mesh,polygon,normalize)
 #
@@ -57,42 +56,42 @@ pz = (polygon[:,3] .- z0) ./ hz .+ 1.0
 
 # check that all polygon vertices are inside the mesh
 j = (px .< 1.0) | (px .> nx + 1.0) |
-    (py .< 1.0) | (py .> ny + 1.0) |
-    (pz .< 1.0) | (pz .> nz + 1.0)
+	(py .< 1.0) | (py .> ny + 1.0) |
+	(pz .< 1.0) | (pz .> nz + 1.0)
 n = sum(j)
 if n > 0
-   if n == 1
-      msg = @sprintf("%d polygon vertex is outside the mesh\n", n)
-   else
-      msg = @sprintf("%d polygon vertices are outside the mesh\n", n)
-   end
-   for i = 1:np+1
-      if j[i]
-         msg = @sprintf("%s       vertex #%d: (%.3f,%.3f,%.3f)\n",
-            msg, i, polygon[i,1], polygon[i,2], polygon[i,3])
-       end
-   end
-   error(msg)
+	if n == 1
+		msg = @sprintf("%d polygon vertex is outside the mesh\n", n)
+	else
+		msg = @sprintf("%d polygon vertices are outside the mesh\n", n)
+	end
+	for i = 1:np+1
+		if j[i]
+			msg = @sprintf("%s       vertex #%d: (%.3f,%.3f,%.3f)\n",
+				msg, i, polygon[i,1], polygon[i,2], polygon[i,3])
+	    end
+	end
+	error(msg)
 end
 
 # check that all polygon vertices are contained in interior cells of mesh
 j = (px .< 2.0) | (px .> nx) |
-    (py .< 2.0) | (py .> ny) |
-    (pz .< 2.0) | (pz .> nz)
+	(py .< 2.0) | (py .> ny) |
+	(pz .< 2.0) | (pz .> nz)
 n = sum(j)
 if n > 0
-   if n == 1
-      msg = @sprintf("%d polygon vertex is too close to the boundary\n", n)
-   else
-      msg = @sprintf("%d polygon vertices are too close to the boundary\n", n)
-   end
-   for i = 1:np+1
-      if j[i]
-         msg = @sprintf("%s       vertex #%d: (%.3f,%.3f,%.3f)\n",
-            msg, i, polygon[i,1], polygon[i,2], polygon[i,3])
-       end
-   end
-   error(msg)
+	if n == 1
+		msg = @sprintf("%d polygon vertex is too close to the boundary\n", n)
+	else
+		msg = @sprintf("%d polygon vertices are too close to the boundary\n", n)
+	end
+	for i = 1:np+1
+		if j[i]
+			msg = @sprintf("%s       vertex #%d: (%.3f,%.3f,%.3f)\n",
+				msg, i, polygon[i,1], polygon[i,2], polygon[i,3])
+	    end
+	end
+	error(msg)
 end
 
 
@@ -131,105 +130,103 @@ tol   = 0.0
 
 # integrate each line segment
 for ip = 1:np
-   
-   # start and end vertices
-   ax = px[ip]
-   ay = py[ip]
-   az = pz[ip]
-   bx = px[ip+1]
-   by = py[ip+1]
-   bz = pz[ip+1]
-   
-   # find intersection with mesh planes
-   dx  = bx - ax
-   dy  = by - ay
-   dz  = bz - az
-   d   = sqrt(dx*dx + dy*dy + dz*dz)
-   tol = d * eps()
-   # x-planes
-   if bx > ax + tol
-      tx = ([ceil(ax):floor(bx);] .- ax) ./ dx
-   elseif ax > bx + tol
-      tx = ([floor(ax):-1.0:ceil(bx);] .- ax) ./ dx
-   else
-      tx = zeros(0)
-   end
-   # y-planes
-   if by > ay + tol
-      ty = ([ceil(ay):floor(by);] .- ay) ./ dy
-   elseif ay > by + tol
-      ty = ([floor(ay):-1.0:ceil(by);] .- ay) ./ dy
-   else
-      ty = zeros(0)
-   end
-   # z-planes
-   if bz > az + tol
-      tz = ([ceil(az):floor(bz);] .- az) ./ dz
-   elseif az > bz + tol
-      tz = ([floor(az):-1.0:ceil(bz);] .- az) ./ dz
-   else
-      tz = zeros(0)
-   end
-   t = unique(sort([0.0; tx; ty; tz; 1.0;]))
-   
-   # number of cells that the current line segment crosses
-   nq = length(t) - 1
-   
-   # integrate by cells
-   for iq = 1:nq
-      
-      # center of line segment
-      tc = 0.5 * (t[iq] + t[iq+1])
-      
-      # locate cell id
-      ix = floor(Integer,ax + tc * dx)
-      iy = floor(Integer,ay + tc * dy)
-      iz = floor(Integer,az + tc * dz)
-      ix,iy,iz,bsz = findBlocks(S,ix,iy,iz)
-      
-      # integration limits in local coordinates
-      axloc = ax + t[iq]   * dx - x[ix]
-      ayloc = ay + t[iq]   * dy - y[iy]
-      azloc = az + t[iq]   * dz - z[iz]
-      bxloc = ax + t[iq+1] * dx - x[ix]
-      byloc = ay + t[iq+1] * dy - y[iy]
-      bzloc = az + t[iq+1] * dz - z[iz]
-      
-      # basis functions are defined on cube of size bsz^3
-      b = bsz * 1.0
-      
-      # integrate
-      getStraightLineCurrentIntegral!(
-         b, b, b, axloc, ayloc, azloc, bxloc, byloc, bzloc,
-         sxloc, syloc, szloc)
-      
-      # find edge numbers
-      jx = ix + bsz
-      jy = iy + bsz
-      jz = iz + bsz
-      kx[1] = EX[ix,iy,iz]
-      kx[2] = EX[ix,jy,iz]
-      kx[3] = EX[ix,iy,jz]
-      kx[4] = EX[ix,jy,jz]
-      ky[1] = EY[ix,iy,iz]
-      ky[2] = ky[1] + 1  # = EY[jx,iy,iz]
-      ky[3] = EY[ix,iy,jz]
-      ky[4] = ky[3] + 1  # = EY[jx,iy,jz]
-      kz[1] = EZ[ix,iy,iz]
-      kz[2] = kz[1] + 1  # = EZ[jx,iy,iz]
-      kz[3] = EZ[ix,jy,iz]
-      kz[4] = kz[3] + 1  # = EZ[jx,jy,iz]
-      
-      # add to source vector
-      for ii = 1:4
-         ss[kx[ii]]         += sxloc[ii] * scaleX
-         ss[ky[ii]+nnX]     += syloc[ii] * scaleY
-         ss[kz[ii]+nnX+nnY] += szloc[ii] * scaleZ
-      end  # ii
-      
+	
+	# start and end vertices
+	ax = px[ip]
+	ay = py[ip]
+	az = pz[ip]
+	bx = px[ip+1]
+	by = py[ip+1]
+	bz = pz[ip+1]
+	
+	# find intersection with mesh planes
+	dx  = bx - ax
+	dy  = by - ay
+	dz  = bz - az
+	d   = sqrt(dx*dx + dy*dy + dz*dz)
+	tol = d * eps()
+	# x-planes
+	if bx > ax + tol
+		tx = ([ceil(ax):floor(bx);] .- ax) ./ dx
+	elseif ax > bx + tol
+		tx = ([floor(ax):-1.0:ceil(bx);] .- ax) ./ dx
+	else
+		tx = zeros(0)
+	end
+	# y-planes
+	if by > ay + tol
+		ty = ([ceil(ay):floor(by);] .- ay) ./ dy
+	elseif ay > by + tol
+		ty = ([floor(ay):-1.0:ceil(by);] .- ay) ./ dy
+	else
+		ty = zeros(0)
+	end
+	# z-planes
+	if bz > az + tol
+		tz = ([ceil(az):floor(bz);] .- az) ./ dz
+	elseif az > bz + tol
+		tz = ([floor(az):-1.0:ceil(bz);] .- az) ./ dz
+	else
+		tz = zeros(0)
+	end
+	t = unique(sort([0.0; tx; ty; tz; 1.0;]))
+	
+	# number of cells that the current line segment crosses
+	nq = length(t) - 1
+	
+	# integrate by cells
+	for iq = 1:nq
+		
+		# center of line segment
+		tc = 0.5 * (t[iq] + t[iq+1])
+		
+		# locate cell id
+		ix = floor(Integer,ax + tc * dx)
+		iy = floor(Integer,ay + tc * dy)
+		iz = floor(Integer,az + tc * dz)
+		ix,iy,iz,bsz = findBlocks(S,ix,iy,iz)
+		
+		# integration limits in local coordinates
+		axloc = ax + t[iq]   * dx - x[ix]
+		ayloc = ay + t[iq]   * dy - y[iy]
+		azloc = az + t[iq]   * dz - z[iz]
+		bxloc = ax + t[iq+1] * dx - x[ix]
+		byloc = ay + t[iq+1] * dy - y[iy]
+		bzloc = az + t[iq+1] * dz - z[iz]
+		
+		# basis functions are defined on cube of size bsz^3
+		b = bsz * 1.0
+		
+		# integrate
+		getStraightLineCurrentIntegral!(
+			b, b, b, axloc, ayloc, azloc, bxloc, byloc, bzloc,
+			sxloc, syloc, szloc)
+		
+		# find edge numbers
+		jx = ix + bsz
+		jy = iy + bsz
+		jz = iz + bsz
+		kx[1] = EX[ix,iy,iz]
+		kx[2] = EX[ix,jy,iz]
+		kx[3] = EX[ix,iy,jz]
+		kx[4] = EX[ix,jy,jz]
+		ky[1] = EY[ix,iy,iz]
+		ky[2] = ky[1] + 1
+		ky[3] = EY[ix,iy,jz]
+		ky[4] = ky[3] + 1
+		kz[1] = EZ[ix,iy,iz]
+		kz[2] = kz[1] + 1
+		kz[3] = EZ[ix,jy,iz]
+		kz[4] = kz[3] + 1
+		
+		# add to source vector
+		for ii = 1:4
+			ss[kx[ii]]         += sxloc[ii] * scaleX
+			ss[ky[ii]+nnX]     += syloc[ii] * scaleY
+			ss[kz[ii]+nnX+nnY] += szloc[ii] * scaleZ
+		end  # ii
    end  # iq
 end  # ip
-
 
 return ss
 end # function getEdgeIntegralOfPolygonalChain
@@ -249,10 +246,10 @@ lz = bz - az
 l  = sqrt(lx*lx + ly*ly + lz*lz);
 
 if l == 0.0
-   fill!(sx, 0.0)
-   fill!(sy, 0.0)
-   fill!(sz, 0.0)
-   return sx, sy, sz
+	fill!(sx, 0.0)
+	fill!(sy, 0.0)
+	fill!(sz, 0.0)
+	return sx, sy, sz
 end
 
 # integration using Simpson's rule: need end points and mid point of interval

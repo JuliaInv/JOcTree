@@ -1,16 +1,16 @@
 export getEdgeConstraints
 
 function getEdgeConstraints(M::OcTreeMesh)
-   if isempty(M.Ne)
-      if all(M.S.SV.nzval.==M.S.SV.nzval[1]) # uniform mesh
-         M.Ne = speye(sum(M.ne))
-         M.Qe = speye(sum(M.ne))
-         M.activeEdges = [1:sum(M.ne);]
-      else
-         M.Ne,M.Qe, Ce, M.activeEdges = getEdgeConstraints(M.S)
-      end
-   end
-   return M.Ne,M.Qe, M.activeEdges
+	if isempty(M.Ne)
+		if all(M.S.SV.nzval.==M.S.SV.nzval[1]) # uniform mesh
+			M.Ne = speye(sum(M.ne))
+			M.Qe = speye(sum(M.ne))
+                        M.activeEdges = [1:sum(M.ne);]
+		else
+			M.Ne,M.Qe, Ce, M.activeEdges = getEdgeConstraints(M.S)
+		end
+	end
+	return M.Ne,M.Qe, M.activeEdges
 end
 
 function getEdgeConstraints(S::SparseArray3D)
@@ -28,10 +28,6 @@ function getEdgeConstraints(S::SparseArray3D)
 #
 
 i0,j0,k0,bsz = find3(S)
-#i0       = round(Int64,i0)
-#j0       = round(Int64,j0)
-#k0       = round(Int64,k0)
-#bsz     = round(Int64,bsz)
 
 i1 = i0 + div(bsz, 2)
 i2 = i0 + bsz

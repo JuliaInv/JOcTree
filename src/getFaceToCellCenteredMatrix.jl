@@ -48,10 +48,6 @@ return Af, Ax, Ay, Az
 
 end
 
-
-using MaxwellUtils.DiagTimesM
-using MaxwellUtils.MTimesDiag
-
 function getFaceToCellCenteredMatrix(S)
 # [A, A1, A2, A3] = getFaceToCellCenteredMatrix(S)
 
@@ -61,13 +57,9 @@ FX,FY,FZ = getFaceSize(S)
 HF = vcat(nonzeros(FX), nonzeros(FY), nonzeros(FZ))
 
 A = DIV
-#for ii = 1:nnz(A)
-#   A.nzval[ii] = 1.0
-#end
 fill!(A.nzval, 1.0)
 
 HF = HF.^2
-#A  = A*(HF.^2);
 A = MTimesDiag(A, HF)
 
 NF1 = nnz(FX); NF2 = nnz(FY); NF3 = nnz(FZ);
@@ -83,7 +75,7 @@ A1 = DiagTimesM(W1, A1)
 A2 = DiagTimesM(W2, A2)
 A3 = DiagTimesM(W3, A3)
 
-A = [A1  A2  A3]
+A = [A1  A2   A3]
 
 return A, A1, A2, A3
 

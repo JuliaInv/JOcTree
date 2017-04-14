@@ -8,9 +8,6 @@ function getCurlMatrix(M::OcTreeMeshFV)
      return M.Curl
 end
 
-
-using MaxwellUtils.DiagTimesMTimesDiag
-
 #function getCurlMatrixRec(S,h)
 function getCurlMatrixRec(M)
 
@@ -19,10 +16,6 @@ function getCurlMatrixRec(M)
 S = M.S; h = M.h
 
 m1,m2,m3    = S.sz
-#FX,FY,FZ    = getFaceSize(M)
-#EX,EY,EZ    = getEdgeSize(M)
-#NFX,NFY,NFZ = getFaceNumbering(M)
-#NEX,NEY,NEZ = getEdgeNumbering(M)
 FX,FY,FZ, NFX,NFY,NFZ = getFaceSizeNumbering(M)
 EX,EY,EZ, NEX,NEY,NEZ = getEdgeSizeNumbering(M)
 
@@ -82,8 +75,8 @@ rightmid = zeros(Int64, length(right))
 
 I = (j+div(fsz,2) .<= m2) & (fsz .>= 2)
 if any(I)
-    leftmid[I]  = NEZ.SV[sub2ind(NEZ.sz, i[I], j[I],        k[I]+div(fsz[I],2) ),1]
-    rightmid[I] = NEZ.SV[sub2ind(NEZ.sz, i[I], j[I]+fsz[I], k[I]+div(fsz[I],2) ),1]
+    leftmid[I]  = NEZ.SV[sub2ind(NEZ.sz, i[I], j[I], k[I]+div(fsz[I],2) ),1]
+    rightmid[I] = NEZ.SV[sub2ind(NEZ.sz, i[I], j[I]+fsz[I], k[I]+div(fsz[I],2)),1]
 end
 Il1 = (leftmid .== 0)  # SINGLE LEFT EDGE PER FACE
 Il2 = (leftmid .>  0)  # 2 LEFT EDGES PER FACE

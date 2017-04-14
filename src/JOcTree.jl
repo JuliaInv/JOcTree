@@ -42,6 +42,8 @@ module JOcTree
     include("splitCells.jl")
     include("uniteOcTrees.jl")
 
+    include("diagMUtils.jl")
+
     include("getEdgeIntegralOfPolygonalChain.jl")
 
     include("getInterfaceWeights.jl")

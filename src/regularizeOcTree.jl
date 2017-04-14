@@ -128,7 +128,6 @@ end # function regularizeOcTree
 
 function regularizeOcTreeFaceNeighbours(S::SparseArray3D)
 # S = regularizeOcTreeFaceNeighbours(S)  
-# OLD name regularizeOcTree
 
 isRegularTree = false
 
@@ -156,9 +155,9 @@ while !isRegularTree
          #S = sparse3(ii,jj,kk,vv,[m1,m2,m3])
          
          S = splitCells(i,j,k,bsz, S.sz, Inr)
-    end  #  !isempty(Inr)
+    end
 
-end  # while !isRegularTree
+end
 
 return S
 
