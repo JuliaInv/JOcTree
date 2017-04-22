@@ -11,16 +11,13 @@ module JOcTree
 
     include("getNumbering.jl")
     include("getGrids.jl")
-    include("getEdgeSize.jl")
-    include("getFaceSize.jl")
+    include("getSizes.jl")
 
     include("getCurlMatrixRec.jl")
     include("getDivergenceMatrixRec.jl")
     include("getNodalGradientRec.jl")
 
     include("getEdgeMassMatrix.jl")
-    include("getEdgeMassMatrixAnisotropic.jl")
-    include("getEdgeMassMatrixAnisotropicNoWeight.jl")
     include("getFaceMassMatrix.jl")
     include("getNodalMassMatrix.jl")
 
@@ -41,17 +38,12 @@ module JOcTree
     include("getFaceConstraints.jl")
 
     include("regularizeOcTree.jl")
-    include("regularizeOcTree2.jl")
-
     include("getNumberOfNeighbors.jl")
-    include("getVolume.jl")
-    include("getLength.jl")
-
-    include("getEdgeIntegralOfPolygonalChain.jl")
-    
     include("refineOcTree.jl")    
     include("splitCells.jl")
     include("uniteOcTrees.jl")
+
+    include("getEdgeIntegralOfPolygonalChain.jl")
 
     include("getInterfaceWeights.jl")
 
