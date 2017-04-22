@@ -6,11 +6,12 @@ function getFaceConstraints(M::OcTreeMesh)
 		if all(M.S.SV.nzval.==M.S.SV.nzval[1]) # uniform mesh
 			M.Nf = speye(sum(M.nf))
 			M.Qf = speye(sum(M.nf))
+			M.activeFaces = [1:sum(M.nf);]
 		else
-			M.Nf,M.Qf, = getFaceConstraints(M.S)
+			M.Nf,M.Qf,Cf,M.activeFaces = getFaceConstraints(M.S)
 		end
 	end
-	return M.Nf,M.Qf
+	return M.Nf,M.Qf,M.activeFaces
 end
 
 function getFaceConstraints(S::SparseArray3D)
@@ -24,13 +25,13 @@ function getFaceConstraints(S::SparseArray3D)
   #                     new face number = p(old face number)
   #                     (returns zero for deleted faces)
   i0,j0,k0,bsz = find3(S);
-  
-  i1 = round(Int64,i0 + bsz / 2)
-  i2 = round(Int64,i0 + bsz)
-  j1 = round(Int64,j0 + bsz / 2)
-  j2 = round(Int64,j0 + bsz)
-  k1 = round(Int64,k0 + bsz / 2)
-  k2 = round(Int64,k0 + bsz)
+
+  i1 = i0 + div(bsz, 2)
+  i2 = i0 + bsz
+  j1 = j0 + div(bsz, 2)
+  j2 = j0 + bsz
+  k1 = k0 + div(bsz, 2)
+  k2 = k0 + bsz
   
   upper,lower,left,right,front,back = getNumberOfNeighbors(S);
   nn = [upper; lower; left; right; front; back];
@@ -65,63 +66,63 @@ function getFaceConstraints(S::SparseArray3D)
   #  /         /         /
   # +---------+---------+
   
-  I = find(upper .== 4) # find  "bigger" cells
+  I = (upper .== 4) # find  "bigger" cells
 
-  if ~isempty(I)
-    fx1 = [fx1; FNX.SV[sub2ind(size(FNX), i0[I], j0[I], k0[I])]];
-    fx2 = [fx2; FNX.SV[sub2ind(size(FNX), i0[I], j1[I], k0[I])]];
-    fx3 = [fx3; FNX.SV[sub2ind(size(FNX), i0[I], j0[I], k1[I])]];
-    fx4 = [fx4; FNX.SV[sub2ind(size(FNX), i0[I], j1[I], k1[I])]];
+  if any(I)
+    append!(fx1, FNX.SV[sub2ind(size(FNX), i0[I], j0[I], k0[I])])
+    append!(fx2, FNX.SV[sub2ind(size(FNX), i0[I], j1[I], k0[I])])
+    append!(fx3, FNX.SV[sub2ind(size(FNX), i0[I], j0[I], k1[I])])
+    append!(fx4, FNX.SV[sub2ind(size(FNX), i0[I], j1[I], k1[I])])
   end                                                         
                                                               
-  I = find(lower .== 4) # find  "bigger" cells                      
+  I = (lower .== 4) # find  "bigger" cells
                                                               
-  if ~isempty(I)                                                   
-    fx1 = [fx1; FNX.SV[sub2ind(size(FNX), i2[I], j0[I], k0[I])]];
-    fx2 = [fx2; FNX.SV[sub2ind(size(FNX), i2[I], j1[I], k0[I])]];
-    fx3 = [fx3; FNX.SV[sub2ind(size(FNX), i2[I], j0[I], k1[I])]];
-    fx4 = [fx4; FNX.SV[sub2ind(size(FNX), i2[I], j1[I], k1[I])]];
+  if any(I)
+    append!(fx1, FNX.SV[sub2ind(size(FNX), i2[I], j0[I], k0[I])])
+    append!(fx2, FNX.SV[sub2ind(size(FNX), i2[I], j1[I], k0[I])])
+    append!(fx3, FNX.SV[sub2ind(size(FNX), i2[I], j0[I], k1[I])])
+    append!(fx4, FNX.SV[sub2ind(size(FNX), i2[I], j1[I], k1[I])])
   end                                                         
                                                               
                                                               
   ################################                            
                                                               
-  I = find(left .== 4) # find  "bigger" cells                       
+  I = (left .== 4) # find  "bigger" cells
                                                               
-  if ~isempty(I)                                                   
-    fy1 = [fy1; FNY.SV[sub2ind(size(FNY), i0[I], j0[I], k0[I])]];
-    fy2 = [fy2; FNY.SV[sub2ind(size(FNY), i1[I], j0[I], k0[I])]];
-    fy3 = [fy3; FNY.SV[sub2ind(size(FNY), i0[I], j0[I], k1[I])]];
-    fy4 = [fy4; FNY.SV[sub2ind(size(FNY), i1[I], j0[I], k1[I])]];
+  if any(I)
+    append!(fy1, FNY.SV[sub2ind(size(FNY), i0[I], j0[I], k0[I])])
+    append!(fy2, FNY.SV[sub2ind(size(FNY), i1[I], j0[I], k0[I])])
+    append!(fy3, FNY.SV[sub2ind(size(FNY), i0[I], j0[I], k1[I])])
+    append!(fy4, FNY.SV[sub2ind(size(FNY), i1[I], j0[I], k1[I])])
   end                                                         
                                                               
-  I = find(right .== 4) # find  "bigger" cells                      
+  I = (right .== 4) # find  "bigger" cells
                                                               
-  if ~isempty(I)                                                   
-    fy1 = [fy1; FNY.SV[sub2ind(size(FNY), i0[I], j2[I], k0[I])]];
-    fy2 = [fy2; FNY.SV[sub2ind(size(FNY), i1[I], j2[I], k0[I])]];
-    fy3 = [fy3; FNY.SV[sub2ind(size(FNY), i0[I], j2[I], k1[I])]];
-    fy4 = [fy4; FNY.SV[sub2ind(size(FNY), i1[I], j2[I], k1[I])]];
+  if any(I)
+    append!(fy1, FNY.SV[sub2ind(size(FNY), i0[I], j2[I], k0[I])])
+    append!(fy2, FNY.SV[sub2ind(size(FNY), i1[I], j2[I], k0[I])])
+    append!(fy3, FNY.SV[sub2ind(size(FNY), i0[I], j2[I], k1[I])])
+    append!(fy4, FNY.SV[sub2ind(size(FNY), i1[I], j2[I], k1[I])])
   end                                                         
                                                               
   ################################                            
                                                               
-  I = find(front .== 4) # find  "bigger" cells                      
+  I = (front .== 4) # find  "bigger" cells
                                                               
-  if ~isempty(I)                                                   
-    fz1 = [fz1; FNZ.SV[sub2ind(size(FNZ), i0[I], j0[I], k0[I])]];
-    fz2 = [fz2; FNZ.SV[sub2ind(size(FNZ), i1[I], j0[I], k0[I])]];
-    fz3 = [fz3; FNZ.SV[sub2ind(size(FNZ), i0[I], j1[I], k0[I])]];
-    fz4 = [fz4; FNZ.SV[sub2ind(size(FNZ), i1[I], j1[I], k0[I])]];
+  if any(I)
+    append!(fz1, FNZ.SV[sub2ind(size(FNZ), i0[I], j0[I], k0[I])])
+    append!(fz2, FNZ.SV[sub2ind(size(FNZ), i1[I], j0[I], k0[I])])
+    append!(fz3, FNZ.SV[sub2ind(size(FNZ), i0[I], j1[I], k0[I])])
+    append!(fz4, FNZ.SV[sub2ind(size(FNZ), i1[I], j1[I], k0[I])])
   end                                                         
                                                               
-  I = find(back .== 4) # find  "bigger" cells                       
+  I = (back .== 4) # find  "bigger" cells
                                                               
-  if ~isempty(I)                                                   
-    fz1 = [fz1; FNZ.SV[sub2ind(size(FNZ), i0[I], j0[I], k2[I])]];
-    fz2 = [fz2; FNZ.SV[sub2ind(size(FNZ), i1[I], j0[I], k2[I])]];
-    fz3 = [fz3; FNZ.SV[sub2ind(size(FNZ), i0[I], j1[I], k2[I])]];
-    fz4 = [fz4; FNZ.SV[sub2ind(size(FNZ), i1[I], j1[I], k2[I])]];
+  if any(I)
+    append!(fz1, FNZ.SV[sub2ind(size(FNZ), i0[I], j0[I], k2[I])])
+    append!(fz2, FNZ.SV[sub2ind(size(FNZ), i1[I], j0[I], k2[I])])
+    append!(fz3, FNZ.SV[sub2ind(size(FNZ), i0[I], j1[I], k2[I])])
+    append!(fz4, FNZ.SV[sub2ind(size(FNZ), i1[I], j1[I], k2[I])])
   end
   
   #Convert from n x 1 arrays to vectors

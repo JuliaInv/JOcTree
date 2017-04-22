@@ -1,50 +1,33 @@
-export getFaceMassMatrix, getdFaceMassMatrix
+export getFaceMassMatrix #, getdFaceMassMatrix (derivative not yet implemented 
+                                               #for nodal interpolation approach to mass matrices
 
 
-# function getFaceMassMatrix(M::AbstractMesh,sigma::Vector)
-# #  M = getFaceMassMatrix(M,sigma)
-# 	Af    = getFaceAverageMatrix(M)
-# 	V     = getVolume(M)
-# 	Massf = sdiag(Af'*(V*sigma))
-# 	return Massf
-# end
-# 
-# function getdFaceMassMatrix(M::AbstractMesh,v::Vector)
-#    # Derivative
-# #  M = getFaceMassMatrix(M,sigma)
-# 	Af    = getFaceAverageMatrix(M)
-# 	V     = getVolume(M)
-# 	Massf = sdiag(v)*Af'*V
-# 	return Massf
-# end
 
 function getFaceMassMatrix(M::OcTreeMeshFV,sigma::Vector)
-    #sig2d        = zeros(length(sigma),6)
-    #sig2d[:,1:3] = [sigma sigma sigma]         if isempty(M.Pe)
     if isempty(M.Pf)
-      M.Pf = getFaceMassMatrixIntegrationMatrix(M.S,M.h)
+        M.Pf = getFaceMassMatrixIntegrationMatrix(M.S,M.h)
     end
     P = M.Pf    
-    M = M = P'* kron(speye(24),sdiag(sigma)) *P
-    return M
-end
-
-function getFaceMassMatrix(M::OcTreeMeshFV,sigma::Array{Float64,2})
-    if isempty(M.Pf)
-      M.Pf = getFaceMassMatrixIntegrationMatrix(M.S,M.h)
+    n = length(sigma)
+    if n == M.nc
+        M = P' * kron(speye(24),spdiagm(sigma)) * P
+    elseif n == 3 * M.nc
+        M = P' * kron(speye(8),spdiagm(sigma)) * P
+    elseif n == 6 * M.nc
+        S11 = spdiagm(sigma[:,1])
+        S22 = spdiagm(sigma[:,2])
+        S33 = spdiagm(sigma[:,3])
+        S12 = spdiagm(sigma[:,4])
+        S13 = spdiagm(sigma[:,5])
+        S23 = spdiagm(sigma[:,6])    
+        Sig = [S11 S12 S13;
+               S12 S22 S23;
+               S13 S23 S33]
+        M = P'* kron(speye(8),Sig) * P
+    else
+        error("Invalid size of sigma")
     end
-    P = M.Pf
-    S11 = sdiag(sigma[:,1])
-    S22 = sdiag(sigma[:,2])
-    S33 = sdiag(sigma[:,3])
-    S12 = sdiag(sigma[:,4])
-    S13 = sdiag(sigma[:,5])
-    S23 = sdiag(sigma[:,6])    
-    Sig = [S11 S12 S13;
-    	   S12 S22 S23;
-    	   S13 S23 S33]
-    M = P'* kron(speye(8),Sig) * P
-    return M 
+    return M
 end
 
 function getFaceMassMatrixIntegrationMatrix(S::SparseArray3D,h)
@@ -116,9 +99,9 @@ function getFaceMassMatrixIntegrationMatrix(S::SparseArray3D,h)
     P8 = blkdiag(sp1(Px8),sp2(Py8),sp3(Pz8))
     
     #v     = prod(h) * (bsz.^3)
-    # Sigma = [sdiag(sigma[:,1].*v)  sdiag(sigma[:,4].*v)  sdiag(sigma[:,5].*v);
-    #          sdiag(sigma[:,4].*v)  sdiag(sigma[:,2].*v)  sdiag(sigma[:,6].*v);
-    #          sdiag(sigma[:,5].*v)  sdiag(sigma[:,6].*v)  sdiag(sigma[:,3].*v)]
+    # Sigma = [spdiagm(sigma[:,1].*v)  spdiagm(sigma[:,4].*v)  spdiagm(sigma[:,5].*v);
+    #          spdiagm(sigma[:,4].*v)  spdiagm(sigma[:,2].*v)  spdiagm(sigma[:,6].*v);
+    #          spdiagm(sigma[:,5].*v)  spdiagm(sigma[:,6].*v)  spdiagm(sigma[:,3].*v)]
     # 
     # 
     # Massf = 0.125*(P1'*Sigma*P1 + P2'*Sigma*P2 + P3'*Sigma*P3 + P4'*Sigma*P4 +

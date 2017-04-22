@@ -6,8 +6,8 @@ export OcTreeMeshFV, getOcTreeMeshFV
 type OcTreeMeshFV <: OcTreeMesh
 	S::SparseArray3D    # i,j,k, bsz
 	h::Vector{Float64}  # (3) underlying cell size
-	x0::Vector{Float64}
-	n::Vector{Int64}
+	x0::Vector{Float64} # coordinates of corner of mesh
+	n::Vector{Int64} # underlying mesh
 	nc::Int          # number of cells
 	nf::Vector{Int}  # (3) number of faces
 	ne::Vector{Int}  # (3) number of edges
@@ -18,11 +18,14 @@ type OcTreeMeshFV <: OcTreeMesh
 	Pe::SparseMatrixCSC # EdgeMassMatrixIntegrationMatrix
 	Af::SparseMatrixCSC # Face to cell-centre matrix
 	Ae::SparseMatrixCSC # Edge to cell-centre matrix
+	An::SparseMatrixCSC # Node to cell-centre matrix
 	V::SparseMatrixCSC # cell volume
 	L::SparseMatrixCSC # edge lengths
 	Ne::SparseMatrixCSC # Edge nullspace matrix
 	Qe::SparseMatrixCSC # Edge projection matrix
 	activeEdges::Vector{Int64}   # lookup table for new edge enumeration
+	activeFaces::Vector{Int64}   # lookup table for new face enumeration
+	activeNodes::Vector{Int64}   # lookup table for new node enumeration
 	Nn::SparseMatrixCSC # Node nullspace matrix
 	Qn::SparseMatrixCSC # Node projection matrix
 	Nf::SparseMatrixCSC # Face nullspace matrix
@@ -50,11 +53,11 @@ function getOcTreeMeshFV(S,h;x0=zeros(3))
 		nc   = nnz(S)
 		
 		# get number of faces
-		FX,FY,FZ = getFaceSize(S)
+        FX,FY,FZ, NFX, NFY, NFZ = getFaceSizeNumbering(S)
 		nf   = [nnz(FX); nnz(FY); nnz(FZ)]
 		
 		# get number of edges
-		EX,EY,EZ = getEdgeSize(S)
+      	EX,EY,EZ, NEX, NEY, NEZ = getEdgeSizeNumbering(S)
 		ne   = [nnz(EX); nnz(EY); nnz(EZ)]
 		
 		empt3 = sparse3([size(S,1),size(S,2),size(S,3)])
@@ -62,11 +65,12 @@ function getOcTreeMeshFV(S,h;x0=zeros(3))
 		return OcTreeMeshFV(S, h, x0,
                     		  S.sz,nc,nf,ne,
                     		  empt,empt,empt,       # no Div, Grad, Curl
-                              empt,empt,empt,empt,empt,empt,empt,empt, [0],  # no Pf, Pe, Af,Ae,V,L,Ne,Qe,pe
+                          	  empt,empt, empt,empt,empt,   # no Pf, Pe, Af,Ae,An
+                          	  empt,empt,empt,empt, [0],[0],[0],  # no V,L,Ne,Qe,active edges, active faces, active nodes
                     		  empt,empt,empt,empt, #no Nn,Qn,Nf,Qf
    							  FX,FY,FZ, EX,EY,EZ,
-   							  empt3,empt3,empt3,  # no NFX,NFY,NFZ
-   							  empt3,empt3,empt3)  # no NEX,NEY,NEZ	
+                          NFX, NFY, NFZ, 
+                          NEX, NEY, NEZ)
 end  # function getOcTreeMeshFV
 
 
@@ -80,6 +84,7 @@ function clear!(M::OcTreeMeshFV)
 	M.Pe   = clear!(M.Pe  )
 	M.Af   = clear!(M.Af  )
 	M.Ae   = clear!(M.Ae  )
+	M.An   = clear!(M.An  )
 	M.V    = clear!(M.V   )
 	M.L    = clear!(M.L   )
 	M.FX   = clear!(M.FX )
