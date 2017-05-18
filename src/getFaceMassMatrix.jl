@@ -121,14 +121,3 @@ function getFaceMassMatrixIntegrationMatrix(S::SparseArray3D,h)
     return P
     
 end
-
-function getNodesFromIndices(sv,mm,i0::Vector{Int},j0::Vector{Int},k0::Vector{Int})
-	
-	jj = sub2ind(mm,i0,j0,k0)
-  v  = Array(Int64, length(jj))
-  for i = 1:length(jj)
-    v[i] = sv[jj[i]]
-  end
-	return v
-	
-end
