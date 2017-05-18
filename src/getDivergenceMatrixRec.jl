@@ -1,5 +1,21 @@
 export getDivergenceMatrixRec, getDivergenceMatrix
 
+"""
+    Div = initializeOctree(M)
+    Div = initializeOctree(S, h)
+
+    Builds face-to-cc divergence operator
+
+    Input:
+
+        M::OcTreeMeshFV    - The OcTree mesh
+        S::SparseArray3D   - Sparse OcTree matrix
+        h::Vector{Float64} - Underlying cell size
+
+    Output:
+
+        Div::SparseMatrixCSC - The discrete divergence matrix
+"""
 function getDivergenceMatrix(M::OcTreeMeshFV)
 # M.Div = getDivergenceMatrix(M::OcTreeMeshFV) builds face-to-cc divergence operator
         if isempty(M.Div)
