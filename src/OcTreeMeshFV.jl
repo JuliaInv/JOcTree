@@ -42,6 +42,7 @@ type OcTreeMeshFV <: OcTreeMesh
 	NEX::SparseArray3D # X EdgeNumbering
 	NEY::SparseArray3D # Y EdgeNumbering
 	NEZ::SparseArray3D # Z EdgeNumbering
+	dim::Int           # Mesh dimension
 end # type OcTreeMeshFV
 
 	
@@ -70,7 +71,7 @@ function getOcTreeMeshFV(S,h;x0=zeros(3))
                     		  empt,empt,empt,empt, #no Nn,Qn,Nf,Qf
    							  FX,FY,FZ, EX,EY,EZ,
                           NFX, NFY, NFZ, 
-                          NEX, NEY, NEZ)
+                          NEX, NEY, NEZ, 3)
 end  # function getOcTreeMeshFV
 
 

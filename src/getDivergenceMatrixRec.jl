@@ -1,5 +1,18 @@
 export getDivergenceMatrixRec, getDivergenceMatrix
 
+"""
+    Div = getDivergenceMatrix(M)
+
+    Builds face-to-cc divergence operator
+
+    Input:
+
+        M::OcTreeMeshFV    - The OcTree mesh
+
+    Output:
+
+        Div::SparseMatrixCSC - The discrete divergence matrix
+"""
 function getDivergenceMatrix(M::OcTreeMeshFV)
 # M.Div = getDivergenceMatrix(M::OcTreeMeshFV) builds face-to-cc divergence operator
         if isempty(M.Div)
@@ -10,6 +23,20 @@ end
 
 getDivergenceMatrixRec(M) = getDivergenceMatrixRec(M.S,M.h)
 
+"""
+    Div = getDivergenceMatrixRec(S, h)
+
+    Builds face-to-cc divergence operator
+
+    Input:
+
+        S::SparseArray3D   - Sparse OcTree matrix
+        h::Vector{Float64} - Underlying cell size
+
+    Output:
+
+        Div::SparseMatrixCSC - The discrete divergence matrix
+"""
 function getDivergenceMatrixRec(S::SparseArray3D,h)
 #function getDivergenceMatrixRec(M::OcTreeMeshFV)
 	# [DIV,N,HC,HF,NX,NY,NZ]=getDivergenceMatrixRec(S,h)

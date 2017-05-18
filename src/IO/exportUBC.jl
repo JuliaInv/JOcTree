@@ -75,13 +75,3 @@ function exportUBCOcTreeModel(name::AbstractString, mesh::OcTreeMesh, model::Uni
     close(f)
     return
 end
-
-function outputOctreeMesh(name::AbstractString, mesh::OcTreeMesh)
-    i1,i2,i3,bsz = find3(mesh.S)
-    n = nnz(mesh.S)
-    f = open(name, "w")
-    for i=1:n
-    	println(f, i1[i], " ", i2[i], " ", i3[i], " ", bsz[i])
-    end
-    close(f)
-end
