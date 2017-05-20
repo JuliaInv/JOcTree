@@ -29,12 +29,12 @@ function getEdgeConstraints(S::SparseArray3D)
 
 i0,j0,k0,bsz = find3(S)
 
-i1 = round(Int64,i0 + bsz / 2)
-i2 = round(Int64,i0 + bsz)
-j1 = round(Int64,j0 + bsz / 2)
-j2 = round(Int64,j0 + bsz)
-k1 = round(Int64,k0 + bsz / 2)
-k2 = round(Int64,k0 + bsz)
+i1 = i0 + div(bsz, 2)
+i2 = i0 + bsz
+j1 = j0 + div(bsz, 2)
+j2 = j0 + bsz
+k1 = k0 + div(bsz, 2)
+k2 = k0 + bsz
 
 upper,lower,left,right,front,back = getNumberOfNeighbors(S)
 nn = [upper; lower; left; right; front; back]
@@ -68,116 +68,116 @@ ez1 = Int64[]; ez2 = Int64[]; ez3 = Int64[]; ez4 = Int64[]; ez5 = Int64[]; ez6 =
 # /                /              /
 # +--ey1----------+---ey2--------+
 
-I = find(upper.==4); # find  "bigger" cells
+I = (upper.==4)  # find  "bigger" cells
 
-if ~isempty(I)
-    ey1 = [ey1; ENY.SV[sub2ind(size(ENY), i0[I], j0[I], k0[I])]]
-    ey2 = [ey2; ENY.SV[sub2ind(size(ENY), i0[I], j1[I], k0[I])]]
-    ey3 = [ey3; ENY.SV[sub2ind(size(ENY), i0[I], j0[I], k1[I])]]
-    ey4 = [ey4; ENY.SV[sub2ind(size(ENY), i0[I], j1[I], k1[I])]]
-    ey5 = [ey5; ENY.SV[sub2ind(size(ENY), i0[I], j0[I], k2[I])]]
-    ey6 = [ey6; ENY.SV[sub2ind(size(ENY), i0[I], j1[I], k2[I])]]
+if any(I)
+    append!(ey1, ENY.SV[sub2ind(size(ENY), i0[I], j0[I], k0[I])])
+    append!(ey2, ENY.SV[sub2ind(size(ENY), i0[I], j1[I], k0[I])])
+    append!(ey3, ENY.SV[sub2ind(size(ENY), i0[I], j0[I], k1[I])])
+    append!(ey4, ENY.SV[sub2ind(size(ENY), i0[I], j1[I], k1[I])])
+    append!(ey5, ENY.SV[sub2ind(size(ENY), i0[I], j0[I], k2[I])])
+    append!(ey6, ENY.SV[sub2ind(size(ENY), i0[I], j1[I], k2[I])])
 
-    ez1 = [ez1; ENZ.SV[sub2ind(size(ENZ), i0[I], j0[I], k0[I])]]
-    ez2 = [ez2; ENZ.SV[sub2ind(size(ENZ), i0[I], j0[I], k1[I])]]
-    ez3 = [ez3; ENZ.SV[sub2ind(size(ENZ), i0[I], j1[I], k0[I])]]
-    ez4 = [ez4; ENZ.SV[sub2ind(size(ENZ), i0[I], j1[I], k1[I])]]
-    ez5 = [ez5; ENZ.SV[sub2ind(size(ENZ), i0[I], j2[I], k0[I])]]
-    ez6 = [ez6; ENZ.SV[sub2ind(size(ENZ), i0[I], j2[I], k1[I])]]
+    append!(ez1, ENZ.SV[sub2ind(size(ENZ), i0[I], j0[I], k0[I])])
+    append!(ez2, ENZ.SV[sub2ind(size(ENZ), i0[I], j0[I], k1[I])])
+    append!(ez3, ENZ.SV[sub2ind(size(ENZ), i0[I], j1[I], k0[I])])
+    append!(ez4, ENZ.SV[sub2ind(size(ENZ), i0[I], j1[I], k1[I])])
+    append!(ez5, ENZ.SV[sub2ind(size(ENZ), i0[I], j2[I], k0[I])])
+    append!(ez6, ENZ.SV[sub2ind(size(ENZ), i0[I], j2[I], k1[I])])
 end
 
-I = find(lower.==4) # find  "bigger" cells
+I = (lower.==4) # find  "bigger" cells
 
-if ~isempty(I)
-    ey1 = [ ey1 ; ENY.SV[sub2ind(size(ENY), i2[I], j0[I], k0[I])]]
-    ey2 = [ ey2 ; ENY.SV[sub2ind(size(ENY), i2[I], j1[I], k0[I])]]
-    ey3 = [ ey3 ; ENY.SV[sub2ind(size(ENY), i2[I], j0[I], k1[I])]]
-    ey4 = [ ey4 ; ENY.SV[sub2ind(size(ENY), i2[I], j1[I], k1[I])]]
-    ey5 = [ ey5 ; ENY.SV[sub2ind(size(ENY), i2[I], j0[I], k2[I])]]
-    ey6 = [ ey6 ; ENY.SV[sub2ind(size(ENY), i2[I], j1[I], k2[I])]]
+if any(I)
+    append!( ey1 , ENY.SV[sub2ind(size(ENY), i2[I], j0[I], k0[I])])
+    append!( ey2 , ENY.SV[sub2ind(size(ENY), i2[I], j1[I], k0[I])])
+    append!( ey3 , ENY.SV[sub2ind(size(ENY), i2[I], j0[I], k1[I])])
+    append!( ey4 , ENY.SV[sub2ind(size(ENY), i2[I], j1[I], k1[I])])
+    append!( ey5 , ENY.SV[sub2ind(size(ENY), i2[I], j0[I], k2[I])])
+    append!( ey6 , ENY.SV[sub2ind(size(ENY), i2[I], j1[I], k2[I])])
 
-    ez1 = [ ez1 ; ENZ.SV[sub2ind(size(ENZ), i2[I], j0[I], k0[I])]]
-    ez2 = [ ez2 ; ENZ.SV[sub2ind(size(ENZ), i2[I], j0[I], k1[I])]]
-    ez3 = [ ez3 ; ENZ.SV[sub2ind(size(ENZ), i2[I], j1[I], k0[I])]]
-    ez4 = [ ez4 ; ENZ.SV[sub2ind(size(ENZ), i2[I], j1[I], k1[I])]]
-    ez5 = [ ez5 ; ENZ.SV[sub2ind(size(ENZ), i2[I], j2[I], k0[I])]]
-    ez6 = [ ez6 ; ENZ.SV[sub2ind(size(ENZ), i2[I], j2[I], k1[I])]]
-end
-
-################################
-
-I = find(left.==4) # find  "bigger" cells
-
-if ~isempty(I)
-    ex1 = [ex1; ENX.SV[sub2ind(size(ENX), i0[I], j0[I], k0[I])]]
-    ex2 = [ex2; ENX.SV[sub2ind(size(ENX), i1[I], j0[I], k0[I])]]
-    ex3 = [ex3; ENX.SV[sub2ind(size(ENX), i0[I], j0[I], k1[I])]]
-    ex4 = [ex4; ENX.SV[sub2ind(size(ENX), i1[I], j0[I], k1[I])]]
-    ex5 = [ex5; ENX.SV[sub2ind(size(ENX), i0[I], j0[I], k2[I])]]
-    ex6 = [ex6; ENX.SV[sub2ind(size(ENX), i1[I], j0[I], k2[I])]]
-
-    ez1 = [ez1; ENZ.SV[sub2ind(size(ENZ), i0[I], j0[I], k0[I])]]
-    ez2 = [ez2; ENZ.SV[sub2ind(size(ENZ), i0[I], j0[I], k1[I])]]
-    ez3 = [ez3; ENZ.SV[sub2ind(size(ENZ), i1[I], j0[I], k0[I])]]
-    ez4 = [ez4; ENZ.SV[sub2ind(size(ENZ), i1[I], j0[I], k1[I])]]
-    ez5 = [ez5; ENZ.SV[sub2ind(size(ENZ), i2[I], j0[I], k0[I])]]
-    ez6 = [ez6; ENZ.SV[sub2ind(size(ENZ), i2[I], j0[I], k1[I])]]
-end
-
-I = find(right.==4) # find  "bigger" cells
-
-if ~isempty(I)
-    ex1 = [ex1; ENX.SV[sub2ind(size(ENX), i0[I], j2[I], k0[I])]]
-    ex2 = [ex2; ENX.SV[sub2ind(size(ENX), i1[I], j2[I], k0[I])]]
-    ex3 = [ex3; ENX.SV[sub2ind(size(ENX), i0[I], j2[I], k1[I])]]
-    ex4 = [ex4; ENX.SV[sub2ind(size(ENX), i1[I], j2[I], k1[I])]]
-    ex5 = [ex5; ENX.SV[sub2ind(size(ENX), i0[I], j2[I], k2[I])]]
-    ex6 = [ex6; ENX.SV[sub2ind(size(ENX), i1[I], j2[I], k2[I])]]
-
-    ez1 = [ez1; ENZ.SV[sub2ind(size(ENZ), i0[I], j2[I], k0[I])]]
-    ez2 = [ez2; ENZ.SV[sub2ind(size(ENZ), i0[I], j2[I], k1[I])]]
-    ez3 = [ez3; ENZ.SV[sub2ind(size(ENZ), i1[I], j2[I], k0[I])]]
-    ez4 = [ez4; ENZ.SV[sub2ind(size(ENZ), i1[I], j2[I], k1[I])]]
-    ez5 = [ez5; ENZ.SV[sub2ind(size(ENZ), i2[I], j2[I], k0[I])]]
-    ez6 = [ez6; ENZ.SV[sub2ind(size(ENZ), i2[I], j2[I], k1[I])]]
+    append!( ez1 , ENZ.SV[sub2ind(size(ENZ), i2[I], j0[I], k0[I])])
+    append!( ez2 , ENZ.SV[sub2ind(size(ENZ), i2[I], j0[I], k1[I])])
+    append!( ez3 , ENZ.SV[sub2ind(size(ENZ), i2[I], j1[I], k0[I])])
+    append!( ez4 , ENZ.SV[sub2ind(size(ENZ), i2[I], j1[I], k1[I])])
+    append!( ez5 , ENZ.SV[sub2ind(size(ENZ), i2[I], j2[I], k0[I])])
+    append!( ez6 , ENZ.SV[sub2ind(size(ENZ), i2[I], j2[I], k1[I])])
 end
 
 ################################
 
-I = find(front.==4) # find  "bigger" cells
+I = (left.==4) # find  "bigger" cells
 
-if ~isempty(I)
-    ex1 = [ex1; ENX.SV[sub2ind(size(ENX), i0[I], j0[I], k0[I])]]
-    ex2 = [ex2; ENX.SV[sub2ind(size(ENX), i1[I], j0[I], k0[I])]]
-    ex3 = [ex3; ENX.SV[sub2ind(size(ENX), i0[I], j1[I], k0[I])]]
-    ex4 = [ex4; ENX.SV[sub2ind(size(ENX), i1[I], j1[I], k0[I])]]
-    ex5 = [ex5; ENX.SV[sub2ind(size(ENX), i0[I], j2[I], k0[I])]]
-    ex6 = [ex6; ENX.SV[sub2ind(size(ENX), i1[I], j2[I], k0[I])]]
+if any(I)
+    append!(ex1, ENX.SV[sub2ind(size(ENX), i0[I], j0[I], k0[I])])
+    append!(ex2, ENX.SV[sub2ind(size(ENX), i1[I], j0[I], k0[I])])
+    append!(ex3, ENX.SV[sub2ind(size(ENX), i0[I], j0[I], k1[I])])
+    append!(ex4, ENX.SV[sub2ind(size(ENX), i1[I], j0[I], k1[I])])
+    append!(ex5, ENX.SV[sub2ind(size(ENX), i0[I], j0[I], k2[I])])
+    append!(ex6, ENX.SV[sub2ind(size(ENX), i1[I], j0[I], k2[I])])
 
-    ey1 = [ey1; ENY.SV[sub2ind(size(ENY), i0[I], j0[I], k0[I])]]
-    ey2 = [ey2; ENY.SV[sub2ind(size(ENY), i0[I], j1[I], k0[I])]]
-    ey3 = [ey3; ENY.SV[sub2ind(size(ENY), i1[I], j0[I] ,k0[I])]]
-    ey4 = [ey4; ENY.SV[sub2ind(size(ENY), i1[I], j1[I], k0[I])]]
-    ey5 = [ey5; ENY.SV[sub2ind(size(ENY), i2[I], j0[I], k0[I])]]
-    ey6 = [ey6; ENY.SV[sub2ind(size(ENY), i2[I], j1[I], k0[I])]]
+    append!(ez1, ENZ.SV[sub2ind(size(ENZ), i0[I], j0[I], k0[I])])
+    append!(ez2, ENZ.SV[sub2ind(size(ENZ), i0[I], j0[I], k1[I])])
+    append!(ez3, ENZ.SV[sub2ind(size(ENZ), i1[I], j0[I], k0[I])])
+    append!(ez4, ENZ.SV[sub2ind(size(ENZ), i1[I], j0[I], k1[I])])
+    append!(ez5, ENZ.SV[sub2ind(size(ENZ), i2[I], j0[I], k0[I])])
+    append!(ez6, ENZ.SV[sub2ind(size(ENZ), i2[I], j0[I], k1[I])])
 end
 
-I = find(back.==4) # find  "bigger" cells
+I = (right.==4) # find  "bigger" cells
 
-if ~isempty(I)
-    ex1 = [ex1; ENX.SV[sub2ind(size(ENX), i0[I], j0[I], k2[I])]]
-    ex2 = [ex2; ENX.SV[sub2ind(size(ENX), i1[I], j0[I], k2[I])]]
-    ex3 = [ex3; ENX.SV[sub2ind(size(ENX), i0[I], j1[I], k2[I])]]
-    ex4 = [ex4; ENX.SV[sub2ind(size(ENX), i1[I], j1[I], k2[I])]]
-    ex5 = [ex5; ENX.SV[sub2ind(size(ENX), i0[I], j2[I], k2[I])]]
-    ex6 = [ex6; ENX.SV[sub2ind(size(ENX), i1[I], j2[I], k2[I])]]
+if any(I)
+    append!(ex1, ENX.SV[sub2ind(size(ENX), i0[I], j2[I], k0[I])])
+    append!(ex2, ENX.SV[sub2ind(size(ENX), i1[I], j2[I], k0[I])])
+    append!(ex3, ENX.SV[sub2ind(size(ENX), i0[I], j2[I], k1[I])])
+    append!(ex4, ENX.SV[sub2ind(size(ENX), i1[I], j2[I], k1[I])])
+    append!(ex5, ENX.SV[sub2ind(size(ENX), i0[I], j2[I], k2[I])])
+    append!(ex6, ENX.SV[sub2ind(size(ENX), i1[I], j2[I], k2[I])])
 
-    ey1 = [ey1; ENY.SV[sub2ind(size(ENY), i0[I], j0[I], k2[I])]]
-    ey2 = [ey2; ENY.SV[sub2ind(size(ENY), i0[I], j1[I], k2[I])]]
-    ey3 = [ey3; ENY.SV[sub2ind(size(ENY), i1[I], j0[I], k2[I])]]
-    ey4 = [ey4; ENY.SV[sub2ind(size(ENY), i1[I], j1[I], k2[I])]]
-    ey5 = [ey5; ENY.SV[sub2ind(size(ENY), i2[I], j0[I], k2[I])]]
-    ey6 = [ey6; ENY.SV[sub2ind(size(ENY), i2[I], j1[I], k2[I])]]
+    append!(ez1, ENZ.SV[sub2ind(size(ENZ), i0[I], j2[I], k0[I])])
+    append!(ez2, ENZ.SV[sub2ind(size(ENZ), i0[I], j2[I], k1[I])])
+    append!(ez3, ENZ.SV[sub2ind(size(ENZ), i1[I], j2[I], k0[I])])
+    append!(ez4, ENZ.SV[sub2ind(size(ENZ), i1[I], j2[I], k1[I])])
+    append!(ez5, ENZ.SV[sub2ind(size(ENZ), i2[I], j2[I], k0[I])])
+    append!(ez6, ENZ.SV[sub2ind(size(ENZ), i2[I], j2[I], k1[I])])
+end
+
+################################
+
+I = (front.==4) # find  "bigger" cells
+
+if any(I)
+    append!(ex1, ENX.SV[sub2ind(size(ENX), i0[I], j0[I], k0[I])])
+    append!(ex2, ENX.SV[sub2ind(size(ENX), i1[I], j0[I], k0[I])])
+    append!(ex3, ENX.SV[sub2ind(size(ENX), i0[I], j1[I], k0[I])])
+    append!(ex4, ENX.SV[sub2ind(size(ENX), i1[I], j1[I], k0[I])])
+    append!(ex5, ENX.SV[sub2ind(size(ENX), i0[I], j2[I], k0[I])])
+    append!(ex6, ENX.SV[sub2ind(size(ENX), i1[I], j2[I], k0[I])])
+
+    append!(ey1, ENY.SV[sub2ind(size(ENY), i0[I], j0[I], k0[I])])
+    append!(ey2, ENY.SV[sub2ind(size(ENY), i0[I], j1[I], k0[I])])
+    append!(ey3, ENY.SV[sub2ind(size(ENY), i1[I], j0[I] ,k0[I])])
+    append!(ey4, ENY.SV[sub2ind(size(ENY), i1[I], j1[I], k0[I])])
+    append!(ey5, ENY.SV[sub2ind(size(ENY), i2[I], j0[I], k0[I])])
+    append!(ey6, ENY.SV[sub2ind(size(ENY), i2[I], j1[I], k0[I])])
+end
+
+I = (back.==4) # find  "bigger" cells
+
+if any(I)
+    append!(ex1, ENX.SV[sub2ind(size(ENX), i0[I], j0[I], k2[I])])
+    append!(ex2, ENX.SV[sub2ind(size(ENX), i1[I], j0[I], k2[I])])
+    append!(ex3, ENX.SV[sub2ind(size(ENX), i0[I], j1[I], k2[I])])
+    append!(ex4, ENX.SV[sub2ind(size(ENX), i1[I], j1[I], k2[I])])
+    append!(ex5, ENX.SV[sub2ind(size(ENX), i0[I], j2[I], k2[I])])
+    append!(ex6, ENX.SV[sub2ind(size(ENX), i1[I], j2[I], k2[I])])
+
+    append!(ey1, ENY.SV[sub2ind(size(ENY), i0[I], j0[I], k2[I])])
+    append!(ey2, ENY.SV[sub2ind(size(ENY), i0[I], j1[I], k2[I])])
+    append!(ey3, ENY.SV[sub2ind(size(ENY), i1[I], j0[I], k2[I])])
+    append!(ey4, ENY.SV[sub2ind(size(ENY), i1[I], j1[I], k2[I])])
+    append!(ey5, ENY.SV[sub2ind(size(ENY), i2[I], j0[I], k2[I])])
+    append!(ey6, ENY.SV[sub2ind(size(ENY), i2[I], j1[I], k2[I])])
 end
 
 #Convert from n x 1 arrays to vectors
