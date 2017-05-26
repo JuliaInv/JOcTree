@@ -57,7 +57,7 @@ for it = 1:meshsize
          if 1 <= ni && ni <= m1 &&
             1 <= nj && nj <= m2 &&
             1 <= nk && nk <= m3 
-				if S.SV[sub2ind(S.sz,ni,nj,nk),1] != 0
+				if S.SV[sub2ind(S.sz,ni,nj,nk)] != 0
 					isRegular[it] = false
 					break
 			   end

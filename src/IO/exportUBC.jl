@@ -1,5 +1,5 @@
 
-export exportUBCOcTreeMesh, exportUBCOcTreeModel
+export exportUBCOcTreeMesh, exportUBCOcTreeModel, outputOctreeMesh
 
 
 """

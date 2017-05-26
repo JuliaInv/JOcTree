@@ -9,9 +9,8 @@ module JOcTree
     include("OcTreeMeshFV.jl")
     include("display.jl")
 
-    include("getNumbering.jl")
     include("getGrids.jl")
-    include("getSizes.jl")
+    include("getSizeNumbering.jl")
 
     include("getCurlMatrixRec.jl")
     include("getDivergenceMatrixRec.jl")
@@ -42,6 +41,8 @@ module JOcTree
     include("refineOcTree.jl")    
     include("splitCells.jl")
     include("uniteOcTrees.jl")
+
+    include("Utils.jl")
 
     include("getEdgeIntegralOfPolygonalChain.jl")
 
