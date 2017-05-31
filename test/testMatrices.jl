@@ -1,4 +1,4 @@
-
+@testset "Matrices" begin
 using JOcTree
 using Base.Test
 
@@ -156,3 +156,4 @@ end  # i
 # loglog( ncells, NdifGRAD, "r.-")
 # loglog( ncells, NdifDIV,  "g.-")
 # loglog( ncells, NdifCURL, "b.-")
+end
