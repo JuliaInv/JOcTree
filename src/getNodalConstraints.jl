@@ -46,91 +46,97 @@ function getNodalConstraints(S::SparseArray3D)
   # n1--------n2--------n3
 
   I = find(upper.==4) #find "bigger" cells
+  bsz2 = div(bsz[I],2)
   
-  if ~isempty(I)
-    n1 = [n1; NN.SV[sub2ind(size(NN), i[I], j[I]         , k[I]         )]]
-    n2 = [n2; NN.SV[sub2ind(size(NN), i[I], j[I]+round(Int64,bsz[I]/2), k[I]         )]]
-    n3 = [n3; NN.SV[sub2ind(size(NN), i[I], j[I]+bsz[I]  , k[I]         )]]
-    n4 = [n4; NN.SV[sub2ind(size(NN), i[I], j[I]         , round(Int64,k[I]+bsz[I]/2))]]
-    n5 = [n5; NN.SV[sub2ind(size(NN), i[I], j[I]+round(Int64,bsz[I]/2), round(Int64,k[I]+bsz[I]/2))]]
-    n6 = [n6; NN.SV[sub2ind(size(NN), i[I], j[I]+bsz[I]  , round(Int64,k[I]+bsz[I]/2))]]
-    n7 = [n7; NN.SV[sub2ind(size(NN), i[I], j[I]         , k[I]+bsz[I]  )]]
-    n8 = [n8; NN.SV[sub2ind(size(NN), i[I], round(Int64,j[I]+bsz[I]/2), k[I]+bsz[I]  )]]
-    n9 = [n9; NN.SV[sub2ind(size(NN), i[I], j[I]+bsz[I]  , k[I]+bsz[I]  )]]
+  if !isempty(I)
+    append!(n1, NN.SV[sub2ind(size(NN), i[I], j[I]        , k[I]        )])
+    append!(n2, NN.SV[sub2ind(size(NN), i[I], j[I]+bsz2   , k[I]        )])
+    append!(n3, NN.SV[sub2ind(size(NN), i[I], j[I]+bsz[I] , k[I]        )])
+    append!(n4, NN.SV[sub2ind(size(NN), i[I], j[I]        , k[I]+bsz2   )])
+    append!(n5, NN.SV[sub2ind(size(NN), i[I], j[I]+bsz2   , k[I]+bsz2   )])
+    append!(n6, NN.SV[sub2ind(size(NN), i[I], j[I]+bsz[I] , k[I]+bsz2   )])
+    append!(n7, NN.SV[sub2ind(size(NN), i[I], j[I]        , k[I]+bsz[I] )])
+    append!(n8, NN.SV[sub2ind(size(NN), i[I], j[I]+bsz2   , k[I]+bsz[I] )])
+    append!(n9, NN.SV[sub2ind(size(NN), i[I], j[I]+bsz[I] , k[I]+bsz[I] )])
   end
 
   I = find(lower.==4) # find  "bigger" cells
+  bsz2 = div(bsz[I],2)
 
-  if ~isempty(I)
-    n1 = [n1; NN.SV[sub2ind(size(NN), i[I]+bsz[I], j[I]         , k[I]         )]]
-    n2 = [n2; NN.SV[sub2ind(size(NN), i[I]+bsz[I], round(Int64,j[I]+bsz[I]/2), k[I]         )]]
-    n3 = [n3; NN.SV[sub2ind(size(NN), i[I]+bsz[I], j[I]+bsz[I]  , k[I]         )]]
-    n4 = [n4; NN.SV[sub2ind(size(NN), i[I]+bsz[I], j[I]         , round(Int64,k[I]+bsz[I]/2))]]
-    n5 = [n5; NN.SV[sub2ind(size(NN), i[I]+bsz[I], round(Int64,j[I]+bsz[I]/2), round(Int64,k[I]+bsz[I]/2))]]
-    n6 = [n6; NN.SV[sub2ind(size(NN), i[I]+bsz[I], j[I]+bsz[I]  , round(Int64,k[I]+bsz[I]/2))]]
-    n7 = [n7; NN.SV[sub2ind(size(NN), i[I]+bsz[I], j[I]         , k[I]+bsz[I]  )]]
-    n8 = [n8; NN.SV[sub2ind(size(NN), i[I]+bsz[I], round(Int64,j[I]+bsz[I]/2), k[I]+bsz[I]  )]]
-    n9 = [n9; NN.SV[sub2ind(size(NN), i[I]+bsz[I], j[I]+bsz[I]  , k[I]+bsz[I]  )]]
+  if !isempty(I)
+    append!(n1, NN.SV[sub2ind(size(NN), i[I]+bsz[I], j[I]        , k[I]       )])
+    append!(n2, NN.SV[sub2ind(size(NN), i[I]+bsz[I], j[I]+bsz2   , k[I]       )])
+    append!(n3, NN.SV[sub2ind(size(NN), i[I]+bsz[I], j[I]+bsz[I] , k[I]       )])
+    append!(n4, NN.SV[sub2ind(size(NN), i[I]+bsz[I], j[I]        , k[I]+bsz2  )])
+    append!(n5, NN.SV[sub2ind(size(NN), i[I]+bsz[I], j[I]+bsz2   , k[I]+bsz2  )])
+    append!(n6, NN.SV[sub2ind(size(NN), i[I]+bsz[I], j[I]+bsz[I] , k[I]+bsz2  )])
+    append!(n7, NN.SV[sub2ind(size(NN), i[I]+bsz[I], j[I]        , k[I]+bsz[I])])
+    append!(n8, NN.SV[sub2ind(size(NN), i[I]+bsz[I], j[I]+bsz2   , k[I]+bsz[I])])
+    append!(n9, NN.SV[sub2ind(size(NN), i[I]+bsz[I], j[I]+bsz[I] , k[I]+bsz[I])])
   end
 
   ##################################
 
   I = find(left .== 4) # find  "bigger" cells
+  bsz2 = div(bsz[I],2)
 
-  if ~isempty(I)
-    n1 = [n1; NN.SV[sub2ind(size(NN), i[I]         , j[I], k[I]         )]];
-    n2 = [n2; NN.SV[sub2ind(size(NN), i[I]+round(Int64,bsz[I]/2), j[I], k[I]         )]]
-    n3 = [n3; NN.SV[sub2ind(size(NN), i[I]+bsz[I]  , j[I], k[I]         )]]
-    n4 = [n4; NN.SV[sub2ind(size(NN), i[I]         , j[I], k[I]+round(Int64,bsz[I]/2))]]
-    n5 = [n5; NN.SV[sub2ind(size(NN), i[I]+round(Int64,bsz[I]/2), j[I], k[I]+round(Int64,bsz[I]/2))]]
-    n6 = [n6; NN.SV[sub2ind(size(NN), i[I]+bsz[I]  , j[I], k[I]+round(Int64,bsz[I]/2))]]
-    n7 = [n7; NN.SV[sub2ind(size(NN), i[I]         , j[I], k[I]+bsz[I]  )]]
-    n8 = [n8; NN.SV[sub2ind(size(NN), i[I]+round(Int64,bsz[I]/2), j[I], k[I]+bsz[I]  )]]
-    n9 = [n9; NN.SV[sub2ind(size(NN), i[I]+bsz[I]  , j[I], k[I]+bsz[I]  )]]
+  if !isempty(I)
+    append!(n1, NN.SV[sub2ind(size(NN), i[I]        , j[I], k[I]        )])
+    append!(n2, NN.SV[sub2ind(size(NN), i[I]+bsz2   , j[I], k[I]        )])
+    append!(n3, NN.SV[sub2ind(size(NN), i[I]+bsz[I] , j[I], k[I]        )])
+    append!(n4, NN.SV[sub2ind(size(NN), i[I]        , j[I], k[I]+bsz2   )])
+    append!(n5, NN.SV[sub2ind(size(NN), i[I]+bsz2   , j[I], k[I]+bsz2   )])
+    append!(n6, NN.SV[sub2ind(size(NN), i[I]+bsz[I] , j[I], k[I]+bsz2   )])
+    append!(n7, NN.SV[sub2ind(size(NN), i[I]        , j[I], k[I]+bsz[I] )])
+    append!(n8, NN.SV[sub2ind(size(NN), i[I]+bsz2   , j[I], k[I]+bsz[I] )])
+    append!(n9, NN.SV[sub2ind(size(NN), i[I]+bsz[I] , j[I], k[I]+bsz[I] )])
   end
 
   I = find(right .== 4) # find  "bigger" cells
+  bsz2 = div(bsz[I],2)
 
-  if ~isempty(I)
-    n1 = [n1; NN.SV[sub2ind(size(NN), i[I]         , j[I]+bsz[I], k[I]         )]]
-    n2 = [n2; NN.SV[sub2ind(size(NN), i[I]+round(Int64,bsz[I]/2), j[I]+bsz[I], k[I]         )]]
-    n3 = [n3; NN.SV[sub2ind(size(NN), i[I]+bsz[I]  , j[I]+bsz[I], k[I]         )]]
-    n4 = [n4; NN.SV[sub2ind(size(NN), i[I]         , j[I]+bsz[I], k[I]+round(Int64,bsz[I]/2))]]
-    n5 = [n5; NN.SV[sub2ind(size(NN), i[I]+round(Int64,bsz[I]/2), j[I]+bsz[I], k[I]+round(Int64,bsz[I]/2))]]
-    n6 = [n6; NN.SV[sub2ind(size(NN), i[I]+bsz[I]  , j[I]+bsz[I], k[I]+round(Int64,bsz[I]/2))]]
-    n7 = [n7; NN.SV[sub2ind(size(NN), i[I]         , j[I]+bsz[I], k[I]+bsz[I]  )]]
-    n8 = [n8; NN.SV[sub2ind(size(NN), i[I]+round(Int64,bsz[I]/2), j[I]+bsz[I], k[I]+bsz[I]  )]]
-    n9 = [n9; NN.SV[sub2ind(size(NN), i[I]+bsz[I]  , j[I]+bsz[I], k[I]+bsz[I]  )]]
+  if !isempty(I)
+    append!(n1, NN.SV[sub2ind(size(NN), i[I]         , j[I]+bsz[I], k[I]        )])
+    append!(n2, NN.SV[sub2ind(size(NN), i[I]+bsz2    , j[I]+bsz[I], k[I]        )])
+    append!(n3, NN.SV[sub2ind(size(NN), i[I]+bsz[I]  , j[I]+bsz[I], k[I]        )])
+    append!(n4, NN.SV[sub2ind(size(NN), i[I]         , j[I]+bsz[I], k[I]+bsz2   )])
+    append!(n5, NN.SV[sub2ind(size(NN), i[I]+bsz2    , j[I]+bsz[I], k[I]+bsz2   )])
+    append!(n6, NN.SV[sub2ind(size(NN), i[I]+bsz[I]  , j[I]+bsz[I], k[I]+bsz2   )])
+    append!(n7, NN.SV[sub2ind(size(NN), i[I]         , j[I]+bsz[I], k[I]+bsz[I] )])
+    append!(n8, NN.SV[sub2ind(size(NN), i[I]+bsz2    , j[I]+bsz[I], k[I]+bsz[I] )])
+    append!(n9, NN.SV[sub2ind(size(NN), i[I]+bsz[I]  , j[I]+bsz[I], k[I]+bsz[I] )])
   end
 
   ##################################
 
   I = find(front .== 4) # find  "bigger" cells
+  bsz2 = div(bsz[I],2)
 
-  if ~isempty(I)
-    n1 = [n1; NN.SV[sub2ind(size(NN), i[I]         , j[I]         , k[I])]]
-    n2 = [n2; NN.SV[sub2ind(size(NN), i[I]+round(Int64,bsz[I]/2), j[I]         , k[I])]]
-    n3 = [n3; NN.SV[sub2ind(size(NN), i[I]+bsz[I]  , j[I]         , k[I])]]
-    n4 = [n4; NN.SV[sub2ind(size(NN), i[I]         , j[I]+round(Int64,bsz[I]/2), k[I])]]
-    n5 = [n5; NN.SV[sub2ind(size(NN), i[I]+round(Int64,bsz[I]/2), j[I]+round(Int64,bsz[I]/2), k[I])]]
-    n6 = [n6; NN.SV[sub2ind(size(NN), i[I]+bsz[I]  , j[I]+round(Int64,bsz[I]/2), k[I])]]
-    n7 = [n7; NN.SV[sub2ind(size(NN), i[I]         , j[I]+bsz[I]  , k[I])]]
-    n8 = [n8; NN.SV[sub2ind(size(NN), i[I]+round(Int64,bsz[I]/2), j[I]+bsz[I]  , k[I])]]
-    n9 = [n9; NN.SV[sub2ind(size(NN), i[I]+bsz[I]  , j[I]+bsz[I]  , k[I])]]
+  if !isempty(I)
+    append!(n1, NN.SV[sub2ind(size(NN), i[I]         , j[I]        , k[I] )])
+    append!(n2, NN.SV[sub2ind(size(NN), i[I]+bsz2    , j[I]        , k[I] )])
+    append!(n3, NN.SV[sub2ind(size(NN), i[I]+bsz[I]  , j[I]        , k[I] )])
+    append!(n4, NN.SV[sub2ind(size(NN), i[I]         , j[I]+bsz2   , k[I] )])
+    append!(n5, NN.SV[sub2ind(size(NN), i[I]+bsz2    , j[I]+bsz2   , k[I] )])
+    append!(n6, NN.SV[sub2ind(size(NN), i[I]+bsz[I]  , j[I]+bsz2   , k[I] )])
+    append!(n7, NN.SV[sub2ind(size(NN), i[I]         , j[I]+bsz[I] , k[I] )])
+    append!(n8, NN.SV[sub2ind(size(NN), i[I]+bsz2    , j[I]+bsz[I] , k[I] )])
+    append!(n9, NN.SV[sub2ind(size(NN), i[I]+bsz[I]  , j[I]+bsz[I] , k[I] )])
   end
 
   I = find(back .== 4) # find  "bigger" cells
+  bsz2 = div(bsz[I],2)
 
-  if ~isempty(I)
-    n1 = [n1; NN.SV[sub2ind(size(NN), i[I]         , j[I]         , k[I]+bsz[I])]]
-    n2 = [n2; NN.SV[sub2ind(size(NN), i[I]+round(Int64,bsz[I]/2), j[I]         , k[I]+bsz[I])]]
-    n3 = [n3; NN.SV[sub2ind(size(NN), i[I]+bsz[I]  , j[I]         , k[I]+bsz[I])]]
-    n4 = [n4; NN.SV[sub2ind(size(NN), i[I]         , j[I]+round(Int64,bsz[I]/2), k[I]+bsz[I])]]
-    n5 = [n5; NN.SV[sub2ind(size(NN), i[I]+round(Int64,bsz[I]/2), j[I]+round(Int64,bsz[I]/2), k[I]+bsz[I])]]
-    n6 = [n6; NN.SV[sub2ind(size(NN), i[I]+bsz[I]  , j[I]+round(Int64,bsz[I]/2), k[I]+bsz[I])]]
-    n7 = [n7; NN.SV[sub2ind(size(NN), i[I]         , j[I]+bsz[I]  , k[I]+bsz[I])]]
-    n8 = [n8; NN.SV[sub2ind(size(NN), i[I]+round(Int64,bsz[I]/2), j[I]+bsz[I]  , k[I]+bsz[I])]]
-    n9 = [n9; NN.SV[sub2ind(size(NN), i[I]+bsz[I]  , j[I]+bsz[I]  , k[I]+bsz[I])]]
+  if !isempty(I)
+    append!(n1, NN.SV[sub2ind(size(NN), i[I]        , j[I]        , k[I]+bsz[I] )])
+    append!(n2, NN.SV[sub2ind(size(NN), i[I]+bsz2   , j[I]        , k[I]+bsz[I] )])
+    append!(n3, NN.SV[sub2ind(size(NN), i[I]+bsz[I] , j[I]        , k[I]+bsz[I] )])
+    append!(n4, NN.SV[sub2ind(size(NN), i[I]        , j[I]+bsz2   , k[I]+bsz[I] )])
+    append!(n5, NN.SV[sub2ind(size(NN), i[I]+bsz2   , j[I]+bsz2   , k[I]+bsz[I] )])
+    append!(n6, NN.SV[sub2ind(size(NN), i[I]+bsz[I] , j[I]+bsz2   , k[I]+bsz[I] )])
+    append!(n7, NN.SV[sub2ind(size(NN), i[I]        , j[I]+bsz[I] , k[I]+bsz[I] )])
+    append!(n8, NN.SV[sub2ind(size(NN), i[I]+bsz2   , j[I]+bsz[I] , k[I]+bsz[I] )])
+    append!(n9, NN.SV[sub2ind(size(NN), i[I]+bsz[I] , j[I]+bsz[I] , k[I]+bsz[I] )])
   end
 
   ###################################################################
