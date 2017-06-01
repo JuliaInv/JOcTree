@@ -53,7 +53,6 @@ function getdFaceMassMatrix(M::OcTreeMeshFV,sigma::Vector,v::Vector)
 	return dM
 end
 
-
 function getFaceMassMatrixIntegrationMatrix(S::SparseArray3D,h)
     
     n   = S.sz;
