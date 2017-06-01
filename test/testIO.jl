@@ -1,4 +1,4 @@
-
+@testset "IO" begin
 include("randomOctreeMesh.jl") 
 S = randomOctreeMesh( [256, 256, 256], 5 )
 
@@ -16,3 +16,4 @@ modelIn = importUBCOcTreeModel("model.mod", meshIn);
 
 rm("mesh.msh")
 rm("model.mod")
+end

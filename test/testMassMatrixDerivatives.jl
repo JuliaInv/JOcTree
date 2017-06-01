@@ -1,5 +1,7 @@
 println("Testing: getdEdgeMassMatrix, getdFaceMassMatrix")
 
+@testset "Mass matrix derivatives" begin
+
 using jInv.Utils
 
 # Get random mesh
@@ -59,3 +61,5 @@ p6, = checkDerivative(Mf3,dMf3,sig3)
 @test p4
 @test p5
 @test p6
+
+end
