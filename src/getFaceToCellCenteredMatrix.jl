@@ -56,7 +56,6 @@ FX,FY,FZ = getFaceSize(S)
 
 HF = vcat(nonzeros(FX), nonzeros(FY), nonzeros(FZ))
 
-A = DIV
 fill!(A.nzval, 1.0)
 
 HF = HF.^2
