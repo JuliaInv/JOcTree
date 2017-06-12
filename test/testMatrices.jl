@@ -3,8 +3,6 @@ using JOcTree
 using Base.Test
 
 include("getFunction.jl")
-include("randomOctreeMesh.jl") 
-
 
 # Test the following matrices:
 #   getNodalGradientMatrix, getCurlMatrix, getDivergenceMatrix
@@ -17,7 +15,7 @@ println("Testing: getNodalGradientMatrix, getCurlMatrix, getDivergenceMatrix")
 
 #-------------------------------------------
 
-n = [128 , 128 , 128]   # underlying mesh
+n = [64, 64, 32]   # underlying mesh
 h = 1 ./ n   # cell size
 x0 = [0. , 0. , 0.]
 
@@ -26,7 +24,7 @@ S = randomOctreeMesh( n, nrand )
 
 M = getOcTreeMeshFV(S, h, x0=x0)
 
-exportUBCOcTreeMesh("mesh.txt", M)
+# exportUBCOcTreeMesh("mesh.txt", M)
 
 #-------------------------------------------
 
@@ -52,7 +50,7 @@ println("nnz(CURLGRAD)  ", nnz(CURLGRAD))
 
 xyz = getCellCenteredGrid(M)
 f = getF( xyz[:,1], xyz[:,2], xyz[:,3] )
-exportUBCOcTreeModel("model.txt", M,f)
+# exportUBCOcTreeModel("model.txt", M,f)
 
 
 println()
@@ -142,6 +140,7 @@ for i = 1:ntests
 
 end  # i
 
+println()
 
 # Make sure that the inf norm decreases as the number cells increase.
 

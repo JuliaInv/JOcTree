@@ -1,5 +1,5 @@
 
-export exportUBCOcTreeMesh, exportUBCOcTreeModel, outputOctreeMesh
+export exportUBCOcTreeMesh, exportUBCOcTreeModel
 
 
 """
@@ -36,7 +36,7 @@ function exportUBCOcTreeMesh(fname::AbstractString, mesh::OcTreeMesh)
     println(f, n, " ! size of octree mesh")
     for i = 1:n
         idx = p[i]
-        @printf(f,"%i %i %i %i\n", i1[idx], i2[idx], i3[idx], bsz[idx])
+        println(f, i1[idx], " ", i2[idx], " ", i3[idx], " ", bsz[idx])
     end
     close(f)
     return
@@ -51,10 +51,10 @@ end
     
         name::AbstractString - File to write
         mesh::OcTreeMesh     - The mesh corresponding to the model
-        model::Union{Array{Float64,1}, Array{Int64,1}} - The model 
+        model::Array{T,N}    - The model (N = 1,2)
             
 """
-function exportUBCOcTreeModel(name::AbstractString, mesh::OcTreeMesh, model::Union{Array{Float64,1}, Array{Int64,1}})
+function exportUBCOcTreeModel{T}(name::AbstractString, mesh::OcTreeMesh, model::Array{T,1})
 
     m1,m2,m3     = mesh.n
     i1,i2,i3,bsz = find3(mesh.S)
@@ -65,12 +65,37 @@ function exportUBCOcTreeModel(name::AbstractString, mesh::OcTreeMesh, model::Uni
     n = nnz(mesh.S)
     S = sub2ind( (m1,m2,m3), i1,i2,i3 )
     p = sortpermFast(S)[1]
-    modelPerm = model[p]
 
     # Write model vector
     f = open(name, "w")
     for i = 1:n
-        println(f, modelPerm[i])
+        idx = p[i]
+        println(f, model[idx])
+    end
+    close(f)
+    return
+end
+
+function exportUBCOcTreeModel{T}(name::AbstractString, mesh::OcTreeMesh, model::Array{T,2})
+
+    m1,m2,m3     = mesh.n
+    i1,i2,i3,bsz = find3(mesh.S)
+
+    # Roman's code starts the OcTree at the top corner. Change from bottom
+    # corner.
+    i3 = m3 + 2 .- i3 - bsz
+    n = nnz(mesh.S)
+    S = sub2ind( (m1,m2,m3), i1,i2,i3 )
+    p = sortpermFast(S)[1]
+    
+    ncol = size(model,2)
+
+    # Write model vector
+    f = open(name, "w")
+    for i = 1:n
+        idx = p[i]
+        line = join(String[ string(model[idx,j]) for j = 1:ncol ], " ")
+        println(f, line)
     end
     close(f)
     return

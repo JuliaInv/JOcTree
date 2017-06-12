@@ -1,19 +1,46 @@
+println("Testing: exportUBCOcTreeMesh, importUBCOcTreeMesh, exportUBCOcTreeModel, importUBCOcTreeModel")
+
 @testset "IO" begin
-include("randomOctreeMesh.jl") 
-S = randomOctreeMesh( [256, 256, 256], 5 )
 
+n = [128, 128, 128]
+h = rand(1.:100.0,3)   # cell size
+x0 = rand(1.:100.0,3)
 
-meshOut = getOcTreeMeshFV(S, rand(1.:100.0,3); x0=rand(1.:100.0,3))
-modelOut = rand(1:0.1:100, meshOut.nc)
+nrand = 5
+S = randomOctreeMesh(n, nrand)
+
+meshOut = getOcTreeMeshFV(S, h; x0=x0)
 exportUBCOcTreeMesh("mesh.msh", meshOut)
-exportUBCOcTreeModel("model.mod", meshOut, modelOut)
-
 meshIn = importUBCOcTreeMesh("mesh.msh")
-modelIn = importUBCOcTreeModel("model.mod", meshIn);
-
 @test meshIn==meshOut
-@test modelIn==modelOut
+
+for modelOut in [
+    rand(1:0.1:100, meshOut.nc),
+    rand(1:0.1:100, meshOut.nc,3),
+    rand(1:0.1:100, meshOut.nc,6)]
+    
+    exportUBCOcTreeModel("model.mod", meshOut, modelOut)
+    modelIn = importUBCOcTreeModel("model.mod", meshIn)
+    @test modelIn==modelOut  
+    
+end
+
+for modelOut in [
+    rand(Bool, meshOut.nc),
+    rand(Bool, meshOut.nc, 3),
+    rand(1:100, meshOut.nc),
+    rand(1:100, meshOut.nc, 3),
+    rand(1:0.1:100, meshOut.nc),
+    rand(1:0.1:100, meshOut.nc, 3)]
+    
+    exportUBCOcTreeModel("model.mod", meshOut, modelOut)
+    modelIn = importUBCOcTreeModel("model.mod", meshIn, eltype(modelOut))
+    @test modelIn==modelOut
+    @test eltype(modelIn)==eltype(modelOut)
+    
+end
 
 rm("mesh.msh")
 rm("model.mod")
+
 end

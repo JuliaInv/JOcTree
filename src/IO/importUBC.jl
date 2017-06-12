@@ -89,7 +89,7 @@ function importUBCOcTreeMesh(meshfile::AbstractString)
 end
 
 """
-    model = importUBCOcTreeMesh(modelfile, mesh)
+    model = importUBCOcTreeModel(modelfile, mesh, DataType=Float64)
     
     Reads an OcTree model in UBC format from disk.
 
@@ -97,16 +97,18 @@ end
     
         modelfile::AbstractString - File to read
         mesh::OcTreeMeshFV        - The corresponding mesh
+        T::DataType               - Data type of model (Float64, Int64, Bool, ...)
 
     Output:
 
         model::Array{Float64,1} - The model
+        model::Array{Float64,2}
             
 """
-function importUBCOcTreeModel(modelfile::AbstractString, mesh::OcTreeMesh)
+function importUBCOcTreeModel(modelfile::AbstractString, mesh::OcTreeMesh, T::DataType=Float64)
 
     # open file (throws error if file doesn't exist)
-    f    = open(modelfile,"r")
+    f = open(modelfile,"r")
 
     # read everything
     s = readlines(f)
@@ -114,14 +116,9 @@ function importUBCOcTreeModel(modelfile::AbstractString, mesh::OcTreeMesh)
     # close
     close(f)
 
-    # convert to numbers
-    model = Array{Float64}(length(s))
-    for i = 1:length(s)
-        model[i] = parse(Float64,s[i])
-    end
-
     # check if we have the correct number of cell values
-    if length(model) != mesh.nc
+    n = mesh.nc
+    if length(s) != n
         error("Incorrect number of cell values")
     end
 
@@ -129,12 +126,26 @@ function importUBCOcTreeModel(modelfile::AbstractString, mesh::OcTreeMesh)
     m1,m2,m3 = mesh.n
     i1,i2,i3,bsz = find3(mesh.S)
     i3 = m3 + 2 .- i3 - bsz
-
-    n = nnz(mesh.S)
-
     S = sub2ind( (m1,m2,m3), i1,i2,i3 )
     p = sortpermFast(S)[1]
-    ipermute!(model,p)
+	
+    # check for multiple values per cell
+  	d = split(s[1])
+  	ncol = length(d)
+	
+  	# convert to numbers
+    if ncol == 1
+        model = Array{T}(n)
+    else
+        model = Array{T}(n,ncol)
+    end
+    for i = 1:n
+        idx = p[i]
+        d = split(s[i])
+        for j = 1:ncol
+            model[idx,j] = parse(T,d[j])
+        end
+    end
 
     return model
 end
