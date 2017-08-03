@@ -6,11 +6,11 @@
 
 Library for creating and manipulating OcTrees as well as creating differential operators discretized on OcTree meshes.
 
-#Requirements
+# Requirements
 
 JOcTree is intended for use with Julia 0.5.x. jInv is the only required dependency. 
 
-#Installation
+# Installation
 
 In julia type:
 ```
