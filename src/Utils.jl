@@ -8,24 +8,24 @@ A = DiagTimesM(d,A)
 Computes D`*`A, the product of a diagonal matrix D and a general
 sparse matrix A in an optimized way, with A being updated in place.
 
-Input: 
+Input:
 
         d::Vector -- Diagonal matrix D, stored as a vector
                      of the diagonal elements. D = spdiagm(d).
         A::SparseMatrixCSC
-        
+
 Output:
-     
-        A::SparseMatrixCSC -- D*A, with input A overwritten  
+
+        A::SparseMatrixCSC -- D*A, with input A overwritten
 """
 function DiagTimesM( d::Vector, A::SparseMatrixCSC )
 # Return diag{d} * A
-   
+
    n = size(A,2)
    if (length(d) != size(A,1))
       error("length(d) != size(A,1)")
    end
-   
+
    for ir = 1:n
       j1 = A.colptr[ir]
       j2 = A.colptr[ir+1] - 1
@@ -35,7 +35,7 @@ function DiagTimesM( d::Vector, A::SparseMatrixCSC )
       end
    end
 
-   return A 
+   return A
 end
 
 
@@ -44,18 +44,18 @@ end
 A = MTimesDiag(A,d)
 
 Computes A`*`D, the product of a general
-sparse matrix A and a diagonal matrix D in an optimized way, 
+sparse matrix A and a diagonal matrix D in an optimized way,
 with A being updated in place.
 
-Input: 
+Input:
 
         A::SparseMatrixCSC
         d::Vector -- Diagonal matrix D, stored as a vector
                      of the diagonal elements. D = spdiagm(d).
-        
+
 Output:
-     
-        A::SparseMatrixCSC -- A*D, with input A overwritten  
+
+        A::SparseMatrixCSC -- A*D, with input A overwritten
 """
 function MTimesDiag( A::SparseMatrixCSC, d::Vector )
 # Return A * diag{d}
@@ -73,8 +73,8 @@ function MTimesDiag( A::SparseMatrixCSC, d::Vector )
          A.nzval[ic] *= dgir
       end
    end
-   
-   return A 
+
+   return A
 end
 
 
@@ -91,21 +91,21 @@ Input:
        A::SparseMatrixCSC
        e::Vector -- Diagonal elements of a Diagonal matrix, stored
                     as a vector
-                    
+
 Output:
 
-       A::SparseMatrixCSC -- Result of spdiagm(d)*A*spdiagm(e),
+       A::SparseMatrixCSC -- Result of spdiagm(d)\*A\*spdiagm(e),
                              overwrites input matrix A.
 
 """
 function DiagTimesMTimesDiag( d::Vector, A::SparseMatrixCSC, e::Vector )
 # Return diag{d} * A * diag{e}
-    
+
    n = size(A,2)
    if (length(d) != size(A,1) || length(e) != n)
     error("length(d) != size(A,1) || length(e) != n")
    end
-   
+
    for ir = 1:n
       j1 = A.colptr[ir]
       j2 = A.colptr[ir+1] - 1
@@ -116,7 +116,7 @@ function DiagTimesMTimesDiag( d::Vector, A::SparseMatrixCSC, e::Vector )
       end
    end
 
-   return A    
+   return A
 end
 
 #-----------------------------------------------------------------
@@ -124,12 +124,12 @@ end
 # Internal utilities
 
 function getNodesFromIndices(sv,mm,i0::Vector{Int},j0::Vector{Int},k0::Vector{Int})
-	
+
 	jj = sub2ind(mm,i0,j0,k0)
-  v  = Array(Int64, length(jj))
+  v  = Array{Int64}(length(jj))
   for i = 1:length(jj)
     v[i] = sv[jj[i]]
   end
 	return v
-	
+
 end

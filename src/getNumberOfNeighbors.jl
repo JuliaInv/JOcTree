@@ -27,8 +27,8 @@ for kk = 1:length(Itmp)
 end
 
 ##   CHECK FOR 4 NEIGHBORS IF i-sz/2 >=1
-Iin   = find(((i-div(bsz,2)) .>= 1) & bsz.>1 )
-Itmp  = sub2ind(S.sz,i[Iin]-div(bsz[Iin],2),j[Iin],k[Iin]);
+Iin   = find(((i-div.(bsz,2)) .>= 1) .& bsz.>1 )
+Itmp  = sub2ind(S.sz,i[Iin]-div.(bsz[Iin],2),j[Iin],k[Iin]);
 for kk = 1:length(Iin); if S.SV[Itmp[kk]] > 0; upper[Iin[kk]] = 4; end; end
 
 ## LOWER ==============================================
@@ -58,8 +58,8 @@ for kk = 1:length(Itmp)
    end
 end
 ##   CHECK FOR 4 NEIGHBORS IF j-sz/2 >=1
-Iin   = find(((j-div(bsz,2)) .>= 1) &  bsz.>1 )
-Itmp  = sub2ind(S.sz,i[Iin],j[Iin]-div(bsz[Iin],2),k[Iin])
+Iin   = find(((j-div.(bsz,2)) .>= 1) .&  bsz.>1 )
+Itmp  = sub2ind(S.sz,i[Iin],j[Iin]-div.(bsz[Iin],2),k[Iin])
 for kk = 1:length(Itmp)
         if S.SV[Itmp[kk],1] > 0; left[Iin[kk]] = 4; end
 end
@@ -91,8 +91,8 @@ for kk = 1:length(Itmp)
    end
 end
 ##   CHECK FOR 4 NEIGHBORS IF j-sz/2 >=1
-Iin   = find(((k-div(bsz,2)) .>= 1)  & bsz.>1 )
-Itmp  = sub2ind(S.sz,i[Iin],j[Iin],k[Iin]-div(bsz[Iin],2))
+Iin   = find(((k-div.(bsz,2)) .>= 1)  .& bsz.>1 )
+Itmp  = sub2ind(S.sz,i[Iin],j[Iin],k[Iin]-div.(bsz[Iin],2))
 front[Iin[find(S.SV[Itmp,1].>0)]] = 4
 
 ## Back ==========================================================

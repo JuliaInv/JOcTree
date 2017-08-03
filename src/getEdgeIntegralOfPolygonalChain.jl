@@ -21,10 +21,10 @@ function getEdgeIntegralOfPolygonalChain(mesh::OcTreeMesh, polygon::Array{Float6
 # mesh ...... OcTree mesh
 # polygon ... vertices of polygonal chain as numVertices x 3 array
 # normalize . divide line integral by length of integration path (boolean, optional)
-# 
+#
 # OUTPUT
 # s ......... source vector
-# 
+#
 # For a closed current loop, specify polygon such that
 #   polygon[1,:] == polygon[end,:]
 #
@@ -55,9 +55,9 @@ py = (polygon[:,2] .- y0) ./ hy .+ 1.0
 pz = (polygon[:,3] .- z0) ./ hz .+ 1.0
 
 # check that all polygon vertices are inside the mesh
-j = (px .< 1.0) | (px .> nx + 1.0) |
-	(py .< 1.0) | (py .> ny + 1.0) |
-	(pz .< 1.0) | (pz .> nz + 1.0)
+j = (px .< 1.0) .| (px .> nx + 1.0) .|
+	(py .< 1.0) .| (py .> ny + 1.0) .|
+	(pz .< 1.0) .| (pz .> nz + 1.0)
 n = sum(j)
 if n > 0
 	if n == 1
@@ -75,9 +75,9 @@ if n > 0
 end
 
 # check that all polygon vertices are contained in interior cells of mesh
-j = (px .< 2.0) | (px .> nx) |
-	(py .< 2.0) | (py .> ny) |
-	(pz .< 2.0) | (pz .> nz)
+j = (px .< 2.0) .| (px .> nx) .|
+	(py .< 2.0) .| (py .> ny) .|
+	(pz .< 2.0) .| (pz .> nz)
 n = sum(j)
 if n > 0
 	if n == 1
@@ -102,6 +102,9 @@ scaleZ = hz
 
 if normalize
    scale = getNormalizeVal(polygon)
+   if scale <= 0
+       error("scale <= 0")
+   end
    scaleX /= scale
    scaleY /= scale
    scaleZ /= scale
@@ -130,7 +133,7 @@ tol   = 0.0
 
 # integrate each line segment
 for ip = 1:np
-	
+
 	# start and end vertices
 	ax = px[ip]
 	ay = py[ip]
@@ -138,7 +141,7 @@ for ip = 1:np
 	bx = px[ip+1]
 	by = py[ip+1]
 	bz = pz[ip+1]
-	
+
 	# find intersection with mesh planes
 	dx  = bx - ax
 	dy  = by - ay
@@ -170,22 +173,22 @@ for ip = 1:np
 		tz = zeros(0)
 	end
 	t = unique(sort([0.0; tx; ty; tz; 1.0;]))
-	
+
 	# number of cells that the current line segment crosses
 	nq = length(t) - 1
-	
+
 	# integrate by cells
 	for iq = 1:nq
-		
+
 		# center of line segment
 		tc = 0.5 * (t[iq] + t[iq+1])
-		
+
 		# locate cell id
 		ix = floor(Integer,ax + tc * dx)
 		iy = floor(Integer,ay + tc * dy)
 		iz = floor(Integer,az + tc * dz)
 		ix,iy,iz,bsz = findBlocks(S,ix,iy,iz)
-		
+
 		# integration limits in local coordinates
 		axloc = ax + t[iq]   * dx - x[ix]
 		ayloc = ay + t[iq]   * dy - y[iy]
@@ -193,15 +196,15 @@ for ip = 1:np
 		bxloc = ax + t[iq+1] * dx - x[ix]
 		byloc = ay + t[iq+1] * dy - y[iy]
 		bzloc = az + t[iq+1] * dz - z[iz]
-		
+
 		# basis functions are defined on cube of size bsz^3
 		b = bsz * 1.0
-		
+
 		# integrate
 		getStraightLineCurrentIntegral!(
 			b, b, b, axloc, ayloc, azloc, bxloc, byloc, bzloc,
 			sxloc, syloc, szloc)
-		
+
 		# find edge numbers
 		jx = ix + bsz
 		jy = iy + bsz
@@ -218,7 +221,7 @@ for ip = 1:np
 		kz[2] = kz[1] + 1
 		kz[3] = EZ[ix,jy,iz]
 		kz[4] = kz[3] + 1
-		
+
 		# add to source vector
 		for ii = 1:4
 			ss[kx[ii]]         += sxloc[ii] * scaleX
@@ -310,9 +313,9 @@ end  # function getStraightLineCurrentIntegral!
 function getNormalizeVal( polygon::Array{Float64,2} )
 # number of line segments
 np = size(polygon, 1) - 1
-   
+
    if all(polygon[1,:] .== polygon[np+1,:])
-      
+
       # closed polygon: divide by enclosed area
       a  = 0.0
       px = polygon[2:np,1] .- polygon[1,1]
@@ -325,9 +328,9 @@ np = size(polygon, 1) - 1
          a += sqrt(cx * cx + cy * cy + cz * cz)
       end
       a *= 0.5
-      
+
    else
-      
+
       # open polygon: divide by length
       a = 0.0
       for ip = 1:np
@@ -336,8 +339,8 @@ np = size(polygon, 1) - 1
          dz = polygon[ip+1,3] - polygon[ip,3]
          a += sqrt(dx * dx + dy * dy + dz * dz)
       end
-      
+
    end
-   
+
    return a
 end  # getNormalizeVal

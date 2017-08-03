@@ -1,7 +1,7 @@
 export getInterpolationMatrix
 
 function getInterpolationMatrix(M1::OcTreeMesh, M2::OcTreeMesh)
-	
+
 	# check compatibility
 	if any(M1.h .!= M2.h)
 		error("getInterpolationMatrix requires same cell size")
@@ -12,7 +12,7 @@ function getInterpolationMatrix(M1::OcTreeMesh, M2::OcTreeMesh)
 	if any(M1.n .!= M2.n)
 		error("getInterpolationMatrix requires same base mesh")
 	end
-	
+
 	P = getInterpolationMatrix(M1.S,M2.S)
 
 	return P
@@ -20,7 +20,7 @@ function getInterpolationMatrix(M1::OcTreeMesh, M2::OcTreeMesh)
 end
 
 function getInterpolationMatrix(M1::OcTreeMesh, M2::OcTreeMesh, N::Integer)
-	
+
 	# check compatibility
 	if any(M1.h .!= M2.h)
 		error("getInterpolationMatrix requires same cell size")
@@ -31,7 +31,7 @@ function getInterpolationMatrix(M1::OcTreeMesh, M2::OcTreeMesh, N::Integer)
 	if any(M1.n .!= M2.n)
 		error("getInterpolationMatrix requires same base mesh")
 	end
-	
+
 	P = getInterpolationMatrix(M1.S,M2.S,N)
 
 	return P
@@ -50,9 +50,9 @@ function getInterpolationMatrix(S1::SparseArray3D,S2::SparseArray3D)
 C1 = getCellNumbering(S1)
 C2 = getCellNumbering(S2)
 
-ii  = Array(Int,0)
-jj  = Array(Int,0)
-val = Array(Float64,0)
+ii  = Array{Int}(0)
+jj  = Array{Int}(0)
+val = Array{Float64}(0)
 
 I1 = S1.SV.rowval
 I2 = S2.SV.rowval
@@ -94,8 +94,8 @@ end
 # find cells in S1 not contained in S2
 bb = falses(prod(S1.sz))
 bb[find(S1.SV .< S2.SV)] = true
-bb |= !N2
-bb &=  N1
+bb .|= .!N2
+bb .&=  N1
 for i1=1:length(I1) # loop over all cells in S1
 		if bb[I1[i1]]
 			bsz1            = S1.SV.nzval[i1]
@@ -125,8 +125,8 @@ end
 # find cells in S2 not contained in S1
 bb = falses(prod(S1.sz))
 bb[find(S1.SV .> S2.SV)] = true
-bb |= !N1
-bb &=  N2
+bb .|= .!N1
+bb .&=  N2
 for i2=1:length(I2); # loop over all cells in S1
 		if bb[I2[i2]] # (S1.SV.nzval[i1] < S2.SV.nzval[i2])
 			i,j,k      = ind2sub(size(S2),I2[i2])
@@ -166,9 +166,9 @@ n  = 2^N
 C1 = getCellNumbering(S1)
 C2 = getCellNumbering(S2)
 
-ii  = Array(Int,0)
-jj  = Array(Int,0)
-val = Array(Float64,0)
+ii  = Array{Int}(0)
+jj  = Array{Int}(0)
+val = Array{Float64}(0)
 
 I1 = S1.SV.rowval
 I2 = S2.SV.rowval
@@ -212,8 +212,8 @@ end
 # find cells in S1 not contained in S2
 bb = falses(prod(S1.sz))
 bb[find(S1.SV .< S2.SV)] = true
-bb |= !N2
-bb &=  N1
+bb .|= .!N2
+bb .&=  N1
 for i1=1:length(I1) # loop over all cells in S1
 		if bb[I1[i1]]
 			bsz1            = S1.SV.nzval[i1]
@@ -246,8 +246,8 @@ end
 # find cells in S2 not contained in S1
 bb = falses(prod(S1.sz))
 bb[find(S1.SV .> S2.SV)] = true
-bb |= !N1
-bb &=  N2
+bb .|= .!N1
+bb .&=  N2
 for i2=1:length(I2); # loop over all cells in S1
 		if bb[I2[i2]] # (S1.SV.nzval[i1] < S2.SV.nzval[i2])
 			i,j,k      = ind2sub(size(S2),I2[i2])
@@ -338,7 +338,7 @@ else
 end
 
 return false, 0.0
-	
+
 end
 
 
@@ -390,7 +390,7 @@ function getShifts(bsz::Integer, n::Integer)
 if n == 0
 	# single quadrature point: use lower left front corner
 	d = 0
-elseif bsz <= 2^n 
+elseif bsz <= 2^n
 	# more quadrature points than fine mesh cells: use all fine mesh cells
 	d = collect(0:bsz-1)
 else
@@ -403,4 +403,3 @@ end
 return d
 
 end
-

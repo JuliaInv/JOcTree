@@ -41,7 +41,7 @@ m1,m2,m3 = S.sz
 
 for it = 1:meshsize
 	bz = bsz[it]
-	
+
 	if bz >= 4
 		iit = i[it]
 		jit = j[it]
@@ -51,24 +51,24 @@ for it = 1:meshsize
 		   ni = iit + round(Int64, nfac[cnt,1]*bz)
 		   nj = jit + round(Int64, nfac[cnt,2]*bz)
 		   nk = kit + round(Int64, nfac[cnt,3]*bz)
-		
-						  
+
+
 
          if 1 <= ni && ni <= m1 &&
             1 <= nj && nj <= m2 &&
-            1 <= nk && nk <= m3 
+            1 <= nk && nk <= m3
 				if S.SV[sub2ind(S.sz,ni,nj,nk)] != 0
 					isRegular[it] = false
 					break
 			   end
 		   end
-		   
+
 		end  # cnt
 
    end # bz >= 4
 end  # it
 
-Inr = find(!isRegular)
+Inr = find(.!isRegular)
 #Ir  = find(isRegular)
 
 

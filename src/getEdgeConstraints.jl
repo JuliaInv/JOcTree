@@ -29,16 +29,16 @@ function getEdgeConstraints(S::SparseArray3D)
 
 i0,j0,k0,bsz = find3(S)
 
-i1 = i0 + div(bsz, 2)
+i1 = i0 + div.(bsz, 2)
 i2 = i0 + bsz
-j1 = j0 + div(bsz, 2)
+j1 = j0 + div.(bsz, 2)
 j2 = j0 + bsz
-k1 = k0 + div(bsz, 2)
+k1 = k0 + div.(bsz, 2)
 k2 = k0 + bsz
 
 upper,lower,left,right,front,back = getNumberOfNeighbors(S)
 nn = [upper; lower; left; right; front; back]
-if ~all( (nn .== 0) | (nn .== 1) | (nn .== 4) )
+if ~all( (nn .== 0) .| (nn .== 1) .| (nn .== 4) )
   error("Implemented only for regularized OcTree meshes")
 end
 ENX,ENY,ENZ = getEdgeNumbering(S)
@@ -230,7 +230,7 @@ p[b]   = 1:mx+my+mz;
 #       I/2    I/2    O     O    O   -I
 #
 # Null space matrix
-#     
+#
 #    e1 I1
 #    e5      I1
 #    e2 I
@@ -341,5 +341,3 @@ Q = blkdiag(Qx,Qy,Qz)
 return N,Q,C,p
 
 end
-
-  

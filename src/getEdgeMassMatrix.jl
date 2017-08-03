@@ -13,7 +13,7 @@ Input:
    M::OcTreeMeshFV Octree mesh object
    sigma::vector Conductivity model. Can be used for isotropic and anisotropic models depending on length
           of sigma. For an isotropic model length(sigma) = nc, where nc is the number of mesh cells.
-          Use length(sigma)=3*nc a diagonally anisotropic model and length(sigma)=6*nc for 
+          Use length(sigma)=3*nc a diagonally anisotropic model and length(sigma)=6*nc for
           for fully anisotropic model.
 Output:
    Me::SparseMatrixCSC Edge mass matrix
@@ -22,47 +22,53 @@ Output:
 function getEdgeMassMatrix(M::OcTreeMeshFV,sigma::Vector)
   # For octree meshes
   if isempty(M.Pe)
-    M.Pe = getEdgeMassMatrixIntegrationMatrix(M.S, M.h)
+    M.Pe  = getEdgeMassMatrixIntegrationMatrix(M.S, M.h)
+    M.Pet = M.Pe'
   end
-  P = M.Pe
+  P  = M.Pe
+  Pt = M.Pet
   n = length(sigma)
   if n == M.nc
-    M = P' * kron(speye(24),spdiagm(sigma)) * P
+    M = Pt * kron(speye(24),spdiagm(sigma)) * P
   elseif n == 3 * M.nc
-    M = P' * kron(speye(8),spdiagm(sigma)) * P
+    M = Pt * kron(speye(8),spdiagm(sigma)) * P
   elseif n == 6 * M.nc
     R12 = kron(sparse([2,1,3],[1,2,3],1),speye(Int,M.nc))
     R23 = kron(sparse([1,3,2],[1,2,3],1),speye(Int,M.nc))
     D   = spdiagm(sigma[       1:3*M.nc])
     N   = Diagonal(sigma[3*M.nc+1:6*M.nc])
     S   = D + R12 * N * R23 + R23 * N * R12
-    M   = P' * kron(speye(8),S) * P
+    M   = Pt * kron(speye(8),S) * P
    else
      error("Invalid size of sigma")
    end
 	 return M
 end
 
-function getdEdgeMassMatrix(M::OcTreeMeshFV,sigma::Vector,v::Vector)
+function getdEdgeMassMatrix{T<:Number}(M::OcTreeMeshFV, sigma::Vector, v::Vector{T})
   # Derivative
   if isempty(M.Pe)
-    M.Pe = getEdgeMassMatrixIntegrationMatrix(M.S, M.h)
+    M.Pe  = getEdgeMassMatrixIntegrationMatrix(M.S, M.h)
+    M.Pet = M.Pe'
   end
-  P = M.Pe
+  P  = M.Pe
+  Pt = M.Pet
   w = P * v
   n = length(sigma)
   if n == M.nc
-    dM = P' * spdiagm(w) * kron(ones(24),speye(M.nc))
+    K  = kron(ones(T, 24),speye(M.nc))
+    dM = Pt * DiagTimesM(w,K)
   elseif n == 3 * M.nc
-    dM = P' * spdiagm(w) * kron(ones(8),speye(3*M.nc))
+    K  = kron(ones(T, 8),speye(3*M.nc))
+    dM = Pt * DiagTimesM(w,K)
   elseif n == 6 * M.nc
     R12 = kron(speye(Int,8),kron(sparse([2,1,3],[1,2,3],1),speye(Int,M.nc)))
     R23 = kron(speye(Int,8),kron(sparse([1,3,2],[1,2,3],1),speye(Int,M.nc)))
     D   = spdiagm(w)
     N   = R12 * spdiagm(R23 * w) + R23 * spdiagm(R12 * w)
     dM  = hcat(
-      P' * D * kron(ones(8),speye(3*M.nc)),
-      P' * N * kron(ones(8),speye(3*M.nc)))
+      Pt * D * kron(ones(8),speye(3*M.nc)),
+      Pt * N * kron(ones(8),speye(3*M.nc)))
   else
     error("Invalid size")
   end
@@ -150,20 +156,20 @@ nez = nnz(EZ)
 
 # x-edges
 i0 = i
-i1 = floor(Integer,i + bsz / 2)
+i1 = floor.(Integer,i + bsz / 2)
 j0 = j
 j1 = j + bsz
 k0 = k
 k1 = k + bsz
 
-ex000 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i0,j0,k0) 
-ex100 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i1,j0,k0) 
-ex010 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i0,j1,k0) 
-ex110 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i1,j1,k0) 
-ex001 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i0,j0,k1) 
-ex101 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i1,j0,k1) 
-ex011 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i0,j1,k1) 
-ex111 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i1,j1,k1) 
+ex000 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i0,j0,k0)
+ex100 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i1,j0,k0)
+ex010 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i0,j1,k0)
+ex110 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i1,j1,k0)
+ex001 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i0,j0,k1)
+ex101 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i1,j0,k1)
+ex011 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i0,j1,k1)
+ex111 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i1,j1,k1)
 
 ex100 = merge(ex100, ex000)
 ex110 = merge(ex110, ex010)
@@ -174,7 +180,7 @@ ex111 = merge(ex111, ex011)
 i0 = i
 i1 = i + bsz
 j0 = j
-j1 = floor(Integer,j + bsz / 2)
+j1 = floor.(Integer,j + bsz / 2)
 k0 = k
 k1 = k + bsz
 
@@ -198,7 +204,7 @@ i1 = i + bsz
 j0 = j
 j1 = j + bsz
 k0 = k
-k1 = floor(Integer,k + bsz / 2)
+k1 = floor.(Integer,k + bsz / 2)
 
 ez000 = getNodesFromIndices(EZ.SV,(mx+1,my+1,mz),i0,j0,k0)
 ez100 = getNodesFromIndices(EZ.SV,(mx+1,my+1,mz),i1,j0,k0)
@@ -208,7 +214,7 @@ ez001 = getNodesFromIndices(EZ.SV,(mx+1,my+1,mz),i0,j0,k1)
 ez101 = getNodesFromIndices(EZ.SV,(mx+1,my+1,mz),i1,j0,k1)
 ez011 = getNodesFromIndices(EZ.SV,(mx+1,my+1,mz),i0,j1,k1)
 ez111 = getNodesFromIndices(EZ.SV,(mx+1,my+1,mz),i1,j1,k1)
-        
+
 ez001 = merge(ez001, ez000)
 ez101 = merge(ez101, ez100)
 ez011 = merge(ez011, ez010)
@@ -221,7 +227,7 @@ c  = collect(1:nc)
 # set values for each cell to square root of cell volume and quadrature
 # weight; product of P' * C * P gives the correct scaling by cell volume
 # and quadrature weight
-uc = sqrt(bsz.^3 * prod(h) / 8)
+uc = sqrt.(bsz.^3 * prod(h) / 8)
 
 # integrate using edge to cell corner interpolation
 Px = sparse(c, ex000, uc, nc, nex) # Px1

@@ -5,13 +5,13 @@ function refineOcTree(S::SparseArray3D, tau::Vector, tol)
 i,j,k,bsz = find3(S)
 
 
-I = find( (bsz .> 1)  & (abs(tau) .> tol) )
+I = find( (bsz .> 1)  .& (abs.(tau) .> tol) )
 
 if !isempty(I)
     # compute entries stying unmodified (Ic = set complement of I)
     Ic = setdiff(vec(1:length(bsz)) , vec(I))
 
-    bsz[I] = div(bsz[I], 2)
+    bsz[I] = div.(bsz[I], 2)
 
 
     m1,m2,m3 = S.sz

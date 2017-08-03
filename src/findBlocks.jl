@@ -11,7 +11,7 @@ function findBlocks(S::SparseArray3D,i::Vector{Int},j::Vector{Int},k::Vector{Int
 	bk  = copy(k)
 	
 	# find indices outside the domain
-	I = find( (bi.<1) | (S.sz[1].<bi)   |   (bj.<1) | (S.sz[2].<bj) |  (bk.<1) | (S.sz[3].<bk)  )
+	I = find( (bi.<1) .| (S.sz[1].<bi) .| (bj.<1) .| (S.sz[2].<bj) .| (bk.<1) .| (S.sz[3].<bk) )
 	if !isempty(I)
 		bsz[I] = -1
 		bi[I]  = -1
@@ -33,9 +33,9 @@ function findBlocks(S::SparseArray3D,i::Vector{Int},j::Vector{Int},k::Vector{Int
 	    
 	    block *= 2
 		Iz = Iz[indz]
-	    bi[Iz] = 1 .+ block * floor(Integer,(i[Iz].-1)/block)
-	    bj[Iz] = 1 .+ block * floor(Integer,(j[Iz].-1)/block)
-	    bk[Iz] = 1 .+ block * floor(Integer,(k[Iz].-1)/block)
+	    bi[Iz] = 1 .+ block * floor.(Integer,(i[Iz].-1)/block)
+	    bj[Iz] = 1 .+ block * floor.(Integer,(j[Iz].-1)/block)
+	    bk[Iz] = 1 .+ block * floor.(Integer,(k[Iz].-1)/block)
 	end
 	return bi,bj,bk,bsz
 end

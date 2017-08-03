@@ -1,13 +1,13 @@
 export createOcTreeFromBox
 
 function createOcTreeFromBox(
-  x0::AbstractFloat, y0::AbstractFloat, z0::AbstractFloat, 
+  x0::AbstractFloat, y0::AbstractFloat, z0::AbstractFloat,
   nx::Int, ny::Int, nz::Int,
   hx::AbstractFloat, hy::AbstractFloat, hz::AbstractFloat,
   xa::AbstractFloat, xb::AbstractFloat,
   ya::AbstractFloat, yb::AbstractFloat,
   za::AbstractFloat, zb::AbstractFloat,
-  nf::Array{Int,1}, nc::Array{Int,1}, 
+  nf::Array{Int,1}, nc::Array{Int,1},
   bsz::Int = 1)
 # S = createOcTreeFromBox( ...
 #   x0, y0, z0, nx, ny, nz, hx, hy, hz, xa, xb, ya, yb, za, zb, nf, nc)
@@ -50,13 +50,13 @@ if bsz < 1 || nextpow2(bsz) != bsz
 end
 
 # maximum number of cell sizes
-nbsz = minimum(round(Int64,log2([nx, ny, nz]))) - round(Int64,log2(bsz))
+nbsz = minimum(round.(Int64,log2.([nx, ny, nz]))) - round.(Int64,log2(bsz))
 if nbsz < 1
   error("bsz is too large")
 end
 
 # initialize (k,j,i,bsz) array
-S = Array(Int, (0,4))
+S = Array{Int}((0,4))
 
 # convert box to integer grid
 xa = (xa - x0) / hx + 1.0
@@ -67,7 +67,7 @@ za = (za - z0) / hz + 1.0
 zb = (zb - z0) / hz + 1.0
 
 # start with fine cells around box, allow for small tolerance
-i1 =     floor(Integer,xa) 
+i1 =     floor(Integer,xa)
 i2 = min(floor(Integer,xb), nx)
 j1 =     floor(Integer,ya)
 j2 = min(floor(Integer,yb), ny)
@@ -116,13 +116,13 @@ nl = nf
 
 # for all cell sizes, add padding cells until we fill the domain
 for m = 1:nbsz
-  
+
   # block size
   b = bsz * 2^(m-1)
-  
+
   # pad
   if m < nbsz
-    
+
     # pad by given number of cell layers
     # (i3 < i1 < i2 < i4, j3 < j1 < j2 < j4, k3 < k1 < k2 < k4)
     i3 = i1 - b * nl[1]
@@ -131,7 +131,7 @@ for m = 1:nbsz
     j4 = j2 + b * nl[4]
     k3 = k1 - b * nl[5]
     k4 = k2 + b * nl[6]
-    
+
     # make sure that box fills cells of size 2*h
     i3 = i3 - mod(i3 - 1,     b * 2)
     i4 = i4 + mod(i4 - 1 - b, b * 2)
@@ -147,9 +147,9 @@ for m = 1:nbsz
     j4 = min(ny + 1 - b, j4)
     k3 = max(1,          k3)
     k4 = min(nz + 1 - b, k4)
-    
+
   else
-    
+
     # fill whatever space is left
     i3 = 1
     i4 = nx + 1 - b
@@ -157,44 +157,44 @@ for m = 1:nbsz
     j4 = ny + 1 - b
     k3 = 1
     k4 = nz + 1 - b
-    
+
   end
-  
+
   if m > 1
-    
+
     # mask for inner region with finer cells, coordinate form
-    u = [trues(round(Int64, (i1 - i3) / b)); falses(round(Int64, (i2 - i1) / b + 1)); trues(round(Int64, (i4 - i2) / b));]
-    v = [trues(round(Int64, (j1 - j3) / b)); falses(round(Int64, (j2 - j1) / b + 1)); trues(round(Int64, (j4 - j2) / b));]
-    w = [trues(round(Int64, (k1 - k3) / b)); falses(round(Int64, (k2 - k1) / b + 1)); trues(round(Int64, (k4 - k2) / b));]
+    u = [trues(round.(Int64, (i1 - i3) / b)); falses(round.(Int64, (i2 - i1) / b + 1)); trues(round.(Int64, (i4 - i2) / b));]
+    v = [trues(round.(Int64, (j1 - j3) / b)); falses(round.(Int64, (j2 - j1) / b + 1)); trues(round.(Int64, (j4 - j2) / b));]
+    w = [trues(round.(Int64, (k1 - k3) / b)); falses(round.(Int64, (k2 - k1) / b + 1)); trues(round.(Int64, (k4 - k2) / b));]
 
     # we are done if mask is all false
     if !(any(u) || any(v) || any(w))
       break
     end
-    
+
     # expand coordinate form to 3-D arrays
     u,v,w = ndgrid(u,v,w)
-    
+
     # combine x/y/z masks
-    q = u | v | w
-    
+    q = u .| v .| w
+
   else
-    
+
     # at the first, finest level, use all cells
-    q = trues(round(Int64, (i4 - i3) / b + 1), round(Int64, (j4 - j3) / b + 1), round(Int64, (k4 - k3) / b + 1))
-    
+    q = trues(round.(Int64, (i4 - i3) / b + 1), round.(Int64, (j4 - j3) / b + 1), round.(Int64, (k4 - k3) / b + 1))
+
     # change to default number of cells
     nl = nc
-    
+
   end
-  
+
   # index vectors for current cell size
   i,j,k = ndgrid([i3:b:i4;], [j3:b:j4;], [k3:b:k4;])
   s = fill(b, size(i))
-  
+
   # add only those cells that pad the inner, finer core region using mask
   S = [S; i[q] j[q] k[q] s[q];]
-  
+
   # core region for next cell size, shift upper limit by current cell size
   # to position of next larger cell size
   i1 = i3
@@ -222,7 +222,7 @@ return S
 end
 
 createOcTreeFromBox(
-  x0::AbstractFloat, y0::AbstractFloat, z0::AbstractFloat, 
+  x0::AbstractFloat, y0::AbstractFloat, z0::AbstractFloat,
   nx::Int, ny::Int, nz::Int,
   hx::AbstractFloat, hy::AbstractFloat, hz::AbstractFloat,
   xa::AbstractFloat, xb::AbstractFloat,
@@ -233,7 +233,7 @@ createOcTreeFromBox(
   bsz::Int = 1) =
 createOcTreeFromBox(
   x0, y0, z0,
-  nx, ny, nz, 
+  nx, ny, nz,
   hx, hy, hz,
   xa, xb, ya, yb, za, zb,
   [nf; nf; nf; nf; nf; nf;],

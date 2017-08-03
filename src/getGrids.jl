@@ -31,7 +31,7 @@ end
 function getEdgeGrids(M::OcTreeMesh)
     #  EX,EY,EZ = getEdgeGrids(M::OcTreeMesh)
 
-    EX,EY,EZ = getEdgeSize(M.S)
+    EX,EY,EZ = getEdgeSize(M)
     i,j,k,esz = find3(EX)
     EXX = (i+esz/2 .-1) * M.h[1] .+ M.x0[1]
     EXY = (j       .-1) * M.h[2] .+ M.x0[2]
@@ -54,7 +54,7 @@ end
 function getFaceGrids(M::OcTreeMesh)
     #  FX,FY,FZ = getFaceGrids(M::OcTreeMesh)
 
-    FX,FY,FZ = getFaceSize(M.S)
+    FX,FY,FZ = getFaceSize(M)
     i,j,k,fsz = find3(FX)
     FXX = (i       .-1) * M.h[1] .+ M.x0[1]
     FXY = (j+fsz/2 .-1) * M.h[2] .+ M.x0[2]

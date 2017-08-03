@@ -42,10 +42,10 @@ back     = NEY.SV[sub2ind(NEY.sz,i,j,k+fsz),1];  back  = vec(full(back))
 frontmid = zeros(Int64, length(front))
 backmid  = zeros(Int64, length(back))
 
-I =  (j+div(fsz,2) .<= m2) & (fsz .>= 2) 
+I =  (j+div.(fsz,2) .<= m2) .& (fsz .>= 2)
 if any(I)
-  frontmid[I] = NEY.SV[sub2ind(NEY.sz, i[I] , j[I]+div(fsz[I],2) , k[I]  ),1]
-  backmid[I]  = NEY.SV[sub2ind(NEY.sz, i[I] , j[I]+div(fsz[I],2) , k[I]+fsz[I] ),1]
+  frontmid[I] = NEY.SV[sub2ind(NEY.sz, i[I] , j[I]+div.(fsz[I],2) , k[I]  ),1]
+  backmid[I]  = NEY.SV[sub2ind(NEY.sz, i[I] , j[I]+div.(fsz[I],2) , k[I]+fsz[I] ),1]
 end
 # front y
 
@@ -73,10 +73,10 @@ right    = NEZ.SV[sub2ind(NEZ.sz,i,j+fsz,k),1];  right = vec(full(right))
 leftmid  = zeros(Int64, length(left))
 rightmid = zeros(Int64, length(right))
 
-I = (j+div(fsz,2) .<= m2) & (fsz .>= 2)
+I = (j+div.(fsz,2) .<= m2) .& (fsz .>= 2)
 if any(I)
-    leftmid[I]  = NEZ.SV[sub2ind(NEZ.sz, i[I], j[I], k[I]+div(fsz[I],2) ),1]
-    rightmid[I] = NEZ.SV[sub2ind(NEZ.sz, i[I], j[I]+fsz[I], k[I]+div(fsz[I],2)),1]
+    leftmid[I]  = NEZ.SV[sub2ind(NEZ.sz, i[I], j[I], k[I]+div.(fsz[I],2) ),1]
+    rightmid[I] = NEZ.SV[sub2ind(NEZ.sz, i[I], j[I]+fsz[I], k[I]+div.(fsz[I],2)),1]
 end
 Il1 = (leftmid .== 0)  # SINGLE LEFT EDGE PER FACE
 Il2 = (leftmid .>  0)  # 2 LEFT EDGES PER FACE
@@ -116,10 +116,10 @@ back     = NEX.SV[sub2ind(NEX.sz,i,j,k+fsz),1];  back  = vec(full(back));
 frontmid = zeros(Int64, length(front))
 backmid  = zeros(Int64, length(back))
 
-I = (i+div(fsz,2) .<= m1) & (fsz .>= 2) 
+I = (i+div.(fsz,2) .<= m1) .& (fsz .>= 2)
 if any(I)
-    frontmid[I] = NEX.SV[sub2ind(NEX.sz, i[I]+div(fsz[I],2) , j[I] , k[I]),1]
-    backmid[I]  = NEX.SV[sub2ind(NEX.sz, i[I]+div(fsz[I],2) , j[I] , k[I]+fsz[I]),1]
+    frontmid[I] = NEX.SV[sub2ind(NEX.sz, i[I]+div.(fsz[I],2) , j[I] , k[I]),1]
+    backmid[I]  = NEX.SV[sub2ind(NEX.sz, i[I]+div.(fsz[I],2) , j[I] , k[I]+fsz[I]),1]
 end
 
 If1 = (frontmid .== 0)  # SINGLE FRONT EDGE PER FACE
@@ -146,10 +146,10 @@ lower    = NEZ.SV[sub2ind(NEZ.sz,i+fsz,j,k),1];  lower = vec(full(lower))
 uppermid = zeros(Int64, length(upper))
 lowermid = zeros(Int64, length(lower))
 
-I = (i+div(fsz,2) .<= m1) & (fsz .>= 2) 
+I = (i+div.(fsz,2) .<= m1) .& (fsz .>= 2)
 if any(I)
-    uppermid[I] = NEZ.SV[sub2ind(NEZ.sz, i[I], j[I], k[I]+div(fsz[I],2) ),1]
-    lowermid[I] = NEZ.SV[sub2ind(NEZ.sz, i[I]+fsz[I] , j[I] , k[I]+div(fsz[I],2) ),1]
+    uppermid[I] = NEZ.SV[sub2ind(NEZ.sz, i[I], j[I], k[I]+div.(fsz[I],2) ),1]
+    lowermid[I] = NEZ.SV[sub2ind(NEZ.sz, i[I]+fsz[I] , j[I] , k[I]+div.(fsz[I],2) ),1]
 end
 Iu1 = (uppermid .== 0)  # SINGLE UPPER EDGE PER FACE
 Iu2 = (uppermid .>  0)  # 2 UPPER EDGES PER FACE
@@ -186,11 +186,11 @@ right    = NEX.SV[sub2ind(NEX.sz,i,j+fsz,k),1];  right = vec(full(right))
 leftmid  = zeros(Int64, length(left))
 rightmid = zeros(Int64, length(right))
 
-I = (i+div(fsz,2) .<= m1) & (fsz .>= 2) 
+I = (i+div.(fsz,2) .<= m1) .& (fsz .>= 2)
 
 if any(I)
-    leftmid[I]  = NEX.SV[sub2ind(NEX.sz, i[I]+div(fsz[I],2), j[I]        , k[I] ),1]
-    rightmid[I] = NEX.SV[sub2ind(NEX.sz, i[I]+div(fsz[I],2), j[I]+fsz[I] , k[I] ),1]
+    leftmid[I]  = NEX.SV[sub2ind(NEX.sz, i[I]+div.(fsz[I],2), j[I]        , k[I] ),1]
+    rightmid[I] = NEX.SV[sub2ind(NEX.sz, i[I]+div.(fsz[I],2), j[I]+fsz[I] , k[I] ),1]
 end
 Il1 = (leftmid .== 0)  # SINGLE LEFT EDGE PER FACE
 Il2 = (leftmid .>  0)  # 2 LEFT EDGES PER FACE
@@ -215,10 +215,10 @@ lower    = NEY.SV[sub2ind(NEY.sz,i+fsz,j,k),1];  lower = vec(full(lower))
 uppermid = zeros(Int64, length(upper))
 lowermid = zeros(Int64, length(lower))
 
-I = (j+div(fsz,2) .<= m2) & (fsz .>= 2) 
+I = (j+div.(fsz,2) .<= m2) .& (fsz .>= 2)
 if any(I)
-    uppermid[I] = NEY.SV[sub2ind(NEY.sz, i[I]        , j[I]+div(fsz[I],2) , k[I] ),1]
-    lowermid[I] = NEY.SV[sub2ind(NEY.sz, i[I]+fsz[I] , j[I]+div(fsz[I],2) , k[I] ),1]
+    uppermid[I] = NEY.SV[sub2ind(NEY.sz, i[I]        , j[I]+div.(fsz[I],2) , k[I] ),1]
+    lowermid[I] = NEY.SV[sub2ind(NEY.sz, i[I]+fsz[I] , j[I]+div.(fsz[I],2) , k[I] ),1]
 end
 Iu1 = (uppermid .== 0)  # SINGLE UPPER EDGE PER FACE
 Iu2 = (uppermid .>  0)  # 2 UPPER EDGES PER FACE

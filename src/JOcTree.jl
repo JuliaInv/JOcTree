@@ -3,7 +3,7 @@ module JOcTree
     importall jInv.Mesh
     using jInv.Utils
     export OcTreeMesh
-    abstract OcTreeMesh <: AbstractMesh
+    abstract type OcTreeMesh <: AbstractMesh end
 
     include("sparse3.jl")
     include("OcTreeMeshFV.jl")
@@ -11,10 +11,12 @@ module JOcTree
 
     include("getGrids.jl")
     include("getSizeNumbering.jl")
+    include("getSizeOfNeighbors.jl")
 
     include("getCurlMatrixRec.jl")
     include("getDivergenceMatrixRec.jl")
     include("getNodalGradientRec.jl")
+    include("getCellCenterGradientMatrix.jl")
 
     include("getEdgeMassMatrix.jl")
     include("getFaceMassMatrix.jl")
@@ -23,7 +25,7 @@ module JOcTree
     include("getEdgeInterpolationMatrix.jl")
     include("getFaceInterpolationMatrix.jl")
     include("getNodalInterpolationMatrix.jl")
-    
+
     include("getInterpolationMatrix.jl")
     include("getEdgeToCellCenteredMatrix.jl")
     include("getFaceToCellCenteredMatrix.jl")
@@ -38,7 +40,7 @@ module JOcTree
 
     include("regularizeOcTree.jl")
     include("getNumberOfNeighbors.jl")
-    include("refineOcTree.jl")    
+    include("refineOcTree.jl")
     include("splitCells.jl")
     include("uniteOcTrees.jl")
 
@@ -49,13 +51,9 @@ module JOcTree
     include("getInterfaceWeights.jl")
 
     # Mesh Creation
-    include("createOcTree/initCoarseOcTree.jl")
     include("createOcTree/createOcTreeFromBox.jl")
     include("createOcTree/createOcTreeFromImage.jl")
-    # include("createOcTree/createOcTreeFromPoints.jl")
-    # include("createOcTree/createOcTreeFromTopo.jl")
-    include("createOcTree/createOcTreeMesh.jl")
-    include("createOcTree/OctreeBoxPolygon.jl")
+    include("createOcTree/initializeOctree.jl")
 
     include("IO/importUBC.jl")
     include("IO/exportUBC.jl")

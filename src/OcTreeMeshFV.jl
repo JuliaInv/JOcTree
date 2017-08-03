@@ -3,7 +3,7 @@
 
 export OcTreeMeshFV, getOcTreeMeshFV
 
-type OcTreeMeshFV <: OcTreeMesh
+mutable struct OcTreeMeshFV <: OcTreeMesh
 	S::SparseArray3D    # i,j,k, bsz
 	h::Vector{Float64}  # (3) underlying cell size
 	x0::Vector{Float64} # coordinates of corner of mesh
@@ -16,6 +16,7 @@ type OcTreeMeshFV <: OcTreeMesh
 	Curl::SparseMatrixCSC
 	Pf::SparseMatrixCSC # FaceMassMatrixIntegrationMatrix
 	Pe::SparseMatrixCSC # EdgeMassMatrixIntegrationMatrix
+	Pet::SparseMatrixCSC # Pe'
 	Af::SparseMatrixCSC # Face to cell-centre matrix
 	Ae::SparseMatrixCSC # Edge to cell-centre matrix
 	An::SparseMatrixCSC # Node to cell-centre matrix
@@ -45,32 +46,32 @@ type OcTreeMeshFV <: OcTreeMesh
 	dim::Int           # Mesh dimension
 end # type OcTreeMeshFV
 
-	
+
 function getOcTreeMeshFV(S,h;x0=zeros(3))
-	
+
 		empt  = spzeros(0,0)
-		 
+
 		# get number of cells
 		nc   = nnz(S)
-		
+
 		# get number of faces
         FX,FY,FZ, NFX, NFY, NFZ = getFaceSizeNumbering(S)
 		nf   = [nnz(FX); nnz(FY); nnz(FZ)]
-		
+
 		# get number of edges
       	EX,EY,EZ, NEX, NEY, NEZ = getEdgeSizeNumbering(S)
 		ne   = [nnz(EX); nnz(EY); nnz(EZ)]
-		
+
 		empt3 = sparse3([size(S,1),size(S,2),size(S,3)])
 
 		return OcTreeMeshFV(S, h, x0,
                     		  S.sz,nc,nf,ne,
                     		  empt,empt,empt,       # no Div, Grad, Curl
-                          	  empt,empt, empt,empt,empt,   # no Pf, Pe, Af,Ae,An
+                          	  empt,empt,empt,empt,empt,empt,   # no Pf, Pe,Pet, Af,Ae,An
                           	  empt,empt,empt,empt, [0],[0],[0],  # no V,L,Ne,Qe,active edges, active faces, active nodes
                     		  empt,empt,empt,empt, #no Nn,Qn,Nf,Qf
    							  FX,FY,FZ, EX,EY,EZ,
-                          NFX, NFY, NFZ, 
+                          NFX, NFY, NFZ,
                           NEX, NEY, NEZ, 3)
 end  # function getOcTreeMeshFV
 
@@ -83,6 +84,7 @@ function clear!(M::OcTreeMeshFV)
 	M.Grad = clear!(M.Grad)
 	M.Curl = clear!(M.Curl)
 	M.Pe   = clear!(M.Pe  )
+	M.Pet  = clear!(M.Pet )
 	M.Af   = clear!(M.Af  )
 	M.Ae   = clear!(M.Ae  )
 	M.An   = clear!(M.An  )
@@ -107,13 +109,12 @@ function clear!(M::OcTreeMeshFV)
 	M.NEX  = clear!(M.NEX)
 	M.NEY  = clear!(M.NEY)
 	M.NEZ  = clear!(M.NEZ)
-	
+
 end  # function clear
 
 import Base.==
 function ==(M1::OcTreeMeshFV,M2::OcTreeMeshFV)
-	isEqual = fill(true,21)
-
+	isEqual = trues(21)
 
 	# check mandatory fields
 	isEqual[1] =  M1.S==M2.S
@@ -123,7 +124,7 @@ function ==(M1::OcTreeMeshFV,M2::OcTreeMeshFV)
 	isEqual[6] =  (M1.nc    == M2.nc)
 	isEqual[7] =  (M1.nf    == M2.nf)
 	isEqual[8] =  (M1.ne    == M2.ne)
-	
+
 	# check fields that might be empty
 	if !(isempty(M1.Div)) && !(isempty(M2.Div))
 		isEqual[9] = (M1.Div == M2.Div)
@@ -144,12 +145,11 @@ function ==(M1::OcTreeMeshFV,M2::OcTreeMeshFV)
 		isEqual[15] = (M1.V == M2.V)
 	end
 	if !(isempty(M1.Ne)) && !(isempty(M2.Ne))
-		isEqual[21] = (M1.Ne == M2.Ne)
+		isEqual[20] = (M1.Ne == M2.Ne)
 	end
 	if !(isempty(M1.Nn)) && !(isempty(M2.Nn))
 		isEqual[21] = (M1.Nn == M2.Nn)
 	end
-		
+
 	return all(isEqual)
 end  # function ==
-

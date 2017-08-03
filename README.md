@@ -8,7 +8,7 @@ Library for creating and manipulating OcTrees as well as creating differential o
 
 # Requirements
 
-JOcTree is intended for use with Julia 0.5.x. jInv is the only required dependency. 
+JOcTree is intended for use with Julia 0.6.x. jInv is the only required dependency. 
 
 # Installation
 

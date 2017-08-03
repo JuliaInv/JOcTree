@@ -16,7 +16,7 @@ function getNodalInterpolationMatrix(mesh::OcTreeMesh, x::Array{Float64,1}, y::A
 	nn = nnz(N)
 	
 	# locate points within cells
-	i,j,k,bsz = findBlocks(mesh.S, floor(Integer,x), floor(Integer,y), floor(Integer,z))
+	i,j,k,bsz = findBlocks(mesh.S, floor.(Integer,x), floor.(Integer,y), floor.(Integer,z))
 	
 	# node numbers 
 	I = [i, i+bsz, i, i+bsz, i, i+bsz, i, i+bsz;]

@@ -36,7 +36,7 @@ function exportUBCOcTreeMesh(fname::AbstractString, mesh::OcTreeMesh)
     println(f, n, " ! size of octree mesh")
     for i = 1:n
         idx = p[i]
-        println(f, i1[idx], " ", i2[idx], " ", i3[idx], " ", bsz[idx])
+        @printf(f,"%i %i %i %i\n", i1[idx], i2[idx], i3[idx], bsz[idx])
     end
     close(f)
     return
@@ -99,4 +99,14 @@ function exportUBCOcTreeModel{T}(name::AbstractString, mesh::OcTreeMesh, model::
     end
     close(f)
     return
+end
+
+function outputOctreeMesh(name::AbstractString, mesh::OcTreeMesh)
+    i1, i2, i3, bsz = find3(mesh.S)
+    n = nnz(mesh.S)
+    f = open(name, "w")
+    for i = 1:n
+        @printf(f,"%i %i %i %i\n", i1[i], i2[i], i3[i], bsz[i])
+    end
+    close(f)
 end
