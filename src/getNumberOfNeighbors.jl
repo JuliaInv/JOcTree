@@ -20,7 +20,7 @@ Itmp  = sub2ind(S.sz,i[Iin]-bsz[Iin],j[Iin],k[Iin])
 upper[Iin] = 4
 for kk = 1:length(Itmp)
    ik = Iin[kk]
-   v = S.SV[Itmp[kk],1]
+   v = S.SV[Itmp[kk]]
    if v == bsz[ik] || v == 0
       upper[ik] = 1
    end
@@ -37,7 +37,7 @@ Itmp = sub2ind(S.sz,i[Iin]+bsz[Iin],j[Iin],k[Iin])
 lower[Iin] = 4
 for kk = 1:length(Itmp)
    ik = Iin[kk]
-   v = S.SV[Itmp[kk],1]
+   v = S.SV[Itmp[kk]]
    bb = bsz[ik]
    if v == 2*bb || v == bb || v == 0
       lower[ik] = 1
@@ -52,7 +52,7 @@ left[Iin] = 4
 ##     CHECK FOR ONLY 1 NEIGHBOR
 for kk = 1:length(Itmp)
    ik = Iin[kk]
-   v = S.SV[Itmp[kk],1]
+   v = S.SV[Itmp[kk]]
    if v == bsz[ik] || v == 0
       left[ik] = 1
    end
@@ -63,7 +63,7 @@ Itmp  = sub2ind(S.sz,i[Iin],j[Iin]-div.(bsz[Iin],2),k[Iin])
 for kk = 1:length(Itmp)
         if S.SV[Itmp[kk],1] > 0; left[Iin[kk]] = 4; end
 end
-left[Iin[find(S.SV[Itmp,1].>0)]] = 4
+left[Iin[find(S.SV[Itmp].>0)]] = 4
 
 ## RIGHT ===============================================================
 Iin   = find(j+bsz.<=m2)
@@ -71,7 +71,7 @@ Itmp = sub2ind(S.sz,i[Iin],j[Iin]+bsz[Iin],k[Iin])
 right[Iin] = 4
 for kk = 1:length(Itmp)
    ik = Iin[kk]
-   v = S.SV[Itmp[kk],1]
+   v = S.SV[Itmp[kk]]
    bb = bsz[ik]
    if v == 2*bb || v == bb || v == 0
       right[ik] = 1
@@ -85,7 +85,7 @@ front[Iin] = 4
 ##     CHECK FOR ONLY 1 NEIGHBOR
 for kk = 1:length(Itmp)
    ik = Iin[kk]
-   v = S.SV[Itmp[kk],1]
+   v = S.SV[Itmp[kk]]
    if v == bsz[ik] || v == 0
       front[ik] = 1
    end
@@ -93,7 +93,7 @@ end
 ##   CHECK FOR 4 NEIGHBORS IF j-sz/2 >=1
 Iin   = find(((k-div.(bsz,2)) .>= 1)  .& bsz.>1 )
 Itmp  = sub2ind(S.sz,i[Iin],j[Iin],k[Iin]-div.(bsz[Iin],2))
-front[Iin[find(S.SV[Itmp,1].>0)]] = 4
+front[Iin[find(S.SV[Itmp].>0)]] = 4
 
 ## Back ==========================================================
 Iin   = find(k+bsz.<=m3)
@@ -101,7 +101,7 @@ Itmp = sub2ind(S.sz,i[Iin],j[Iin],k[Iin]+bsz[Iin])
 back[Iin] = 4
 for kk = 1:length(Itmp)
    ik = Iin[kk]
-   v = S.SV[Itmp[kk],1]
+   v = S.SV[Itmp[kk]]
    bb = bsz[ik]
    if v == 2*bb || v == bb || v == 0
      back[ik] = 1

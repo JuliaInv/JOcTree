@@ -1,4 +1,4 @@
-export SparseArray3D, sparse3, find3, nonzeros, nfilled, nnz, getindex, setindex!, read, write
+export SparseArray3D, sparse3, find3, nonzeros, nnz, getindex, setindex!
 
 # Extend polymorphic methods in module Base
 import Base.nonzeros
@@ -8,7 +8,7 @@ import Base.setindex!
 import Base.ndims 
 
 type SparseArray3D
-        SV::SparseMatrixCSC{Int64}
+        SV::SparseVector{Int64}
         sz::Vector{Int64}    # size of fine mesh
 end
 

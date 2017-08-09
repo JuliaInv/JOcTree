@@ -7,8 +7,8 @@ function uniteOcTrees(S1::SparseArray3D, S2::SparseArray3D)
 	end
 	SZ = S1.sz
 	
-	T1 = SparseMatrixCSC(S1.SV.m, S1.SV.n, S1.SV.colptr, S1.SV.rowval, ones(Int64,length(S1.SV.nzval)))
-	T2 = SparseMatrixCSC(S2.SV.m, S2.SV.n, S2.SV.colptr, S2.SV.rowval, 2*ones(Int64,length(S2.SV.nzval)))
+	T1 = sparsevec(S1.SV.nzind, fill(1,length(S1.SV.nzval)), S1.SV.n)
+	T2 = sparsevec(S2.SV.nzind, fill(2,length(S2.SV.nzval)), S2.SV.n)
 	T  = T1+T2
 	
 	M = find(T)

@@ -54,8 +54,8 @@ ii  = Array{Int}(0)
 jj  = Array{Int}(0)
 val = Array{Float64}(0)
 
-I1 = S1.SV.rowval
-I2 = S2.SV.rowval
+I1 = S1.SV.nzind
+I2 = S2.SV.nzind
 N1 = falses(prod(S1.sz))
 N2 = falses(prod(S2.sz))
 N1[I1] = true
@@ -170,8 +170,8 @@ ii  = Array{Int}(0)
 jj  = Array{Int}(0)
 val = Array{Float64}(0)
 
-I1 = S1.SV.rowval
-I2 = S2.SV.rowval
+I1 = S1.SV.nzind
+I2 = S2.SV.nzind
 N1 = falses(prod(S1.sz))
 N2 = falses(prod(S2.sz))
 N1[I1] = true

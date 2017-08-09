@@ -22,14 +22,14 @@ EX,EY,EZ, ENX,ENY,ENZ = getEdgeSizeNumbering(M)
 i,j,k,esz = find3(EX)  #; esz = round(Int64,esz)
 
 ii = [ nonzeros(ENX)              ; nonzeros(ENX)                     ]
-jj = [ N.SV[sub2ind(N.sz,i,j,k),1]  ; N.SV[sub2ind(N.sz ,i+esz,j,k),1]]
+jj = [ N.SV[sub2ind(N.sz,i,j,k)]    ; N.SV[sub2ind(N.sz ,i+esz,j,k)] ]
 vv = [ -ones(length(i))             ; ones(length(i))                 ]
 
 G1 = sparse(ii, jj, vv, nnz(EX), nnz(N))
 
 i,j,k,esz = find3(EY) #;  esz = round(Int64,esz)
 ii = [ nonzeros(ENY)              ; nonzeros(ENY)                      ]
-jj = [ N.SV[sub2ind(N.sz,i,j,k),1]  ; N.SV[sub2ind(N.sz ,i,j+esz,k),1] ]
+jj = [ N.SV[sub2ind(N.sz,i,j,k)]    ; N.SV[sub2ind(N.sz ,i,j+esz,k)] ]
 vv = [ -ones(length(i))             ; ones(length(i))                  ]
 
 G2 = sparse(ii, jj, vv, nnz(EY), nnz(N))
@@ -37,7 +37,7 @@ G2 = sparse(ii, jj, vv, nnz(EY), nnz(N))
 
 i,j,k,esz = find3(EZ) #;  esz = round(Int64,esz)
 ii = [ nonzeros(ENZ)              ; nonzeros(ENZ)                     ]
-jj = [ N.SV[sub2ind(N.sz,i,j,k),1]; N.SV[sub2ind(N.sz  ,i,j,k+esz),1] ]
+jj = [ N.SV[sub2ind(N.sz,i,j,k)]  ; N.SV[sub2ind(N.sz  ,i,j,k+esz)] ]
 vv = [ -ones(size(i))             ; ones(size(i))                     ]
 
 G3 = sparse(ii, jj, vv, nnz(EZ), nnz(N));
