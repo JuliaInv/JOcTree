@@ -1,5 +1,6 @@
 
-export getEdgeMassMatrix, getdEdgeMassMatrix
+export getEdgeMassMatrix, getdEdgeMassMatrix, 
+       dEdgeMassMatrixTimesVector, dEdgeMassMatrixTrTimesVector
 
 
 """
@@ -283,4 +284,73 @@ c      = copy(a)
 idz    = c .== 0
 c[idz] = b[idz]
 return c
+end
+
+function dEdgeMassMatrixTimesVector(M::OcTreeMeshFV, sigma::Vector, v::Vector, x::Vector)
+
+    # Derivative (getdEdgeMassMatrix) times a vector(x)
+    if isempty(M.Pe)
+        M.Pe = getEdgeMassMatrixIntegrationMatrix(M.S, M.h)
+    end
+
+    n = length(sigma)
+    if length(x) != n
+        error("length(x) != length(sigma)")
+    end
+
+    if n == 6 * M.nc
+        # Not the best solution!
+        dM = getdEdgeMassMatrix(M, sigma, v)
+        return dM * x
+    end
+
+    pv = M.Pe * v
+    if n == M.nc
+        dMx = M.Pe' * (pv .* repmat(x, 24))
+    elseif n == 3 * M.nc
+        dMx = M.Pe' * (pv .* repmat(x, 8))
+    end
+
+    return dMx
+end
+
+
+function dEdgeMassMatrixTrTimesVector(M::OcTreeMeshFV, sigma::Vector, v::Vector, x::Vector)
+
+    # Derivative (getdEdgeMassMatrix) transpose times a vector(x)
+    if isempty(M.Pe)
+        M.Pe = getEdgeMassMatrixIntegrationMatrix(M.S,M.h)
+    end
+
+    n = length(sigma)
+    if n == 6 * M.nc
+        # Not the best solution!
+        dM = getdEdgeMassMatrix(M, sigma, v)
+        return dM' * x
+    end
+
+    # dM' = kron(ones(24,1),speye(nnz(M.S)))' * sdiag(M.Pe*v) * M.Pe
+
+    pv = M.Pe * v
+    dd = pv .* (M.Pe * conj(x)) 
+    pv = [] 
+
+    if n == M.nc
+        ns = M.nc
+        i2 = 24
+    elseif n == 3 * M.nc
+        ns = 3 * M.nc
+        i2 = 8
+    end
+
+    dMTx = dd[1:ns]
+
+    j = ns
+    for i = 2:i2
+        @inbounds dMTx += dd[j+1 : j+ns]
+        j += ns
+    end  # i
+    dMTx = conj(dMTx)
+
+    return dMTx
 end

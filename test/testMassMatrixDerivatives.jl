@@ -1,4 +1,4 @@
-println("Testing: getdEdgeMassMatrix, getdFaceMassMatrix")
+println("Testing: getdEdgeMassMatrix, getdFaceMassMatrix, dEdgeMassMatrixTimesVector, dEdgeMassMatrixTrTimesVector")
 
 @testset "Mass matrix derivatives" begin
 
@@ -27,39 +27,60 @@ sig2 = rand(3*nc)
 sig3 = rand(6*nc)
 
 # Edges
-Me1(x::Vector) = getEdgeMassMatrix(M,x)*efield
-Me2(x::Vector) = getEdgeMassMatrix(M,x)*efield
-Me3(x::Vector) = getEdgeMassMatrix(M,x)*efield
+Me(x::Vector)  = getEdgeMassMatrix(M,x) * efield
+dMe(x::Vector) = getdEdgeMassMatrix(M,x,efield)
 
-
-dMe1(x::Vector) = getdEdgeMassMatrix(M,sig1,efield)
-dMe2(x::Vector) = getdEdgeMassMatrix(M,sig2,efield)
-dMe3(x::Vector) = getdEdgeMassMatrix(M,sig3,efield)
-
-p1, = checkDerivative(Me1,dMe1,sig1)
-p2, = checkDerivative(Me2,dMe2,sig2)
-p3, = checkDerivative(Me3,dMe3,sig3)
+p1, = checkDerivative(Me,dMe,sig1)
+p2, = checkDerivative(Me,dMe,sig2)
+p3, = checkDerivative(Me,dMe,sig3)
 @test p1
 @test p2
 @test p3
 
-#-------------------------------------------
-
 # Faces
-Mf1(x::Vector) = getFaceMassMatrix(M,x)*ffield
-Mf2(x::Vector) = getFaceMassMatrix(M,x)*ffield
-Mf3(x::Vector) = getFaceMassMatrix(M,x)*ffield
+Mf(x::Vector)  = getFaceMassMatrix(M,x) * ffield
+dMf(x::Vector) = getdFaceMassMatrix(M,x,ffield)
 
-dMf1(x::Vector) = getdFaceMassMatrix(M,sig1,ffield)
-dMf2(x::Vector) = getdFaceMassMatrix(M,sig2,ffield)
-dMf3(x::Vector) = getdFaceMassMatrix(M,sig3,ffield)
-
-p4, = checkDerivative(Mf1,dMf1,sig1)
-p5, = checkDerivative(Mf2,dMf2,sig2)
-p6, = checkDerivative(Mf3,dMf3,sig3)
+p4, = checkDerivative(Mf,dMf,sig1)
+p5, = checkDerivative(Mf,dMf,sig2)
+p6, = checkDerivative(Mf,dMf,sig3)
 
 @test p4
 @test p5
 @test p6
+
+# Derivative of edge mass matrix times vector products
+dsig1 = rand(nc)
+dsig2 = rand(3*nc)
+dsig3 = rand(6*nc)
+defield = rand(ne)
+
+dMe1 = getdEdgeMassMatrix(M,sig1,efield)
+dMe2 = getdEdgeMassMatrix(M,sig2,efield)
+dMe3 = getdEdgeMassMatrix(M,sig3,efield)
+
+dMe1dsig1de = dot(defield, dMe1 * dsig1)
+dMe2dsig2de = dot(defield, dMe2 * dsig2)
+dMe3dsig3de = dot(defield, dMe3 * dsig3)
+
+dMe1dsig1 = dEdgeMassMatrixTimesVector(M,sig1,efield,dsig1)
+dMe2dsig2 = dEdgeMassMatrixTimesVector(M,sig2,efield,dsig2)
+dMe3dsig3 = dEdgeMassMatrixTimesVector(M,sig3,efield,dsig3)
+
+dMe1de = dEdgeMassMatrixTrTimesVector(M,sig1,efield,defield)
+dMe2de = dEdgeMassMatrixTrTimesVector(M,sig2,efield,defield)
+dMe3de = dEdgeMassMatrixTrTimesVector(M,sig3,efield,defield)
+
+@test dot(defield, dMe1dsig1) ≈ dMe1dsig1de
+@test dot(defield, dMe2dsig2) ≈ dMe2dsig2de
+@test dot(defield, dMe3dsig3) ≈ dMe3dsig3de
+
+@test dot(dsig1, dMe1de) ≈ dMe1dsig1de
+@test dot(dsig2, dMe2de) ≈ dMe2dsig2de
+@test dot(dsig3, dMe3de) ≈ dMe3dsig3de
+
+@test dot(defield, dMe1dsig1) ≈ dot(dsig1, dMe1de)
+@test dot(defield, dMe2dsig2) ≈ dot(dsig2, dMe2de)
+@test dot(defield, dMe3dsig3) ≈ dot(dsig3, dMe3de)
 
 end
