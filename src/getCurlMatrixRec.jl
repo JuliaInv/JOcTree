@@ -265,7 +265,7 @@ T[1         : nnz(FX),         nnz(EX)+nnz(EY)+1 : nedges] =  DZY
 T[nnz(FX)+1 : nnz(FX)+nnz(FY), nnz(EX)+nnz(EY)+1 : nedges] = -DZX
 
 #CURL = FSZi * T * ESZ
-CURL = DiagTimesMTimesDiag(FSZi, T, ESZ)
+CURL = DiagTimesMTimesDiag!(FSZi, T, ESZ)
 
 return CURL
 end  # function getCurlMatrixRec

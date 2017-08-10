@@ -1,5 +1,5 @@
 
-export getEdgeMassMatrix, getdEdgeMassMatrix, 
+export getEdgeMassMatrix, getdEdgeMassMatrix,
        dEdgeMassMatrixTimesVector, dEdgeMassMatrixTrTimesVector
 
 
@@ -20,59 +20,71 @@ Output:
    Me::SparseMatrixCSC Edge mass matrix
 
 """
-function getEdgeMassMatrix(M::OcTreeMeshFV,sigma::Vector)
-  # For octree meshes
-  if isempty(M.Pe)
-    M.Pe  = getEdgeMassMatrixIntegrationMatrix(M.S, M.h)
-    M.Pet = M.Pe'
-  end
-  P  = M.Pe
-  Pt = M.Pet
-  n = length(sigma)
-  if n == M.nc
-    M = Pt * kron(speye(24),spdiagm(sigma)) * P
-  elseif n == 3 * M.nc
-    M = Pt * kron(speye(8),spdiagm(sigma)) * P
-  elseif n == 6 * M.nc
-    R12 = kron(sparse([2,1,3],[1,2,3],1),speye(Int,M.nc))
-    R23 = kron(sparse([1,3,2],[1,2,3],1),speye(Int,M.nc))
-    D   = spdiagm(sigma[       1:3*M.nc])
-    N   = Diagonal(sigma[3*M.nc+1:6*M.nc])
-    S   = D + R12 * N * R23 + R23 * N * R12
-    M   = Pt * kron(speye(8),S) * P
-   else
-     error("Invalid size of sigma")
-   end
-	 return M
+function getEdgeMassMatrix(Mesh::OcTreeMeshFV,sigma::Vector)
+    # For octree meshes
+
+    n = length(sigma)
+    @assert in(n,[Mesh.nc;3*Mesh.nc;6*Mesh.nc]) "Invalid size of sigma"
+    if n == Mesh.nc
+        #M = Pt * kron(speye(24),spdiagm(sigma)) * P
+        Ae,Aet = getEdgeAverageMatrix(Mesh)
+        v      = getVolume(Mesh)
+        m      = Vector{eltype(sigma)}(sum(Mesh.ne))
+        A_mul_B!(m,Aet,3*v.*sigma)
+        M  = spdiagm(m)  #M = spdiagm(Ae'*(v.*sigma))
+    else
+        if isempty(Mesh.Pe)
+            Mesh.Pe  = getEdgeMassMatrixIntegrationMatrix(Mesh.S, Mesh.h)
+            Mesh.Pet = Mesh.Pe'
+        end
+        P  = Mesh.Pe
+        Pt = Mesh.Pet
+    end
+    if n == 3 * Mesh.nc
+        M = Pt * kron(speye(8),spdiagm(sigma)) * P
+    elseif n == 6 * Mesh.nc
+        R12 = kron(sparse([2,1,3],[1,2,3],1),speye(Int,Mesh.nc))
+        R23 = kron(sparse([1,3,2],[1,2,3],1),speye(Int,Mesh.nc))
+        D   = spdiagm(sigma[       1:3*Mesh.nc])
+        N   = Diagonal(sigma[3*Mesh.nc+1:6*Mesh.nc])
+        S   = D + R12 * N * R23 + R23 * N * R12
+        M   = Pt * kron(speye(8),S) * P
+    end
+    return M
 end
 
-function getdEdgeMassMatrix{T<:Number}(M::OcTreeMeshFV, sigma::Vector, v::Vector{T})
-  # Derivative
-  if isempty(M.Pe)
-    M.Pe  = getEdgeMassMatrixIntegrationMatrix(M.S, M.h)
-    M.Pet = M.Pe'
-  end
-  P  = M.Pe
-  Pt = M.Pet
-  w = P * v
-  n = length(sigma)
-  if n == M.nc
-    K  = kron(ones(T, 24),speye(M.nc))
-    dM = Pt * DiagTimesM(w,K)
-  elseif n == 3 * M.nc
-    K  = kron(ones(T, 8),speye(3*M.nc))
-    dM = Pt * DiagTimesM(w,K)
-  elseif n == 6 * M.nc
-    R12 = kron(speye(Int,8),kron(sparse([2,1,3],[1,2,3],1),speye(Int,M.nc)))
-    R23 = kron(speye(Int,8),kron(sparse([1,3,2],[1,2,3],1),speye(Int,M.nc)))
-    D   = spdiagm(w)
-    N   = R12 * spdiagm(R23 * w) + R23 * spdiagm(R12 * w)
-    dM  = hcat(
-      Pt * D * kron(ones(8),speye(3*M.nc)),
-      Pt * N * kron(ones(8),speye(3*M.nc)))
-  else
-    error("Invalid size")
-  end
+function getdEdgeMassMatrix{T<:Number}(Mesh::OcTreeMeshFV, sigma::Vector, v::Vector{T})
+    # Derivative
+
+    n = length(sigma)
+    @assert in(n,[Mesh.nc;3*Mesh.nc;6*Mesh.nc]) "Invalid size of sigma"
+    if n == Mesh.nc
+        Ae,Aet = getEdgeAverageMatrix(Mesh)
+        vol    = getVolume(Mesh)
+        dM     = 3*deepcopy(Aet)
+        #println("$(size(dM))  $(size(v))  $(size(vol))")
+        DiagTimesMTimesDiag!(v,dM,vol)
+    else
+        if isempty(Mesh.Pe)
+            Mesh.Pe  = getEdgeMassMatrixIntegrationMatrix(Mesh.S, Mesh.h)
+            Mesh.Pet = Mesh.Pe'
+        end
+        P  = Mesh.Pe
+        Pt = Mesh.Pet
+        w = P * v
+    end
+    if n == 3 * Mesh.nc
+        K  = kron(ones(T, 8),speye(3*Mesh.nc))
+        dM = Pt * DiagTimesM(w,K)
+    elseif n == 6 * Mesh.nc
+        R12 = kron(speye(Int,8),kron(sparse([2,1,3],[1,2,3],1),speye(Int,Mesh.nc)))
+        R23 = kron(speye(Int,8),kron(sparse([1,3,2],[1,2,3],1),speye(Int,Mesh.nc)))
+        D   = spdiagm(w)
+        N   = R12 * spdiagm(R23 * w) + R23 * spdiagm(R12 * w)
+        dM  = hcat(
+        Pt * D * kron(ones(8),speye(3*Mesh.nc)),
+        Pt * N * kron(ones(8),speye(3*Mesh.nc)))
+    end
 	return dM
 end
 
@@ -286,71 +298,86 @@ c[idz] = b[idz]
 return c
 end
 
-function dEdgeMassMatrixTimesVector(M::OcTreeMeshFV, sigma::Vector, v::Vector, x::Vector)
-
+function dEdgeMassMatrixTimesVector(Mesh::OcTreeMeshFV, sigma::Vector, v::Vector, x::Vector)
     # Derivative (getdEdgeMassMatrix) times a vector(x)
-    if isempty(M.Pe)
-        M.Pe = getEdgeMassMatrixIntegrationMatrix(M.S, M.h)
-    end
 
     n = length(sigma)
     if length(x) != n
         error("length(x) != length(sigma)")
     end
+    @assert in(n,[Mesh.nc;3*Mesh.nc;6*Mesh.nc]) "Invalid size of sigma"
 
-    if n == 6 * M.nc
+    if n > Mesh.nc
+        if isempty(Mesh.Pe)
+            Mesh.Pe = getEdgeMassMatrixIntegrationMatrix(Mesh.S, Mesh.h)
+        end
+    end
+
+    if n == 6 * Mesh.nc
         # Not the best solution!
-        dM = getdEdgeMassMatrix(M, sigma, v)
+        dM = getdEdgeMassMatrix(Mesh, sigma, v)
         return dM * x
     end
 
-    pv = M.Pe * v
-    if n == M.nc
-        dMx = M.Pe' * (pv .* repmat(x, 24))
-    elseif n == 3 * M.nc
-        dMx = M.Pe' * (pv .* repmat(x, 8))
+    if n == Mesh.nc
+        vol = getVolume(Mesh)
+        Ae,Aet = getEdgeAverageMatrix(Mesh)
+        volx = vol.*x
+        Aetvolx = 3*Aet*volx
+        dMx = v.*Aetvolx
+    elseif n == 3 * Mesh.nc
+        pv  = Mesh.Pe * v
+        dMx = Mesh.Pe' * (pv .* repmat(x, 8))
     end
 
     return dMx
 end
 
 
-function dEdgeMassMatrixTrTimesVector(M::OcTreeMeshFV, sigma::Vector, v::Vector, x::Vector)
-
+function dEdgeMassMatrixTrTimesVector(Mesh::OcTreeMeshFV, sigma::Vector, v::Vector, x::Vector)
     # Derivative (getdEdgeMassMatrix) transpose times a vector(x)
-    if isempty(M.Pe)
-        M.Pe = getEdgeMassMatrixIntegrationMatrix(M.S,M.h)
-    end
+
 
     n = length(sigma)
-    if n == 6 * M.nc
+    @assert in(n,[Mesh.nc;3*Mesh.nc;6*Mesh.nc]) "Invalid size of sigma"
+    if n > Mesh.nc
+        if isempty(Mesh.Pe)
+            Mesh.Pe = getEdgeMassMatrixIntegrationMatrix(Mesh.S,Mesh.h)
+        end
+    end
+
+    if n == 6 * Mesh.nc
         # Not the best solution!
-        dM = getdEdgeMassMatrix(M, sigma, v)
+        dM = getdEdgeMassMatrix(Mesh, sigma, v)
         return dM' * x
     end
 
     # dM' = kron(ones(24,1),speye(nnz(M.S)))' * sdiag(M.Pe*v) * M.Pe
 
-    pv = M.Pe * v
-    dd = pv .* (M.Pe * conj(x)) 
-    pv = [] 
-
-    if n == M.nc
-        ns = M.nc
-        i2 = 24
-    elseif n == 3 * M.nc
-        ns = 3 * M.nc
-        i2 = 8
+    if n == Mesh.nc
+        vol  = getVolume(Mesh)
+        Ae,  = getEdgeAverageMatrix(Mesh)
+        vx   = v.*x
+        Aevx = 3*Ae*vx
+        dMTx = vol.*Aevx
+    elseif n == 3 * Mesh.nc
+        pv   = Mesh.Pe * v
+        dd   = pv .* (Mesh.Pe * conj(x))
+        pv   = []
+        ns   = 3 * Mesh.nc
+        i2   = 8
+        dMTx = dd[1:ns]
+        j    = ns
+        for i = 2:i2
+            @inbounds dMTx += dd[j+1 : j+ns]
+            j += ns
+        end  # i
+        dMTx = conj(dMTx)
     end
 
-    dMTx = dd[1:ns]
 
-    j = ns
-    for i = 2:i2
-        @inbounds dMTx += dd[j+1 : j+ns]
-        j += ns
-    end  # i
-    dMTx = conj(dMTx)
+
+
 
     return dMTx
 end

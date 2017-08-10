@@ -19,8 +19,9 @@ mutable struct OcTreeMeshFV <: OcTreeMesh
 	Pet::SparseMatrixCSC # Pe'
 	Af::SparseMatrixCSC # Face to cell-centre matrix
 	Ae::SparseMatrixCSC # Edge to cell-centre matrix
+	Aet::SparseMatrixCSC # Edge to cell-centre matrix transposed
 	An::SparseMatrixCSC # Node to cell-centre matrix
-	V::SparseMatrixCSC # cell volume
+	V::Vector # cell volume
 	L::SparseMatrixCSC # edge lengths
 	Ne::SparseMatrixCSC # Edge nullspace matrix
 	Qe::SparseMatrixCSC # Edge projection matrix
@@ -67,8 +68,8 @@ function getOcTreeMeshFV(S,h;x0=zeros(3))
 		return OcTreeMeshFV(S, h, x0,
                     		  S.sz,nc,nf,ne,
                     		  empt,empt,empt,       # no Div, Grad, Curl
-                          	  empt,empt,empt,empt,empt,empt,   # no Pf, Pe,Pet, Af,Ae,An
-                          	  empt,empt,empt,empt, [0],[0],[0],  # no V,L,Ne,Qe,active edges, active faces, active nodes
+                          	  empt,empt,empt,empt,empt,empt,empt,   # no Pf, Pe,Pet, Af,Ae,An
+                          	  [],empt,empt,empt, [0],[0],[0],  # no V,L,Ne,Qe,active edges, active faces, active nodes
                     		  empt,empt,empt,empt, #no Nn,Qn,Nf,Qf
    							  FX,FY,FZ, EX,EY,EZ,
                           NFX, NFY, NFZ,
@@ -87,6 +88,7 @@ function clear!(M::OcTreeMeshFV)
 	M.Pet  = clear!(M.Pet )
 	M.Af   = clear!(M.Af  )
 	M.Ae   = clear!(M.Ae  )
+	M.Aet  = clear!(M.Aet )
 	M.An   = clear!(M.An  )
 	M.V    = clear!(M.V   )
 	M.L    = clear!(M.L   )

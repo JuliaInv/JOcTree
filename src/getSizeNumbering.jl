@@ -63,7 +63,7 @@ function getEdgeSizeNumbering(S::SparseArray3D)
  ii[2:4:ns4] = i
  ii[3:4:ns4] = i
  ii[4:4:ns4] = i
- 
+
  jj[1:4:ns4] = j
  jj[2:4:ns4] = j + bsz
  jj[3:4:ns4] = j
@@ -85,7 +85,7 @@ function getEdgeSizeNumbering(S::SparseArray3D)
  ii[2:4:ns4] = i + bsz
  ii[3:4:ns4] = i
  ii[4:4:ns4] = i + bsz
- 
+
  jj[1:4:ns4] = j
  jj[2:4:ns4] = j
  jj[3:4:ns4] = j
@@ -95,7 +95,7 @@ function getEdgeSizeNumbering(S::SparseArray3D)
  kk[2:4:ns4] = k
  kk[3:4:ns4] = k + bsz
  kk[4:4:ns4] = k + bsz
- 
+
  EY  = sparse3(ii,jj,kk, vv, collect(sizeEY))
  EYN = deepcopy(EY)
  copy!(EYN.SV.nzval, 1:nnz(EY) )
@@ -107,7 +107,7 @@ function getEdgeSizeNumbering(S::SparseArray3D)
  ii[2:4:ns4] = i + bsz
  ii[3:4:ns4] = i
  ii[4:4:ns4] = i + bsz
- 
+
  jj[1:4:ns4] = j
  jj[2:4:ns4] = j
  jj[3:4:ns4] = j + bsz
@@ -117,7 +117,7 @@ function getEdgeSizeNumbering(S::SparseArray3D)
  kk[2:4:ns4] = k
  kk[3:4:ns4] = k
  kk[4:4:ns4] = k
- 
+
  EZ  = sparse3(ii,jj,kk, vv, collect(sizeEZ))
  EZN = deepcopy(EZ)
  copy!(EZN.SV.nzval, 1:nnz(EZ) )
@@ -196,14 +196,14 @@ function getFaceSizeNumbering(S::SparseArray3D)
 
  # X faces
  sizeFX = (m1+1, m2, m3)
- 
+
  ii[1:2:ns2] = i
  ii[2:2:ns2] = i + bsz
  jj[1:2:ns2] = j
  jj[2:2:ns2] = j
  kk[1:2:ns2] = k
  kk[2:2:ns2] = k
- 
+
  FX  = sparse3(ii,jj,kk, vv, collect(sizeFX))
  FXN = deepcopy(FX)
  copy!(FXN.SV.nzval, 1:nnz(FX) )
@@ -218,7 +218,7 @@ function getFaceSizeNumbering(S::SparseArray3D)
  jj[2:2:ns2] = j + bsz
  kk[1:2:ns2] = k
  kk[2:2:ns2] = k
- 
+
  FY  = sparse3(ii,jj,kk, vv, collect(sizeFY))
  FYN = deepcopy(FY)
  copy!(FYN.SV.nzval, 1:nnz(FY) )
@@ -232,7 +232,7 @@ function getFaceSizeNumbering(S::SparseArray3D)
  jj[2:2:ns2] = j
  kk[1:2:ns2] = k
  kk[2:2:ns2] = k + bsz
- 
+
  FZ  = sparse3(ii,jj,kk, vv, collect(sizeFZ))
  FZN = deepcopy(FZ)
  copy!(FZN.SV.nzval, 1:nnz(FZ) )
@@ -312,7 +312,7 @@ function getVolume(M::OcTreeMesh)
     if isempty(M.V)
         i,j,k,bsz = find3(M.S)
         h         = M.h
-        M.V          = spdiagm(bsz.^3*prod(h))
+        M.V          = bsz.^3*prod(h)
     end
     return M.V
 end

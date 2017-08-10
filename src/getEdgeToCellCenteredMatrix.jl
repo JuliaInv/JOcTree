@@ -2,9 +2,11 @@ export getEdgeToCellCenteredMatrix, getEdgeAverageMatrix
 
 function getEdgeAverageMatrix(M::OcTreeMesh)
 	if isempty(M.Ae)
-		M.Ae = getEdgeMassMatrixAnisotropic(M.S,M.h)
+		Ae,   = getEdgeToCellCenteredMatrix(M.S)
+		M.Ae  = Ae
+		M.Aet = Ae'
 	end
-	return M.Ae
+	return M.Ae,M.Aet
 end
 
 function getEdgeToCellCenteredMatrix(S::SparseArray3D)

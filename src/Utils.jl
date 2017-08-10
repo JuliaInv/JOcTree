@@ -1,4 +1,4 @@
-export DiagTimesM, MTimesDiag, DiagTimesMTimesDiag
+export DiagTimesM, MTimesDiag, DiagTimesMTimesDiag!
 
 # Exported utilities
 
@@ -79,7 +79,7 @@ end
 
 
 """
-A = DiagTimesMTimesDiag(d,A,e)
+A = DiagTimesMTimesDiag!(d,A,e)
 
 Equivalent output to spdiagm(d)`*`A`*`spdiagm(e), computed in an
 optimized way, with A updated in-place.
@@ -98,7 +98,7 @@ Output:
                              overwrites input matrix A.
 
 """
-function DiagTimesMTimesDiag( d::Vector, A::SparseMatrixCSC, e::Vector )
+function DiagTimesMTimesDiag!( d::Vector, A::SparseMatrixCSC, e::Vector )
 # Return diag{d} * A * diag{e}
 
    n = size(A,2)

@@ -212,7 +212,7 @@ function getDivergenceMatrixRec(S::SparseArray3D,h)
              nonzeros(FY).^2*(h[1]*h[3]),
              nonzeros(FZ).^2*(h[1]*h[2]) )
 
-   DIV = DiagTimesMTimesDiag(CSZi, N, FSZ)
+   DIV = DiagTimesMTimesDiag!(CSZi, N, FSZ)
 
    return DIV
 end
