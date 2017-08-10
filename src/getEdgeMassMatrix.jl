@@ -28,7 +28,7 @@ function getEdgeMassMatrix(Mesh::OcTreeMeshFV,sigma::Vector)
     if n == Mesh.nc
         #M = Pt * kron(speye(24),spdiagm(sigma)) * P
         Ae,Aet = getEdgeAverageMatrix(Mesh)
-        v      = getVolume(Mesh)
+        v      = getVolumeVector(Mesh)
         m      = Vector{eltype(sigma)}(sum(Mesh.ne))
         A_mul_B!(m,Aet,3*v.*sigma)
         M  = spdiagm(m)  #M = spdiagm(Ae'*(v.*sigma))
@@ -60,7 +60,7 @@ function getdEdgeMassMatrix{T<:Number}(Mesh::OcTreeMeshFV, sigma::Vector, v::Vec
     @assert in(n,[Mesh.nc;3*Mesh.nc;6*Mesh.nc]) "Invalid size of sigma"
     if n == Mesh.nc
         Ae,Aet = getEdgeAverageMatrix(Mesh)
-        vol    = getVolume(Mesh)
+        vol    = getVolumeVector(Mesh)
         dM     = 3*deepcopy(Aet)
         #println("$(size(dM))  $(size(v))  $(size(vol))")
         DiagTimesMTimesDiag!(v,dM,vol)
@@ -320,7 +320,7 @@ function dEdgeMassMatrixTimesVector(Mesh::OcTreeMeshFV, sigma::Vector, v::Vector
     end
 
     if n == Mesh.nc
-        vol = getVolume(Mesh)
+        vol = getVolumeVector(Mesh)
         Ae,Aet = getEdgeAverageMatrix(Mesh)
         volx = vol.*x
         Aetvolx = 3*Aet*volx
@@ -355,7 +355,7 @@ function dEdgeMassMatrixTrTimesVector(Mesh::OcTreeMeshFV, sigma::Vector, v::Vect
     # dM' = kron(ones(24,1),speye(nnz(M.S)))' * sdiag(M.Pe*v) * M.Pe
 
     if n == Mesh.nc
-        vol  = getVolume(Mesh)
+        vol  = getVolumeVector(Mesh)
         Ae,  = getEdgeAverageMatrix(Mesh)
         vx   = v.*x
         Aevx = 3*Ae*vx

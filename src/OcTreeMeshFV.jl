@@ -21,7 +21,7 @@ mutable struct OcTreeMeshFV <: OcTreeMesh
 	Ae::SparseMatrixCSC # Edge to cell-centre matrix
 	Aet::SparseMatrixCSC # Edge to cell-centre matrix transposed
 	An::SparseMatrixCSC # Node to cell-centre matrix
-	V::Vector # cell volume
+	V::SparseMatrixCSC # cell volume
 	L::SparseMatrixCSC # edge lengths
 	Ne::SparseMatrixCSC # Edge nullspace matrix
 	Qe::SparseMatrixCSC # Edge projection matrix
@@ -69,7 +69,7 @@ function getOcTreeMeshFV(S,h;x0=zeros(3))
                     		  S.sz,nc,nf,ne,
                     		  empt,empt,empt,       # no Div, Grad, Curl
                           	  empt,empt,empt,empt,empt,empt,empt,   # no Pf, Pe,Pet, Af,Ae,An
-                          	  [],empt,empt,empt, [0],[0],[0],  # no V,L,Ne,Qe,active edges, active faces, active nodes
+                          	  empt,empt,empt,empt, [0],[0],[0],  # no V,L,Ne,Qe,active edges, active faces, active nodes
                     		  empt,empt,empt,empt, #no Nn,Qn,Nf,Qf
    							  FX,FY,FZ, EX,EY,EZ,
                           NFX, NFY, NFZ,
