@@ -1,6 +1,7 @@
 export getInterpolationMatrix
 
-function getInterpolationMatrix(M1::OcTreeMesh, M2::OcTreeMesh)
+
+function getInterpolationMatrix(M1::OcTreeMesh, M2::OcTreeMesh; N::Integer=-1)
 
 	# check compatibility
 	if any(M1.h .!= M2.h)
@@ -13,26 +14,11 @@ function getInterpolationMatrix(M1::OcTreeMesh, M2::OcTreeMesh)
 		error("getInterpolationMatrix requires same base mesh")
 	end
 
-	P = getInterpolationMatrix(M1.S,M2.S)
-
-	return P
-
-end
-
-function getInterpolationMatrix(M1::OcTreeMesh, M2::OcTreeMesh, N::Integer)
-
-	# check compatibility
-	if any(M1.h .!= M2.h)
-		error("getInterpolationMatrix requires same cell size")
-	end
-	if any(M1.x0 .!= M2.x0)
-		error("getInterpolationMatrix requires same coordinate origin")
-	end
-	if any(M1.n .!= M2.n)
-		error("getInterpolationMatrix requires same base mesh")
-	end
-
-	P = getInterpolationMatrix(M1.S,M2.S,N)
+	if N==-1
+	    P = getInterpolationMatrix(M1.S,M2.S)
+        else
+	    P = getInterpolationMatrix(M1.S,M2.S,N)
+        end
 
 	return P
 
