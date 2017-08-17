@@ -30,102 +30,90 @@ getInterpolationMatrix(M1::Array{OcTreeMesh,1}, M2::OcTreeMesh) = map((M) -> get
 getInterpolationMatrix(M1::OcTreeMesh, M2::Array{OcTreeMesh,1}, N::Integer) = map((M) -> getInterpolationMatrix(M1, M, N), M2)
 getInterpolationMatrix(M1::Array{OcTreeMesh,1}, M2::OcTreeMesh, N::Integer) = map((M) -> getInterpolationMatrix(M, M2, N), M1)
 
-function getInterpolationMatrix(S1::SparseArray3D,S2::SparseArray3D)
-# P = getInterpolationMatrix(S1::SparseArray3D,S2::SparseArray3D)
 
-C1 = getCellNumbering(S1)
-C2 = getCellNumbering(S2)
+function getInterpolationMatrix(S1::SparseArray3D, S2::SparseArray3D)
 
-ii  = Array{Int}(0)
-jj  = Array{Int}(0)
-val = Array{Float64}(0)
+  # cell numberings
+  C1 = getCellNumbering(S1)
+  C2 = getCellNumbering(S2)
+  
+  # number of cells
+  n1 = nnz(S1)
+  n2 = nnz(S2)
+  
+  ## Step 1: Find parents of S1 in S2
+  
+  # cells in S1
+  i1,j1,k1,b1 = find3(S1)
+  
+  # initialize sparse interpolation matrix
+  irow = Array{Int}(n1)
+  jcol = nonzeros(C1)
+  nzval = ones(n1)
+  
+  # mark cells in S2 that we visit
+  l2 = trues(n2)
+  
+  # loop over all cells in S1
+  for p1 = 1:n1
+    
+    # find parent in S2
+    bi,bj,bk,bb = findBlocks(S2,i1[p1],j1[p1],k1[p1])
+    c2 = C2[bi,bj,bk]
+    
+    # copy cell number to interpolation matrix
+    irow[p1] = c2
+    
+    # mark parent as done
+    l2[c2] = false
+    
+    # change interpolation weight only if S1 < S2
+    if b1[p1] < bb
+      nzval[p1] = (b1[p1] / bb)^3
+    end
+    
+  end
+  
+  ## Step2: For all remaining cells in S2, find parents of S2 in S1
+  m2 = countnz(l2)
+  if m2 > 0
 
-I1 = S1.SV.nzind
-I2 = S2.SV.nzind
-N1 = falses(prod(S1.sz))
-N2 = falses(prod(S2.sz))
-N1[I1] = true
-N2[I2] = true
-
-# find cells contained both in S1 and S2
-i2 = 1
-for i1=1:length(I1) # loop over all cells in S1
-	while (i2<=length(I2)) && (I1[i1] >= I2[i2]) # loop over all remaining cells in S2
-		if (I1[i1] == I2[i2]) && (S1.SV.nzval[i1]==S2.SV.nzval[i2])
-			push!(ii, C2.SV.nzval[i2]) # ii = [ii; C2.SV.nzval[i2]]
-			push!(jj, C1.SV.nzval[i1])
-			push!(val,1.)
-		end
-		i2 +=1
-	end
+    # cells in S2
+    i2,j2,k2, = find3(S2)    
+    c2 = nonzeros(C2)
+    
+    # need only those which we didn't visit in step 1
+    i2 = i2[l2]
+    j2 = j2[l2]
+    k2 = k2[l2]
+    
+    # initialize sparse interpolation matrix
+    irowl = c2[l2]
+    jcoll = Array{Int}(m2)
+    nzvall = ones(m2)
+    
+    # loop over all remaining cells in S2
+    for p2 = 1:m2
+      
+      # find parent in S1
+      bi,bj,bk,bb = findBlocks(S1,i2[p2],j2[p2],k2[p2])
+      
+      # copy cell number to interpolation matrix
+      jcoll[p2] = C1[bi,bj,bk]
+      
+    end
+    
+    # merge with interpolation matrix from step 1
+    irow = vcat(irow,irowl)
+    jcol = vcat(jcol,jcoll)
+    nzval = vcat(nzval,nzvall)
+    
+  end
+  
+  return sparse(irow,jcol,nzval,n2,n1)
+  
 end
 
-
-# coarsening of fine cells in S1 to coarser cells in S2
-#      S1                                S2
-# +-----+--+--+                    +-----------+
-# |     |C |F | h/4                |           |
-# |  A  +--+--+                    |           |
-# |     |D |G | h/4                |           |
-# +-----+--+--+       ------->     |     X     | h
-# |     |     |                    |           |
-# |  B  |  E  | h/2                |           |
-# |     |     |                    |           |
-# +-----+-----+                    +-----------+
-#   h/2   h/2                            h
-#
-#  Then X = 1/h^2 * [ (h/2)^2*A + (h/2)^2*B + (h/4)^2*C + (h/4)^2*D +
-#                     (h/2)^2*E + (h/4)^2*F + (h/4)^2*G  ]
-
-# find cells in S1 not contained in S2
-bb = falses(prod(S1.sz))
-bb[find(S1.SV .< S2.SV)] = true
-bb .|= .!N2
-bb .&=  N1
-for i1=1:length(I1) # loop over all cells in S1
-		if bb[I1[i1]]
-			bsz1            = S1.SV.nzval[i1]
-			i,j,k           = ind2sub(size(S1),I1[i1])
-			bi,bj,bk,bsz2   = findBlocks(S2,i,j,k)  # find parents in S2
-	    	push!(ii ,C2.SV[sub2ind(size(C2), bi , bj , bk ),1])
-	    	push!(jj ,C1.SV.nzval[i1])
-	    	push!(val,(bsz1.^3)./(bsz2.^3))
-		end
-end
-
-# refinement of coarse cells in S1 to finer cells in S2
-#      S2                                S1
-# +-----+--+--+                    +-----------+
-# |     |C |F | h/4                |           |
-# |  A  +--+--+                    |           |
-# |     |D |G | h/4                |           |
-# +-----+--+--+       <------      |     X     | h
-# |     |     |                    |           |
-# |  B  |  E  | h/2                |           |
-# |     |     |                    |           |
-# +-----+-----+                    +-----------+
-#   h/2   h/2                            h
-#
-#  Then INJECT : A=X, B=X, ...., G=X
-
-# find cells in S2 not contained in S1
-bb = falses(prod(S1.sz))
-bb[find(S1.SV .> S2.SV)] = true
-bb .|= .!N1
-bb .&=  N2
-for i2=1:length(I2); # loop over all cells in S1
-		if bb[I2[i2]] # (S1.SV.nzval[i1] < S2.SV.nzval[i2])
-			i,j,k      = ind2sub(size(S2),I2[i2])
-			bi,bj,bk   = findBlocks(S1,i,j,k) # find parents in S1
-			push!(ii ,C2.SV.nzval[i2])
-			push!(jj, C1.SV[sub2ind(size(C1) , bi , bj , bk ),1])
-			push!(val,1.)
-		end
-end
-
-return  sparse(vec(ii),vec(jj),vec(val),nnz(S2),nnz(S1))
-
-end
 
 function getInterpolationMatrix(S1::SparseArray3D,S2::SparseArray3D,N::Integer)
 # Interpolate cell property on OcTree S1 to cell property on OcTree S2

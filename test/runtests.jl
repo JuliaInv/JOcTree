@@ -7,4 +7,5 @@ include("randomOctreeMesh.jl")
 include("testIO.jl")
 include("testMatrices.jl")
 include("testMassMatrixDerivatives.jl")
+include("testInterpolationMatrix.jl")
 end
