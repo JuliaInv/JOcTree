@@ -214,13 +214,13 @@ for ip = 1:np
 		kx[3] = EX[ix,iy,jz]
 		kx[4] = EX[ix,jy,jz]
 		ky[1] = EY[ix,iy,iz]
-		ky[2] = ky[1] + 1
+		ky[2] = EY[jx,iy,iz]
 		ky[3] = EY[ix,iy,jz]
-		ky[4] = ky[3] + 1
+		ky[4] = EY[jx,iy,jz]
 		kz[1] = EZ[ix,iy,iz]
-		kz[2] = kz[1] + 1
+		kz[2] = EZ[jx,iy,iz]
 		kz[3] = EZ[ix,jy,iz]
-		kz[4] = kz[3] + 1
+		kz[4] = EZ[jx,jy,iz]
 
 		# add to source vector
 		for ii = 1:4
