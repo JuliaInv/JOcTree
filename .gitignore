@@ -3,3 +3,5 @@
 *.jl.mem
 mesh.txt
 model.txt
+*.msh
+*.mod

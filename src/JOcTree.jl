@@ -57,5 +57,14 @@ module JOcTree
 
     include("IO/importUBC.jl")
     include("IO/exportUBC.jl")
-
+    
+    hasHDF5 = false
+    try
+      using HDF5
+      hasHDF5 = true
+    catch
+    end
+    if hasHDF5
+      include("IO/HDF5.jl")
+    end
 end

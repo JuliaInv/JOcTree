@@ -214,7 +214,7 @@ function getNodalConstraints(S::SparseArray3D)
   C = C[:,p]
   N = N[p,:]
   Q = Q[:,p]
-  
+
   # table lookup for new nodal numbering
   p = zeros(Int64,n)
   p[k1] = 1:length(k1)
