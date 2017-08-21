@@ -1,7 +1,9 @@
 
 export getEdgeSizeNumbering, getEdgeSize, getEdgeNumbering,
        getFaceSizeNumbering, getFaceSize, getFaceNumbering,
-       getNodalNumbering, getCellNumbering, getVolume, getLength
+       getNodalNumbering, getCellNumbering, getVolume, getLength,
+       getVolumeVector
+
 
 
 

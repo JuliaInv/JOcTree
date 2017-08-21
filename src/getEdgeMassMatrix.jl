@@ -61,8 +61,8 @@ function getdEdgeMassMatrix{T<:Number}(Mesh::OcTreeMeshFV, sigma::Vector, v::Vec
     if n == Mesh.nc
         Ae,Aet = getEdgeAverageMatrix(Mesh)
         vol    = getVolumeVector(Mesh)
-        dM     = 3*deepcopy(Aet)
-        #println("$(size(dM))  $(size(v))  $(size(vol))")
+        dM = SparseMatrixCSC(Aet.m, Aet.n, copy(Aet.colptr),
+                             copy(Aet.rowval), T.(3.*Aet.nzval))
         DiagTimesMTimesDiag!(v,dM,vol)
     else
         if isempty(Mesh.Pe)
