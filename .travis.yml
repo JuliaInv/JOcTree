@@ -12,6 +12,11 @@ julia:
 notifications:
   email: false
 
+addons:
+  apt:
+    packages:
+    - hdf5-tools
+
 before_install:
   - julia -e 'Pkg.clone("https://github.com/JuliaInv/jInv.jl","jInv"); Pkg.build("jInv"); Pkg.add("HDF5");'
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi

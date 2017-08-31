@@ -5,30 +5,31 @@ function findNonRegularBlocks(S::SparseArray3D)
 #
 
 nfac = [
-    1/4     1       0;
-    1/4     1       1/2;
-    3/4     1       0;
-    3/4     1       1/2;
-    1/4     -1/4    0;
-    1/4     -1/4    1/2;
-    3/4     -1/4    0;
-    3/4     -1/4    1/2;
-    1/4     0       -1/4;
-    3/4     0       -1/4;
-    1/4     1/2     -1/4;
-    3/4     1/2     -1/4;
-    1/4     0       1;
-    3/4     0       1;
-    1/4     1/2     1;
-    3/4     1/2     1;
-    -1/4    0       1/4;
-    -1/4    0       3/4;
-    -1/4    1/2     1/4;
-    -1/4    1/2     3/4;
-    1       0       1/4;
-    1       0       3/4;
-    1       1/2     1/4;
-    1       1/2     3/4]
+   1   4   0
+   1   4   2
+   3   4   0
+   3   4   2
+   1  -1   0
+   1  -1   2
+   3  -1   0
+   3  -1   2
+   1   0  -1
+   3   0  -1
+   1   2  -1
+   3   2  -1
+   1   0   4
+   3   0   4
+   1   2   4
+   3   2   4
+  -1   0   1
+  -1   0   3
+  -1   2   1
+  -1   2   3
+   4   0   1
+   4   0   3
+   4   2   1
+   4   2   3]
+ui2 = UInt(2)
 
 
 i,j,k,bsz  = find3(S)
@@ -46,11 +47,12 @@ for it = 1:meshsize
 		iit = i[it]
 		jit = j[it]
 		kit = k[it]
+		bz4 = bz >> ui2 # bz4 = bz / 4
 
 		for cnt = 1:24
-		   ni = iit + round(Int64, nfac[cnt,1]*bz)
-		   nj = jit + round(Int64, nfac[cnt,2]*bz)
-		   nk = kit + round(Int64, nfac[cnt,3]*bz)
+		   ni = iit + nfac[cnt,1] * bz4
+		   nj = jit + nfac[cnt,2] * bz4
+		   nk = kit + nfac[cnt,3] * bz4
 
 
 

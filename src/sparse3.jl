@@ -18,10 +18,14 @@ Base.find(S::SparseArray3D) = find(S.SV)
 Base.ndims(S::SparseArray3D) = 3
 
 import Base.clear!
-clear!(S::SparseArray3D) = sparse3(S.sz)
+function clear!(S::SparseArray3D)
+        S.SV = spzeros(Int,0)
+        S.sz = [0,0,0]
+        return
+end
 
 function sparse3(sz::Vector{Int})
-        S = spzeros(Int,prod(sz),1)
+        S = spzeros(Int,prod(sz))
         return SparseArray3D(S,sz)
 end
 

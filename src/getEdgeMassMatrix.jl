@@ -1,108 +1,237 @@
-
 export getEdgeMassMatrix, getdEdgeMassMatrix,
        dEdgeMassMatrixTimesVector, dEdgeMassMatrixTrTimesVector
 
-
 """
-function getEdgeMassMatrix(M::OcTreeMeshFV,sigma::Vector)
+    M = getEdgeMassMatrix(mesh::OcTreeMeshFV, sigma::Vector)
 
-Returns finite volume edge mass matrix. Can handle isotropic and anisotropic models.
+Compute finite volume edge mass matrix with coefficient `sigma` on OcTree
+mesh `mesh`.
 
+`getEdgeMassMatrix` distinguishes three cases:
+ - `length(sigma) == mesh.nc`: scalar coefficient (isotropy)
+ - `length(sigma) == mesh.nc * 3`: diagonal tensor coefficient (diagonal anisotropy)
+ - `length(sigma) == mesh.nc * 6`: symmetric tensor coefficient (general anisotropy)
 
-Input:
+The tensor coefficients must be stored in the following order:
+ - `sigma = vcat(sigma_xx, sigma_yy, sigma_zz)`
+ - `sigma = vcat(sigma_xx, sigma_yy, sigma_zz, sigma_xy, sigma_xz, sigma_yz)`
+where the vectors `sigma_xx`, ... contain the respective entries of the
+tensor for all OcTree cells.
 
-   M::OcTreeMeshFV Octree mesh object
-   sigma::vector Conductivity model. Can be used for isotropic and anisotropic models depending on length
-          of sigma. For an isotropic model length(sigma) = nc, where nc is the number of mesh cells.
-          Use length(sigma)=3*nc a diagonally anisotropic model and length(sigma)=6*nc for
-          for fully anisotropic model.
-Output:
-   Me::SparseMatrixCSC Edge mass matrix
+The first time that one of `getEdgeMassMatrix`, `getdEdgeMassMatrix`,
+`dEdgeMassMatrixTimesVector` or `dEdgeMassMatrixTrTimesVector` is called for
+the mesh and for a particular type of coefficient, integration weights and
+data structure are precomputed and stored internally. Subsequent calls for
+the same type of coefficient execute much faster by exploiting the stored
+data structure.
 
+The mass matrix integration neglects hanging edges. For best results,
+elimiate hanging edges as follows:
+
+    M = getEdgeMassMatrix(mesh, sigma)
+    N, = getEdgeConstraints(mesh)
+    M = N' * M * N
 """
-function getEdgeMassMatrix(Mesh::OcTreeMeshFV,sigma::Vector)
-    # For octree meshes
-
-    n = length(sigma)
-    @assert in(n,[Mesh.nc;3*Mesh.nc;6*Mesh.nc]) "Invalid size of sigma"
-    if n == Mesh.nc
-        #M = Pt * kron(speye(24),spdiagm(sigma)) * P
-        Ae,Aet = getEdgeAverageMatrix(Mesh)
-        v      = getVolumeVector(Mesh)
-        m      = Vector{eltype(sigma)}(sum(Mesh.ne))
-        A_mul_B!(m,Aet,3*v.*sigma)
-        M  = spdiagm(m)  #M = spdiagm(Ae'*(v.*sigma))
-    else
-        if isempty(Mesh.Pe)
-            Mesh.Pe  = getEdgeMassMatrixIntegrationMatrix(Mesh.S, Mesh.h)
-            Mesh.Pet = Mesh.Pe'
-        end
-        P  = Mesh.Pe
-        Pt = Mesh.Pet
-    end
-    if n == 3 * Mesh.nc
-        M = Pt * kron(speye(8),spdiagm(sigma)) * P
-    elseif n == 6 * Mesh.nc
-        R12 = kron(sparse([2,1,3],[1,2,3],1),speye(Int,Mesh.nc))
-        R23 = kron(sparse([1,3,2],[1,2,3],1),speye(Int,Mesh.nc))
-        D   = spdiagm(sigma[       1:3*Mesh.nc])
-        N   = Diagonal(sigma[3*Mesh.nc+1:6*Mesh.nc])
-        S   = D + R12 * N * R23 + R23 * N * R12
-        M   = Pt * kron(speye(8),S) * P
-    end
+function getEdgeMassMatrix(mesh::OcTreeMeshFV,sigma::Vector)
+    P = setupEdgeMassMatrix(mesh, sigma)
+    nzval = P.A * sigma
+    M = SparseMatrixCSC(P.n, P.n, P.colptr, P.rowval, nzval)
     return M
 end
 
-function getdEdgeMassMatrix{T<:Number}(Mesh::OcTreeMeshFV, sigma::Vector, v::Vector{T})
-    # Derivative
+"""
+    dM = getdEdgeMassMatrix(mesh::OcTreeMeshFV, sigma::Vector, v::Vector)
 
-    n = length(sigma)
-    @assert in(n,[Mesh.nc;3*Mesh.nc;6*Mesh.nc]) "Invalid size of sigma"
-    if n == Mesh.nc
-        Ae,Aet = getEdgeAverageMatrix(Mesh)
-        vol    = getVolumeVector(Mesh)
-        dM = SparseMatrixCSC(Aet.m, Aet.n, copy(Aet.colptr),
-                             copy(Aet.rowval), T.(3.*Aet.nzval))
-        DiagTimesMTimesDiag!(v,dM,vol)
-    else
-        if isempty(Mesh.Pe)
-            Mesh.Pe  = getEdgeMassMatrixIntegrationMatrix(Mesh.S, Mesh.h)
-            Mesh.Pet = Mesh.Pe'
-        end
-        P  = Mesh.Pe
-        Pt = Mesh.Pet
-        w = P * v
+Compute directional derivative of edge mass matrix w.r.t. coefficient `sigma`
+```math
+\\nabla_\\sigma (M(\\sigma) v)
+```
+
+`length(v)` must equal the number of edges.
+
+`getdEdgeMassMatrix` returns of sparse matrix of size
+`(length(v), length(sigma))`.
+
+See documentation of `getEdgeMassMatrix` for more details.
+"""
+function getdEdgeMassMatrix{T<:Number}(mesh::OcTreeMeshFV, sigma::Vector, v::Vector{T})
+    P = setupEdgeMassMatrix(mesh, sigma)
+    nz = length(P.colval)
+    if nz == 0 # isotropic or diagonally anisotropic
+        dM = SparseMatrixCSC(P.A.m, P.A.n, copy(P.A.colptr), copy(P.A.rowval), T.(P.A.nzval))
+        DiagTimesM(v, dM)
+    else # generally anisotropic
+        V = SparseMatrixCSC(P.n, nz, collect(1:nz+1), P.rowval, v[P.colval])
+        dM = V * P.A
     end
-    if n == 3 * Mesh.nc
-        K  = kron(ones(T, 8),speye(3*Mesh.nc))
-        dM = Pt * DiagTimesM(w,K)
-    elseif n == 6 * Mesh.nc
-        R12 = kron(speye(Int,8),kron(sparse([2,1,3],[1,2,3],1),speye(Int,Mesh.nc)))
-        R23 = kron(speye(Int,8),kron(sparse([1,3,2],[1,2,3],1),speye(Int,Mesh.nc)))
-        D   = spdiagm(w)
-        N   = R12 * spdiagm(R23 * w) + R23 * spdiagm(R12 * w)
-        dM  = hcat(
-        Pt * D * kron(ones(8),speye(3*Mesh.nc)),
-        Pt * N * kron(ones(8),speye(3*Mesh.nc)))
-    end
-	return dM
+    return dM
 end
 
 # for backwards compatibility
-getdEdgeMassMatrix(M::OcTreeMeshFV,v::Vector) = getdEdgeMassMatrix(M, ones(M.nc), v)
+getdEdgeMassMatrix(mesh::OcTreeMeshFV, v::Vector) = getdEdgeMassMatrix(mesh, ones(M.nc), v)
 
-function getEdgeMassMatrixIntegrationMatrix(S, h)
-# P = getEdgeMassMatrixIntegrationMatrix(S, h)
-# Compute a matrix P such that the edge function mass matrix
-# for a general symmetric anisotropic coefficient can be computed by
-#   M = P' * C * P
-# Here,
-#       | diag(cxx) diag(cxy) diag(cxz) |
-#   C = | diag(cxy) diag(cyy) diag(cyz) |
-#       | diag(cxz) diag(cyz) diag(czz) |
-# expands the six components cxx, cyy, czz, cxy, cxz, cyz of the symmetric
-# coefficient tensor for all numCell cells to a [3*numCells]^2 matrix.
-#
+"""
+    dMx = dEdgeMassMatrixTimesVector(mesh::OcTreeMeshFV, sigma::Vector, v::Vector, x::Vector)
+
+Compute matrix-vector product between directional derivative of edge mass matrix
+ w.r.t. coefficient `sigma`
+```math
+\\nabla_\\sigma (M(\\sigma) v)
+```
+and vector `x`.
+
+`dEdgeMassMatrixTimesVector(mesh, sigma, v, x)` is a fast implementation of
+`getdEdgeMassMatrix(mesh, sigma, v) * x`.
+
+`length(v)` must equal the number of edges;
+`x` must satisfy `length(x) == length(sigma)`.
+
+`dEdgeMassMatrixTimesVector` returns a vector of size `length(v)`.
+
+See documentation of `getEdgeMassMatrix` for more details.
+"""
+function dEdgeMassMatrixTimesVector{T<:Number}(mesh::OcTreeMeshFV, sigma::Vector, v::Vector{T}, x::Vector)
+    P = setupEdgeMassMatrix(mesh, sigma)
+    nz = length(P.colval)
+    if nz == 0 # isotropic or diagonally anisotropic
+        dMx = T.(P.A * x)
+        dMx .*= v
+    else # generally anisotropic
+        V = SparseMatrixCSC(P.n, nz, collect(1:nz+1), P.rowval, v[P.colval])
+        dMx = V * (P.A * x)
+    end
+    return dMx
+end
+
+"""
+    dMTx = dEdgeMassMatrixTrTimesVector(mesh::OcTreeMeshFV, sigma::Vector, v::Vector, x::Vector)
+
+Compute matrix-vector product between (complex) transpose of  directional
+derivative of edge mass matrix
+ w.r.t. coefficient `sigma`
+```math
+\\nabla_\\sigma (M(\\sigma) v)
+```
+and vector `x`.
+
+`dEdgeMassMatrixTimesTrVector(mesh, sigma, v, x)` is a fast implementation of
+`getdEdgeMassMatrix(mesh, sigma, v)' * x`.
+
+`length(v)` must equal the number of edges;
+`x` must satisfy `length(x) == length(v)`.
+
+`dEdgeMassMatrixTimesTrVector` returns a vector of size `length(sigma)`.
+
+See documentation of `getEdgeMassMatrix` for more details.
+"""
+function dEdgeMassMatrixTrTimesVector{T<:Number}(mesh::OcTreeMeshFV, sigma::Vector, v::Vector{T}, x::Vector{T})
+    P = setupEdgeMassMatrix(mesh, sigma)
+    nz = length(P.colval)
+    if nz == 0 # isotropic or diagonally anisotropic
+        u = conj.(v) .* x
+        dMTx = P.A' * u
+    else # generally anisotropic
+        V = SparseMatrixCSC(P.n, nz, collect(1:nz+1), P.rowval, v[P.colval])
+        u = V' * x
+        dMTx = P.A' * u
+    end
+    return dMTx
+end
+
+### Private (not exported) methods below
+
+"""
+    P = setupEdgeMassMatrix(mesh, sigma)
+
+Precompute and return stored data structure for edge mass matrix integration
+for isotropic, diagonally anisotropic or generally anisotropic coefficient.
+"""
+function setupEdgeMassMatrix(mesh, sigma)
+
+    na = length(sigma)
+    nc = mesh.nc
+
+    @assert in(na, [nc, 3*nc, 6*nc]) "Invalid size of sigma"
+
+    if !haskey(mesh.Pe, na)
+
+        n = sum(mesh.ne)
+        ex, ey, ez, w = getEdgeMassMatrixQuadrature(mesh)
+
+        if na == nc
+
+            i = vcat(ex, ey, ez)
+            j = repmat(1:nc, 24)
+            a = repmat(w, 24)
+            A = sparse(i, j, a, n, na)
+            colptr = collect(1:n+1)
+            rowval = collect(1:n)
+            colval = Array{Int64}(0) # unused
+
+        elseif na == 3 * nc
+
+            i = vcat(ex, ey, ez)
+            j = vcat(repmat(     1:  nc, 8),
+                     repmat(  nc+1:2*nc, 8),
+                     repmat(2*nc+1:3*nc, 8))
+            a = repmat(w, 24)
+            A = sparse(i, j, a, n, na)
+            colptr = collect(1:n+1)
+            rowval = collect(1:n)
+            colval = Array{Int64}(0) # unused
+
+        elseif na == 6 * nc
+
+            # find nonzero pattern of mass matrix
+            i = vcat(ex, ey, ez, ex, ex, ey, ey, ez, ez)
+            j = vcat(ex, ey, ez, ey, ez, ez, ex, ex, ey)
+            P = sparse(i, j, j, n, n, (x,y) -> x)
+            colptr = P.colptr
+            rowval = P.rowval
+            colval = copy(P.nzval) # P.nzval will be overwritten in next step
+            
+            # find destination of each quadrature point in sparse
+            # mass matrix vector of nonzeros; overwrite array i
+            nz = length(P.nzval)
+            P.nzval .= 1:nz
+            for m = 1:length(i)
+              i[m] = P[i[m],j[m]]
+            end
+
+            # construct mapping of anisotropic cell property to
+            # nonzero entries in mass matrix
+            j = vcat(repmat(     1:  nc, 8),
+                     repmat(  nc+1:2*nc, 8),
+                     repmat(2*nc+1:3*nc, 8),
+                     repmat(3*nc+1:4*nc, 8),
+                     repmat(4*nc+1:5*nc, 8),
+                     repmat(5*nc+1:6*nc, 8),
+                     repmat(3*nc+1:4*nc, 8),
+                     repmat(4*nc+1:5*nc, 8),
+                     repmat(5*nc+1:6*nc, 8))
+            a = repmat(w, 72)
+            A = sparse(i, j, a, nz, na)
+
+        end
+
+        mesh.Pe[na] = MassMatrix(n, A, rowval, colptr, colval)
+
+    end
+
+    return mesh.Pe[na]
+
+end
+
+"""
+    ex, ey, ez, w = getEdgeMassMatrixQuadrature(mesh)
+
+Compute quadrature points and weights for integration of edge mass matrix.
+
+`getEdgeMassMatrixQuadrature` returns a list of edges and weights
+for eight quadrature points, the corners of each cell.
+"""
+function getEdgeMassMatrixQuadrature(mesh)
+
 # To illustrate the integration, consider the 2D case (QuadTree) and, in
 # particular, the cell C1 of size 2 * h which has two right neighbors of
 # of size h:
@@ -140,244 +269,96 @@ function getEdgeMassMatrixIntegrationMatrix(S, h)
 #
 # The mass matrix has up to 9 non-zero entries per row/column.
 #
-# Note that this integration method neglects hanging edges. The resulting
-# mass matrix M for an isotropic medium differs from the mass matrix Me
-# which is obtained by the standard integration method by
-#   Ae = getEdgeToCellCenterMatrix(S); # edge to cell center average
-#   v  = prod(h) * nonzeros(S).^3;     # cell volume
-#   Me = sdiag( (v .* c)' * Ae );
-# where c is the isotropic coefficient for every cell. Let
-#   C  = blkdiag(sdiag(c), sdiag(c), sdiag(c));
-#   M  = P' * C * P;
-# Then,
-#   norm(M - Me) > 0
-# unless the OcTree is degenerate (a regular mesh).
-
+# Note that this integration method neglects hanging edges. The
+# mass matrix
+#   M1 = getEdgeMassMatrix(mesh, sigma)
+# for isotropic sigma differs from
+#   Ae = getEdgeToCellCenterMatrix(mesh) # edge to cell center average
+#   V  = getVolume(mesh)                 # cell volume
+#   M2 = sdiag(Ae' * (V * sigma))
+# unless the OcTree degenerates to a regular mesh.
+#
 # C. Schwarzbach, April 2014
 
 # edge numbering (implies location of edge)
-
-EX,EY,EZ  = getEdgeNumbering(S)
-
-i,j,k,bsz = find3(S)
-mx,my,mz  = size(S)
+EX,EY,EZ  = getEdgeNumbering(mesh)
 nex = nnz(EX)
 ney = nnz(EY)
 nez = nnz(EZ)
 
+# cells
+i,j,k,bsz = find3(mesh.S)
+mx,my,mz  = size(mesh.S)
+
 # locate edge numbers for quadrature points
+bsz2 = div.(bsz, 2)
+i0 = i
+i1 = i + bsz
+i2 = i + bsz2
+j0 = j
+j1 = j + bsz
+j2 = j + bsz2
+k0 = k
+k1 = k + bsz
+k2 = k + bsz2
 
 # x-edges
-i0 = i
-i1 = floor.(Integer,i + bsz / 2)
-j0 = j
-j1 = j + bsz
-k0 = k
-k1 = k + bsz
-
 ex000 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i0,j0,k0)
-ex100 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i1,j0,k0)
+ex100 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i2,j0,k0)
 ex010 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i0,j1,k0)
-ex110 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i1,j1,k0)
+ex110 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i2,j1,k0)
 ex001 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i0,j0,k1)
-ex101 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i1,j0,k1)
+ex101 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i2,j0,k1)
 ex011 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i0,j1,k1)
-ex111 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i1,j1,k1)
+ex111 = getNodesFromIndices(EX.SV,(mx,my+1,mz+1),i2,j1,k1)
 
-ex100 = merge(ex100, ex000)
-ex110 = merge(ex110, ex010)
-ex101 = merge(ex101, ex001)
-ex111 = merge(ex111, ex011)
+merge!(ex100, ex000)
+merge!(ex110, ex010)
+merge!(ex101, ex001)
+merge!(ex111, ex011)
 
 # y-edges
-i0 = i
-i1 = i + bsz
-j0 = j
-j1 = floor.(Integer,j + bsz / 2)
-k0 = k
-k1 = k + bsz
-
 ey000 = getNodesFromIndices(EY.SV,(mx+1,my,mz+1),i0,j0,k0)
 ey100 = getNodesFromIndices(EY.SV,(mx+1,my,mz+1),i1,j0,k0)
-ey010 = getNodesFromIndices(EY.SV,(mx+1,my,mz+1),i0,j1,k0)
-ey110 = getNodesFromIndices(EY.SV,(mx+1,my,mz+1),i1,j1,k0)
+ey010 = getNodesFromIndices(EY.SV,(mx+1,my,mz+1),i0,j2,k0)
+ey110 = getNodesFromIndices(EY.SV,(mx+1,my,mz+1),i1,j2,k0)
 ey001 = getNodesFromIndices(EY.SV,(mx+1,my,mz+1),i0,j0,k1)
 ey101 = getNodesFromIndices(EY.SV,(mx+1,my,mz+1),i1,j0,k1)
-ey011 = getNodesFromIndices(EY.SV,(mx+1,my,mz+1),i0,j1,k1)
-ey111 = getNodesFromIndices(EY.SV,(mx+1,my,mz+1),i1,j1,k1)
+ey011 = getNodesFromIndices(EY.SV,(mx+1,my,mz+1),i0,j2,k1)
+ey111 = getNodesFromIndices(EY.SV,(mx+1,my,mz+1),i1,j2,k1)
 
-ey010 = merge(ey010, ey000)
-ey110 = merge(ey110, ey100)
-ey011 = merge(ey011, ey001)
-ey111 = merge(ey111, ey101)
+merge!(ey010, ey000)
+merge!(ey110, ey100)
+merge!(ey011, ey001)
+merge!(ey111, ey101)
 
 # z-edges
-i0 = i
-i1 = i + bsz
-j0 = j
-j1 = j + bsz
-k0 = k
-k1 = floor.(Integer,k + bsz / 2)
-
 ez000 = getNodesFromIndices(EZ.SV,(mx+1,my+1,mz),i0,j0,k0)
 ez100 = getNodesFromIndices(EZ.SV,(mx+1,my+1,mz),i1,j0,k0)
 ez010 = getNodesFromIndices(EZ.SV,(mx+1,my+1,mz),i0,j1,k0)
 ez110 = getNodesFromIndices(EZ.SV,(mx+1,my+1,mz),i1,j1,k0)
-ez001 = getNodesFromIndices(EZ.SV,(mx+1,my+1,mz),i0,j0,k1)
-ez101 = getNodesFromIndices(EZ.SV,(mx+1,my+1,mz),i1,j0,k1)
-ez011 = getNodesFromIndices(EZ.SV,(mx+1,my+1,mz),i0,j1,k1)
-ez111 = getNodesFromIndices(EZ.SV,(mx+1,my+1,mz),i1,j1,k1)
+ez001 = getNodesFromIndices(EZ.SV,(mx+1,my+1,mz),i0,j0,k2)
+ez101 = getNodesFromIndices(EZ.SV,(mx+1,my+1,mz),i1,j0,k2)
+ez011 = getNodesFromIndices(EZ.SV,(mx+1,my+1,mz),i0,j1,k2)
+ez111 = getNodesFromIndices(EZ.SV,(mx+1,my+1,mz),i1,j1,k2)
 
-ez001 = merge(ez001, ez000)
-ez101 = merge(ez101, ez100)
-ez011 = merge(ez011, ez010)
-ez111 = merge(ez111, ez110)
+merge!(ez001, ez000)
+merge!(ez101, ez100)
+merge!(ez011, ez010)
+merge!(ez111, ez110)
 
-# cell indices
-nc = length(bsz)
-c  = collect(1:nc)
+# collect everything
+ex = vcat(ex000,ex100,ex010,ex110,ex001,ex101,ex011,ex111)
+ey = vcat(ey000,ey100,ey010,ey110,ey001,ey101,ey011,ey111)
+ez = vcat(ez000,ez100,ez010,ez110,ez001,ez101,ez011,ez111)
 
-# set values for each cell to square root of cell volume and quadrature
-# weight; product of P' * C * P gives the correct scaling by cell volume
-# and quadrature weight
-uc = sqrt.(bsz.^3 * prod(h) / 8)
+# shift ey and ez
+ey .+= nex
+ez .+= (nex + ney)
 
-# integrate using edge to cell corner interpolation
-Px = sparse(c, ex000, uc, nc, nex) # Px1
-Py = sparse(c, ey000, uc, nc, ney) # Py1
-Pz = sparse(c, ez000, uc, nc, nez) # Pz1
-P1 = blkdiag(Px, Py, Pz)
+# integration weights
+w = bsz.^3 * (prod(mesh.h) / 8)
 
-Px = sparse(c, ex100, uc, nc, nex) # Px2
-Py = sparse(c, ey100, uc, nc, ney) # Py2
-Pz = sparse(c, ez100, uc, nc, nez) # Pz2
-P2 = blkdiag(Px, Py, Pz)
+return ex, ey, ez, w
 
-Px = sparse(c, ex010, uc, nc, nex) # Px3
-Py = sparse(c, ey010, uc, nc, ney) # Py3
-Pz = sparse(c, ez010, uc, nc, nez) # Pz3
-P3 = blkdiag(Px, Py, Pz)
-
-Px = sparse(c, ex110, uc, nc, nex) # Px4
-Py = sparse(c, ey110, uc, nc, ney) # Py4
-Pz = sparse(c, ez110, uc, nc, nez) # Pz4
-P4 = blkdiag(Px, Py, Pz)
-
-Px = sparse(c, ex001, uc, nc, nex) # Px5
-Py = sparse(c, ey001, uc, nc, ney) # Py5
-Pz = sparse(c, ez001, uc, nc, nez) # Pz5
-P5 = blkdiag(Px, Py, Pz)
-
-Px = sparse(c, ex101, uc, nc, nex) # Px6
-Py = sparse(c, ey101, uc, nc, ney) # Py6
-Pz = sparse(c, ez101, uc, nc, nez) # Pz6
-P6 = blkdiag(Px, Py, Pz)
-
-Px = sparse(c, ex011, uc, nc, nex) # Px7
-Py = sparse(c, ey011, uc, nc, ney) # Py7
-Pz = sparse(c, ez011, uc, nc, nez) # Pz7
-P7 = blkdiag(Px, Py, Pz)
-
-Px = sparse(c, ex111, uc, nc, nex) # Px8
-Py = sparse(c, ey111, uc, nc, ney) # Py8
-Pz = sparse(c, ez111, uc, nc, nez) # Pz8
-P8 = blkdiag(Px, Py, Pz)
-
-# Collect everything
-P = vcat(P1, P2, P3, P4, P5, P6, P7, P8)
-
-return P
-
-end
-
-function merge(a, b)
-# copy entries of b into a for zero entries of a
-c      = copy(a)
-idz    = c .== 0
-c[idz] = b[idz]
-return c
-end
-
-function dEdgeMassMatrixTimesVector(Mesh::OcTreeMeshFV, sigma::Vector, v::Vector, x::Vector)
-    # Derivative (getdEdgeMassMatrix) times a vector(x)
-
-    n = length(sigma)
-    if length(x) != n
-        error("length(x) != length(sigma)")
-    end
-    @assert in(n,[Mesh.nc;3*Mesh.nc;6*Mesh.nc]) "Invalid size of sigma"
-
-    if n > Mesh.nc
-        if isempty(Mesh.Pe)
-            Mesh.Pe = getEdgeMassMatrixIntegrationMatrix(Mesh.S, Mesh.h)
-        end
-    end
-
-    if n == 6 * Mesh.nc
-        # Not the best solution!
-        dM = getdEdgeMassMatrix(Mesh, sigma, v)
-        return dM * x
-    end
-
-    if n == Mesh.nc
-        vol = getVolumeVector(Mesh)
-        Ae,Aet = getEdgeAverageMatrix(Mesh)
-        volx = vol.*x
-        Aetvolx = 3*Aet*volx
-        dMx = v.*Aetvolx
-    elseif n == 3 * Mesh.nc
-        pv  = Mesh.Pe * v
-        dMx = Mesh.Pe' * (pv .* repmat(x, 8))
-    end
-
-    return dMx
-end
-
-
-function dEdgeMassMatrixTrTimesVector(Mesh::OcTreeMeshFV, sigma::Vector, v::Vector, x::Vector)
-    # Derivative (getdEdgeMassMatrix) transpose times a vector(x)
-
-
-    n = length(sigma)
-    @assert in(n,[Mesh.nc;3*Mesh.nc;6*Mesh.nc]) "Invalid size of sigma"
-    if n > Mesh.nc
-        if isempty(Mesh.Pe)
-            Mesh.Pe = getEdgeMassMatrixIntegrationMatrix(Mesh.S,Mesh.h)
-        end
-    end
-
-    if n == 6 * Mesh.nc
-        # Not the best solution!
-        dM = getdEdgeMassMatrix(Mesh, sigma, v)
-        return dM' * x
-    end
-
-    # dM' = kron(ones(24,1),speye(nnz(M.S)))' * sdiag(M.Pe*v) * M.Pe
-
-    if n == Mesh.nc
-        vol  = getVolumeVector(Mesh)
-        Ae,  = getEdgeAverageMatrix(Mesh)
-        vx   = v.*x
-        Aevx = 3*Ae*vx
-        dMTx = vol.*Aevx
-    elseif n == 3 * Mesh.nc
-        pv   = Mesh.Pe * v
-        dd   = pv .* (Mesh.Pe * conj(x))
-        pv   = []
-        ns   = 3 * Mesh.nc
-        i2   = 8
-        dMTx = dd[1:ns]
-        j    = ns
-        for i = 2:i2
-            @inbounds dMTx += dd[j+1 : j+ns]
-            j += ns
-        end  # i
-        dMTx = conj(dMTx)
-    end
-
-
-
-
-
-    return dMTx
 end

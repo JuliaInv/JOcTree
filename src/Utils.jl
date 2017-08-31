@@ -133,3 +133,20 @@ function getNodesFromIndices(sv,mm,i0::Vector{Int},j0::Vector{Int},k0::Vector{In
 	return v
 
 end
+
+"""
+    merge!(a::Vector{Int64}, b::Vector{Int64})
+
+Replace zero entries in `a` by values from `b`.
+"""
+function merge!(a::Vector{Int64}, b::Vector{Int64})
+  n = length(a)
+  (length(b) == n) || throw(DimensionMismatch("length(a) != length(b)"))
+  @inbounds begin
+    for i = 1:n
+      if a[i] == 0
+        a[i] = b[i]
+      end
+    end
+  end
+end

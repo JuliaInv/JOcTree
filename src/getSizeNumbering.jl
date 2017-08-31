@@ -6,7 +6,6 @@ export getEdgeSizeNumbering, getEdgeSize, getEdgeNumbering,
 
 
 
-
 function getEdgeSizeNumbering(M::OcTreeMesh)
    if nnz(M.EX) != M.ne[1] || nnz(M.EY) != M.ne[2] || nnz(M.EZ) != M.ne[3] ||
       isempty(M.NEX) || isempty(M.NEY) || isempty(M.NEZ)
@@ -247,7 +246,10 @@ end  # function getFaceSizeNumbering
 #-------------------------------------------------------------------------
 
 function getNodalNumbering(M::OcTreeMesh)
-    return getNodalNumbering(M.S)
+   if (nnz(M.NN) != M.nn) || isempty(M.NN)
+      M.NN = getNodalNumbering(M.S)
+   end
+   return M.NN
 end
 
 function getNodalNumbering(S::SparseArray3D)
@@ -298,13 +300,16 @@ end  # function getNodalNumbering
 #-------------------------------------------------------------------------
 
 function getCellNumbering(M::OcTreeMesh)
-    return getCellNumbering(M.S)
+  if (nnz(M.NC) != M.nc) || isempty(M.NC)
+     M.NC = getCellNumbering(M.S)
+  end
+  return M.NC
 end
 
 function getCellNumbering(S::SparseArray3D)
-    CN = deepcopy(S)
-    copy!(CN.SV.nzval, 1:nnz(S) )
-    return CN
+    NC = deepcopy(S)
+    copy!(NC.SV.nzval, 1:nnz(S) )
+    return NC
 end  # function getCellNumbering
 
 """

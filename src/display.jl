@@ -4,13 +4,13 @@ function Base.display(Mesh::OcTreeMesh)
 	nc   = Mesh.nc
 	nf   = Mesh.nf
 	ne   = Mesh.ne
-	nn   = nnz(getNodalNumbering(Mesh.S))
+	nn   = Mesh.nn
 	x0   = Mesh.x0
 	h    = Mesh.h
 	d    = h .* n
 	bsz  = nonzeros(Mesh.S)
-	hmin = minimum(bsz) .* h
-	hmax = maximum(bsz) .* h
+	hmin = (isempty(bsz) ? 0 : minimum(bsz)) .* h
+	hmax = (isempty(bsz) ? 0 : maximum(bsz)) .* h
 	
 	println("OcTree mesh of size $(n[1]) x $(n[2]) x $(n[3])")
 	println("Number of cells:   $nc")
