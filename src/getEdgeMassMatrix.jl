@@ -68,7 +68,7 @@ function getdEdgeMassMatrix{T<:Number}(mesh::OcTreeMeshFV, sigma::Vector, v::Vec
 end
 
 # for backwards compatibility
-getdEdgeMassMatrix(mesh::OcTreeMeshFV, v::Vector) = getdEdgeMassMatrix(mesh, ones(M.nc), v)
+getdEdgeMassMatrix(mesh::OcTreeMeshFV, v::Vector) = getdEdgeMassMatrix(mesh, ones(mesh.nc), v)
 
 """
     dMx = dEdgeMassMatrixTimesVector(mesh::OcTreeMeshFV, sigma::Vector, v::Vector, x::Vector)
@@ -189,7 +189,7 @@ function setupEdgeMassMatrix(mesh, sigma)
             colptr = P.colptr
             rowval = P.rowval
             colval = copy(P.nzval) # P.nzval will be overwritten in next step
-            
+
             # find destination of each quadrature point in sparse
             # mass matrix vector of nonzeros; overwrite array i
             nz = length(P.nzval)
