@@ -1,7 +1,8 @@
 
-export getCellCenterGradientMatrix
+export getCellCenterGradientMatrix, getCellCenterXGradientMatrix
+export getCellCenterYGradientMatrix, getCellCenterZGradientMatrix
 
-function getCellCenterGradientMatrix(Mesh::OcTreeMeshFV)
+function getCellCenterXGradientMatrix(Mesh::OcTreeMeshFV)
 
     CN = getCellNumbering(Mesh)
     FXN, FYN, FZN = getFaceNumbering(Mesh)
@@ -86,7 +87,24 @@ function getCellCenterGradientMatrix(Mesh::OcTreeMeshFV)
         end
     end
 
-    GX = sparse(FXN.SV[ii], CN.SV[jj], vv, nnz(FXN), nnz(CN))
+    mii = Array{Int}(length(ii))
+    mjj = Array{Int}(length(jj))
+    for c in 1:length(ii)
+        mii[c] = FXN.SV[ii[c]]
+        mjj[c] = CN.SV[jj[c]]
+    end
+    GX = sparse(mii, mjj, vv, nnz(FXN), nnz(CN))
+    GX = (1./Mesh.h[1])*GX
+    return GX
+end
+
+function getCellCenterYGradientMatrix(Mesh::OcTreeMeshFV)
+
+    CN = getCellNumbering(Mesh)
+    FXN, FYN, FZN = getFaceNumbering(Mesh)
+    i, j, k, bsz = find3(Mesh.S)
+
+    upper, lower, left, right, front, back = getSizeOfNeighbors(Mesh.S)
 
     ######################################################################
     #### GRAD ON Y-FACES
@@ -165,7 +183,25 @@ function getCellCenterGradientMatrix(Mesh::OcTreeMeshFV)
         end
     end
 
-    GY = sparse(FYN.SV[ii], CN.SV[jj], vv, nnz(FYN), nnz(CN))
+
+    mii = Array{Int}(length(ii))
+    mjj = Array{Int}(length(jj))
+    for c in 1:length(ii)
+        mii[c] = FYN.SV[ii[c]]
+        mjj[c] = CN.SV[jj[c]]
+    end
+    GY = sparse(mii, mjj, vv, nnz(FYN), nnz(CN))
+    GY = (1./Mesh.h[2])*GY
+    return GY
+end
+
+function getCellCenterZGradientMatrix(Mesh::OcTreeMeshFV)
+
+    CN = getCellNumbering(Mesh)
+    FXN, FYN, FZN = getFaceNumbering(Mesh)
+    i, j, k, bsz = find3(Mesh.S)
+
+    upper, lower, left, right, front, back = getSizeOfNeighbors(Mesh.S)
 
     ######################################################################
     #### GRAD ON Z-FACES
@@ -244,18 +280,27 @@ function getCellCenterGradientMatrix(Mesh::OcTreeMeshFV)
         end
     end
 
-    GZ = sparse(FZN.SV[ii], CN.SV[jj], vv, nnz(FZN), nnz(CN))
-
-    ##### put it all together
-    GX = (1./Mesh.h[1])*GX
-    GY = (1./Mesh.h[2])*GY
+    mii = Array{Int}(length(ii))
+    mjj = Array{Int}(length(jj))
+    for c in 1:length(ii)
+        mii[c] = FZN.SV[ii[c]]
+        mjj[c] = CN.SV[jj[c]]
+    end
+    GZ = sparse(mii, mjj, vv, nnz(FZN), nnz(CN))
     GZ = (1./Mesh.h[3])*GZ
 
-    nx = nnz(FXN)
-    ny = nnz(FYN)
-    nz = nnz(FZN)
+    return GZ
+end
 
-    GRAD = spzeros( nx+ny+nz, nnz(CN))
+function getCellCenterGradientMatrix(Mesh::OcTreeMeshFV)
+
+    GX = getCellCenterXGradientMatrix(Mesh)
+    GY = getCellCenterYGradientMatrix(Mesh)
+    GZ = getCellCenterZGradientMatrix(Mesh)
+
+    nx, ny, nz = Mesh.nf
+
+    GRAD = spzeros(sum(Mesh.nf), Mesh.nc)
     GRAD[1:nx, :] = GX
     GRAD[nx+1:nx+ny, :] = GY
     GRAD[nx+ny+1:nx+ny+nz, :] = GZ
