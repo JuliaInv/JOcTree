@@ -130,50 +130,56 @@ function getOcTreeMeshFV(S,h;x0=zeros(3))
 end  # function getOcTreeMeshFV
 
 import Base.clear!
-function clear!(M::OcTreeMeshFV)
-  M.S    = sparse3([0,0,0])
-  M.h    = zeros(3)
-  M.x0   = zeros(3)
-  M.n    = [0,0,0]
-  M.nc   = 0
-  M.nf   = [0,0,0]
-  M.ne   = [0,0,0]
-  M.nn   = 0
-  M.Div  = spzeros(0,0)
-  M.Grad = spzeros(0,0)
-  M.Curl = spzeros(0,0)
-  M.Pf   = Dict{Int64,MassMatrix}()
-  M.Pe   = Dict{Int64,MassMatrix}()
-  M.Pn   = Dict{Int64,MassMatrix}()
-  M.Af   = spzeros(0,0)
-  M.Ae   = spzeros(0,0)
-  M.An   = spzeros(0,0)
-  M.V    = spzeros(0,0)
-  M.L    = spzeros(0,0)
-  M.Ne   = spzeros(0,0)
-  M.Qe   = spzeros(0,0)
-  M.activeEdges = Array{Int64}(0)
-  M.activeFaces = Array{Int64}(0)
-  M.activeNodes = Array{Int64}(0)
-  M.Nn   = spzeros(0,0)
-  M.Qn   = spzeros(0,0)
-  M.Nf   = spzeros(0,0)
-  M.Qf   = spzeros(0,0)
-  M.FX   = sparse3([0,0,0])
-  M.FY   = sparse3([0,0,0])
-  M.FZ   = sparse3([0,0,0])
-  M.EX   = sparse3([0,0,0])
-  M.EY   = sparse3([0,0,0])
-  M.EZ   = sparse3([0,0,0])
-  M.NC   = sparse3([0,0,0])
-  M.NFX  = sparse3([0,0,0])
-  M.NFY  = sparse3([0,0,0])
-  M.NFZ  = sparse3([0,0,0])
-  M.NEX  = sparse3([0,0,0])
-  M.NEY  = sparse3([0,0,0])
-  M.NEZ  = sparse3([0,0,0])
-  M.NN   = sparse3([0,0,0])
+function clear!(M::OcTreeMeshFV; exclude::Vector{Symbol} = Vector{Symbol}())
+  
+  # Don't clear the essential mesh information:
+  # if !(:S           in exclude) M.S           = sparse3([0,0,0]);        end
+  # if !(:h           in exclude) M.h           = zeros(3);                end
+  # if !(:x0          in exclude) M.x0          = zeros(3);                end
+  # if !(:n           in exclude) M.n           = [0,0,0];                 end
+  # if !(:nc          in exclude) M.nc          = 0;                       end
+  # if !(:nf          in exclude) M.nf          = [0,0,0];                 end
+  # if !(:ne          in exclude) M.ne          = [0,0,0];                 end
+  # if !(:nn          in exclude) M.nn          = 0;                       end
+  
+  # Clear all derived variables
+  if !(:Div         in exclude) M.Div         = spzeros(0,0);             end
+  if !(:Grad        in exclude) M.Grad        = spzeros(0,0);             end
+  if !(:Curl        in exclude) M.Curl        = spzeros(0,0);             end
+  if !(:Pf          in exclude) M.Pf          = Dict{Int64,MassMatrix}(); end
+  if !(:Pe          in exclude) M.Pe          = Dict{Int64,MassMatrix}(); end
+  if !(:Pn          in exclude) M.Pn          = Dict{Int64,MassMatrix}(); end
+  if !(:Af          in exclude) M.Af          = spzeros(0,0);             end
+  if !(:Ae          in exclude) M.Ae          = spzeros(0,0);             end
+  if !(:An          in exclude) M.An          = spzeros(0,0);             end
+  if !(:V           in exclude) M.V           = spzeros(0,0);             end
+  if !(:L           in exclude) M.L           = spzeros(0,0);             end
+  if !(:Ne          in exclude) M.Ne          = spzeros(0,0);             end
+  if !(:Qe          in exclude) M.Qe          = spzeros(0,0);             end
+  if !(:activeEdges in exclude) M.activeEdges = Array{Int64}(0);          end
+  if !(:activeFaces in exclude) M.activeFaces = Array{Int64}(0);          end
+  if !(:activeNodes in exclude) M.activeNodes = Array{Int64}(0);          end
+  if !(:Nn          in exclude) M.Nn          = spzeros(0,0);             end
+  if !(:Qn          in exclude) M.Qn          = spzeros(0,0);             end
+  if !(:Nf          in exclude) M.Nf          = spzeros(0,0);             end
+  if !(:Qf          in exclude) M.Qf          = spzeros(0,0);             end
+  if !(:FX          in exclude) M.FX          = sparse3([0,0,0]);         end
+  if !(:FY          in exclude) M.FY          = sparse3([0,0,0]);         end
+  if !(:FZ          in exclude) M.FZ          = sparse3([0,0,0]);         end
+  if !(:EX          in exclude) M.EX          = sparse3([0,0,0]);         end
+  if !(:EY          in exclude) M.EY          = sparse3([0,0,0]);         end
+  if !(:EZ          in exclude) M.EZ          = sparse3([0,0,0]);         end
+  if !(:NC          in exclude) M.NC          = sparse3([0,0,0]);         end
+  if !(:NFX         in exclude) M.NFX         = sparse3([0,0,0]);         end
+  if !(:NFY         in exclude) M.NFY         = sparse3([0,0,0]);         end
+  if !(:NFZ         in exclude) M.NFZ         = sparse3([0,0,0]);         end
+  if !(:NEX         in exclude) M.NEX         = sparse3([0,0,0]);         end
+  if !(:NEY         in exclude) M.NEY         = sparse3([0,0,0]);         end
+  if !(:NEZ         in exclude) M.NEZ         = sparse3([0,0,0]);         end
+  if !(:NN          in exclude) M.NN          = sparse3([0,0,0]);         end
+
   return
+
 end  # function clear
 
 import Base.==
