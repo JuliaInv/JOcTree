@@ -12,13 +12,13 @@ function getEdgeInterpolationMatrix(mesh::OcTreeMesh, x::Array{Float64,1}, y::Ar
 	P = repmat([1:n;],4)
 	
 	# get edge enumeration
-	Ex,Ey,Ez = getEdgeNumbering(mesh.S)
+	Ex,Ey,Ez = getEdgeNumbering(mesh)
 	nx = nnz(Ex)
 	ny = nnz(Ey)
 	nz = nnz(Ez)
 	
 	# locate points within cells
-	i,j,k,bsz = findBlocks(mesh.S, floor(Integer,x), floor(Integer,y), floor(Integer,z))
+	i,j,k,bsz = findBlocks(mesh.S, floor.(Integer,x), floor.(Integer,y), floor.(Integer,z))
 	
 	# x-edge numbers 
 	I  = [i, i, i, i;]
