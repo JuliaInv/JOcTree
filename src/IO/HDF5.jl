@@ -4,6 +4,7 @@ export exportHDF5OcTreeMesh, importHDF5OcTreeMesh
     exportHDF5OcTreeMesh(filename::String, mesh::OcTreeMesh; <keyword arguments>)
     exportHDF5OcTreeMesh(filename::String, meshes::Vector{T} where T<:OcTreeMesh; <keyword arguments>)
     exportHDF5OcTreeMesh(filename::String, meshes::Dict; <keyword arguments>)
+    exportHDF5OcTreeMesh(filename::String, S::SparseArray3D, h::Vector{Float64}, x0::Vector{Float64}; <keyword arguments>)
     
 Write OcTree mesh(es) to HDF5 file.
 
@@ -48,6 +49,19 @@ function exportHDF5OcTreeMesh(filename::String,
     close(fid)
 end
 
+function exportHDF5OcTreeMesh(filename::String,
+                              S::SparseArray3D,
+                              h::Vector{Float64},
+                              x0::Vector{Float64};
+                              compressAlg::String="blosc",
+                              compressLevel::Integer=4)
+
+    # Create output file and mesh group
+    fid = h5open(filename, "w")
+    getSingleMeshHDF5group!(fid,S,h,x0,"1",compressAlg,compressLevel)
+    close(fid)
+end
+
 function getSingleMeshHDF5group!(fid,juliaMesh::OcTreeMesh,id,compressAlg,compressLevel)
     hdf5Mesh = g_create(fid, string(id))
     hdf5Mesh["id"] = string(id)
@@ -63,6 +77,24 @@ function getSingleMeshHDF5group!(fid,juliaMesh::OcTreeMesh,id,compressAlg,compre
     s3        = g_create(hdf5Mesh,"sparse3")
     s3["i",compressAlg,compressLevel]   = juliaMesh.S.SV.nzind
     s3["bsz",compressAlg,compressLevel] = juliaMesh.S.SV.nzval
+    return hdf5Mesh
+end
+
+function getSingleMeshHDF5group!(fid,S::SparseArray3D,h::Vector{Float64},x0::Vector{Float64},id,compressAlg,compressLevel)
+    hdf5Mesh = g_create(fid, string(id))
+    hdf5Mesh["id"] = string(id)
+    attrs(hdf5Mesh)["isMesh"] = "true"
+
+    # Add underlying mesh info
+    hdf5Mesh["n"]  = [size(S)...]
+    hdf5Mesh["h"]  = h
+    hdf5Mesh["x0"] = x0
+    hdf5Mesh["nc"] = nnz(S)
+
+    # Add sparse3 as a subgroup of mesh
+    s3        = g_create(hdf5Mesh,"sparse3")
+    s3["i",compressAlg,compressLevel]   = S.SV.nzind
+    s3["bsz",compressAlg,compressLevel] = S.SV.nzval
     return hdf5Mesh
 end
 
