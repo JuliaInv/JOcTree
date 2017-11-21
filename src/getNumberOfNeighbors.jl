@@ -6,13 +6,16 @@ function  getNumberOfNeighbors(S::SparseArray3D)
 m1,m2,m3  = S.sz
 i,j,k,bsz = find3(S)
 
-ns = length(i)
-left  = zeros(Int64,ns)
-right = zeros(Int64,ns)
-upper = zeros(Int64,ns)
-lower = zeros(Int64,ns)
-front = zeros(Int64,ns)
-back  = zeros(Int64,ns)
+
+Tn2 = eltype(S.SV.nzind)
+bsz = convert(Vector{Tn2},bsz)
+ns  = length(i)
+left  = zeros(Tn2,ns)
+right = zeros(Tn2,ns)
+upper = zeros(Tn2,ns)
+lower = zeros(Tn2,ns)
+front = zeros(Tn2,ns)
+back  = zeros(Tn2,ns)
 
 ## UPPER ================================================
 Iin   = find((i-bsz).>=1)
@@ -28,7 +31,7 @@ end
 
 ##   CHECK FOR 4 NEIGHBORS IF i-sz/2 >=1
 Iin   = find(((i-div.(bsz,2)) .>= 1) .& bsz.>1 )
-Itmp  = sub2ind(S.sz,i[Iin]-div.(bsz[Iin],2),j[Iin],k[Iin]);
+Itmp  = sub2ind(S.sz,i[Iin]-div.(bsz[Iin],Tn2(2)),j[Iin],k[Iin]);
 for kk = 1:length(Iin); if S.SV[Itmp[kk]] > 0; upper[Iin[kk]] = 4; end; end
 
 ## LOWER ==============================================
@@ -59,7 +62,7 @@ for kk = 1:length(Itmp)
 end
 ##   CHECK FOR 4 NEIGHBORS IF j-sz/2 >=1
 Iin   = find(((j-div.(bsz,2)) .>= 1) .&  bsz.>1 )
-Itmp  = sub2ind(S.sz,i[Iin],j[Iin]-div.(bsz[Iin],2),k[Iin])
+Itmp  = sub2ind(S.sz,i[Iin],j[Iin]-div.(bsz[Iin],Tn2(2)),k[Iin])
 for kk = 1:length(Itmp)
         if S.SV[Itmp[kk],1] > 0; left[Iin[kk]] = 4; end
 end
@@ -92,7 +95,7 @@ for kk = 1:length(Itmp)
 end
 ##   CHECK FOR 4 NEIGHBORS IF j-sz/2 >=1
 Iin   = find(((k-div.(bsz,2)) .>= 1)  .& bsz.>1 )
-Itmp  = sub2ind(S.sz,i[Iin],j[Iin],k[Iin]-div.(bsz[Iin],2))
+Itmp  = sub2ind(S.sz,i[Iin],j[Iin],k[Iin]-div.(bsz[Iin],Tn2(2)))
 front[Iin[find(S.SV[Itmp].>0)]] = 4
 
 ## Back ==========================================================

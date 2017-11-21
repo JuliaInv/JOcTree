@@ -1,18 +1,20 @@
 println("Testing: getdNodalMassMatrix, dNodalMassMatrixTimesVector, dNodalMassMatrixTrTimesVector,")
 println("         getdEdgeMassMatrix, dEdgeMassMatrixTimesVector, dEdgeMassMatrixTrTimesVector,")
 println("         getdFaceMassMatrix, dFaceMassMatrixTimesVector, dFaceMassMatrixTrTimesVector")
-
 @testset "Mass matrix derivatives" begin
+for Tn2 in intTypes
+for Tn in intTypes
+@testset "Mass matrix derivatives with intType1=$Tn, intType2=$Tn2" begin
 
 using jInv.Utils
 
 # Get random mesh
-n = [128 , 128 , 128]   # underlying mesh
-h = 1 ./ n   # cell size
+n = (128 , 128 , 128)   # underlying mesh
+h = 1 ./ collect(n)   # cell size
 x0 = [0. , 0. , 0.]
 
 nrand = 5
-S = randomOctreeMesh( n, nrand )
+S = randomOctreeMesh(Tn, Tn2, n, nrand )
 mesh = getOcTreeMeshFV(S, h, x0=x0)
 
 # Get random nodal, edge and face fields
@@ -114,3 +116,6 @@ for (u, du) in zip((freal, fcomplex), (dfreal, dfcomplex))
 end
 
 end # end of testset
+end
+end
+end

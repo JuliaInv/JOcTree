@@ -28,7 +28,8 @@ function exportUBCOcTreeMesh(fname::AbstractString, S::SparseArray3D, h::Vector{
 
     # Roman's code starts the OcTree at the top corner. Change from bottom
     # corner.
-    i3 = m3 + 2 .- i3 - bsz
+    Tn2 = eltype(i3)
+    i3 = m3 + Tn2(2) .- i3 - convert(Vector{Tn2},bsz)
     x3 = x3 + m3 * h3
     S = sub2ind( (m1,m2,m3), i1,i2,i3 )
     p = sortpermFast(S)[1]
@@ -71,7 +72,8 @@ function exportUBCOcTreeModel{T}(name::AbstractString, S::SparseArray3D, model::
 
     # Roman's code starts the OcTree at the top corner. Change from bottom
     # corner.
-    i3 = m3 + 2 .- i3 - bsz
+    Tn2 = eltype(i3)
+    i3 = m3 + Tn2(2) .- i3 - convert(Vector{Tn2},bsz)
     n = nnz(S)
     S = sub2ind( (m1,m2,m3), i1,i2,i3 )
     p = sortpermFast(S)[1]
@@ -95,11 +97,12 @@ function exportUBCOcTreeModel{T}(name::AbstractString, S::SparseArray3D, model::
 
     # Roman's code starts the OcTree at the top corner. Change from bottom
     # corner.
-    i3 = m3 + 2 .- i3 - bsz
+    Tn2 = eltype(i3)
+    i3 = m3 + Tn2(2) .- i3 - convert(Vector{Tn2},bsz)
     n = nnz(S)
     S = sub2ind( (m1,m2,m3), i1,i2,i3 )
     p = sortpermFast(S)[1]
-    
+
     ncol = size(model,2)
 
     # Write model vector

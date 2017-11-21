@@ -1,19 +1,19 @@
 export uniteOcTrees
 
 function uniteOcTrees(S1::SparseArray3D, S2::SparseArray3D)
-	
+
 	if size(S1) != size(S2)
 		error("Incompatible size")
 	end
 	SZ = S1.sz
-	
+
 	T1 = sparsevec(S1.SV.nzind, fill(1,length(S1.SV.nzval)), S1.SV.n)
 	T2 = sparsevec(S2.SV.nzind, fill(2,length(S2.SV.nzval)), S2.SV.n)
 	T  = T1+T2
-	
+
 	M = find(T)
 	V = T.nzval
-	
+
 	j1 = 1
 	j2 = 1
 	for k=1:length(M)
@@ -28,7 +28,7 @@ function uniteOcTrees(S1::SparseArray3D, S2::SparseArray3D)
 			V[k] = S1.SV.nzval[j1]
 			j1+=1
 		end
-	end	# 
+	end	#
 	I,J,K = ind2sub(size(S1), M)
 	S = sparse3(I,J,K,V,SZ)
 	return S
@@ -40,7 +40,7 @@ function uniteOcTrees(M1::OcTreeMeshFV, M2::OcTreeMeshFV)
     return MU
 end
 
-function uniteOcTrees(SL::Array{SparseArray3D,1})
+function uniteOcTrees(SL::Array{SparseArray3D{Tn,Tn2},1}) where {Tn <: Integer, Tn2 <: Integer}
   n = length(SL)
   if n > 2
     n1 = div(n,2)

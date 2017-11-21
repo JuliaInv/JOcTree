@@ -5,7 +5,7 @@ export exportHDF5OcTreeMesh, importHDF5OcTreeMesh
     exportHDF5OcTreeMesh(filename::String, meshes::Vector{T} where T<:OcTreeMesh; <keyword arguments>)
     exportHDF5OcTreeMesh(filename::String, meshes::Dict; <keyword arguments>)
     exportHDF5OcTreeMesh(filename::String, S::SparseArray3D, h::Vector{Float64}, x0::Vector{Float64}; <keyword arguments>)
-    
+
 Write OcTree mesh(es) to HDF5 file.
 
 `exportHDF5OcTreeMesh(filename::String, meshes::Vector)` labels the meshes with indices
@@ -104,7 +104,7 @@ end
     importHDF5OcTreeMesh(filename::String, id::String)
     importHDF5OcTreeMesh(filename::String, idList::Vector{N} where N<:Integer)
     importHDF5OcTreeMesh(filename::String, idList::Vector{String})
-    
+
 Import OcTree mesh(es) from HDF5 file.
 
 `importHDF5OcTreeMesh(filename)` returns the OcTree mesh if the file contains a single
@@ -130,7 +130,7 @@ function importHDF5OcTreeMesh(filename::String)
             svi = read(gmesh["sparse3/i"])
             bsz = read(gmesh["sparse3/bsz"])
             SV = sparsevec(svi,bsz,prod(n))
-            S = SparseArray3D(SV,n)
+            S = SparseArray3D(SV,(n[1],n[2],n[3]))
             meshes[id] = getOcTreeMeshFV(S,h;x0=x0)
         else
             warn("Found non-mesh object in input file")
@@ -163,7 +163,7 @@ function importHDF5OcTreeMesh(filename::String, id::String)
         svi = read(gmesh["sparse3/i"])
         bsz = read(gmesh["sparse3/bsz"])
         SV = sparsevec(svi,bsz,prod(n))
-        S = SparseArray3D(SV,n)
+        S = SparseArray3D(SV,(n[1],n[2],n[3]))
         mesh = getOcTreeMeshFV(S,h;x0=x0)
     else
         warn("Found non-mesh object in input file")
@@ -197,7 +197,7 @@ function importHDF5OcTreeMesh(filename::String, idList::Vector{String})
             svi = read(gmesh["sparse3/i"])
             bsz = read(gmesh["sparse3/bsz"])
             SV = sparsevec(svi,bsz,prod(n))
-            S = SparseArray3D(SV,n)
+            S = SparseArray3D(SV,(n[1],n[2],n[3]))
             meshes[id] = getOcTreeMeshFV(S,h;x0=x0)
         else
             warn("Found non-mesh object in input file")

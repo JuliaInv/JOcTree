@@ -1,7 +1,8 @@
 
-function randomOctreeMesh( n::Vector, nrand )
+function randomOctreeMesh{Tn<:Integer,Tn2<:Integer}(::Type{Tn}, ::Type{Tn2},
+                             n::Tuple, nrand )
 # Create random octree mesh
-   S = initializeOctree(n)
+   S = initializeOctree(Tn,Tn2,n)
 
    ii = rand(1:n[1], nrand)
    jj = rand(1:n[2], nrand)
@@ -11,12 +12,11 @@ function randomOctreeMesh( n::Vector, nrand )
    S = regularizeOcTree(S)
 
 return S
-end  # function randomOctreeMesh   
+end  # function randomOctreeMesh
 
 
-function refineAtPoints( S::SparseArray3D,
-                        i1::Vector{Int64}, j1::Vector{Int64}, k1::Vector{Int64},
-                      cellsize::Int64 )
+function refineAtPoints( S::SparseArray3D,i1::Vector, j1::Vector, k1::Vector,
+                         cellsize::Integer )
 
 npts = length(i1)
 
@@ -57,8 +57,8 @@ while true
       jj = j[ic]
       kk = k[ic]
 
-      if ii+bb-1 < min_i || ii > max_i || 
-         jj+bb-1 < min_j || jj > max_j || 
+      if ii+bb-1 < min_i || ii > max_i ||
+         jj+bb-1 < min_j || jj > max_j ||
          kk+bb-1 < min_k || kk > max_k
         continue  # cell outside of region
       end
@@ -68,7 +68,7 @@ while true
 
          if ii+bb-1 >= i1[ipts] && ii <= i1[ipts] &&
             jj+bb-1 >= j1[ipts] && jj <= j1[ipts] &&
-            kk+bb-1 >= k1[ipts] && kk <= k1[ipts] 
+            kk+bb-1 >= k1[ipts] && kk <= k1[ipts]
 
             # large cell to split
             nsplit += 1
@@ -79,12 +79,12 @@ while true
       end  # ipts
 
    end  # ic
-   
 
-   if nsplit == 0 
+
+   if nsplit == 0
       break  # we are done
    end
-    
+
    S = splitCells(i,j,k,bsz, S.sz, splitcells[1:nsplit])
 
 end  # while

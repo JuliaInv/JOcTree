@@ -121,6 +121,7 @@ function setupNodalMassMatrix(mesh, sigma)
 
     na = length(sigma)
     nc = mesh.nc
+    N  = typeof(nc)
 
     @assert na == nc "Invalid size of sigma"
 
@@ -128,14 +129,14 @@ function setupNodalMassMatrix(mesh, sigma)
 
         n = mesh.nn
         i, w = getNodalMassMatrixQuadrature(mesh)
-        j = repmat(1:nc, 8)
+        j = repmat(one(N):nc, 8)
         a = repmat(w, 8)
         A = sparse(i, j, a, n, na)
-        colptr = collect(1:n+1)
-        rowval = collect(1:n)
-        colval = Array{Int64}(0) # unused
+        colptr = collect(N,1:n+1)
+        rowval = collect(N,1:n)
+        colval = Array{N}(0) # unused
 
-        mesh.Pn[na] = MassMatrix(n, A, rowval, colptr, colval)
+        mesh.Pn[na] = MassMatrix(Int(n), A, rowval, colptr, colval)
 
     end
 

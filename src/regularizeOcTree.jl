@@ -25,8 +25,7 @@ function regularizeOcTree(S::SparseArray3D)
 
 
 # Regularize. This saves refinement iterations.
-S = regularizeOcTreeFaceNeighbours(S)
-
+S   = regularizeOcTreeFaceNeighbours(S)
 
 # Iterate until all cells meet the quality restrictions. Terminates in the
 # worst case when all cells are fine cells (bsz = 1).
@@ -42,7 +41,7 @@ while true
    jj = vcat( j, j,     j+bsz, j+bsz, j,     j,     j+bsz, j+bsz )
    kk = vcat( k, k,     k,     k,     k+bsz, k+bsz, k+bsz, k+bsz )
 
-   sizeN = [m1+1, m2+1, m3+1 ]
+   sizeN = (m1+1, m2+1, m3+1)
    ijk = sub2ind( sizeN, ii,jj,kk )
    #[~,~,j] = unique(nind, 'rows')
    j = uniqueidx( ijk )[3]

@@ -22,7 +22,7 @@ if !isempty(I)
     kk = vcat(k[I], k[I],        k[I],        k[I],        k[I]+bsz[I], k[I]+bsz[I], k[I]+bsz[I], k[I]+bsz[I], k[Ic])
     vv = vcat(bsz[I], bsz[I], bsz[I], bsz[I], bsz[I], bsz[I], bsz[I], bsz[I], bsz[Ic])
 
-    SF = sparse3(ii,jj,kk,vv,[m1,m2,m3])
+    SF = sparse3(ii,jj,kk,vv,(m1,m2,m3))
 else
     SF = S
 end

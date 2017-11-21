@@ -2,13 +2,25 @@ export createOcTreeFromBox
 
 function createOcTreeFromBox(
   x0::AbstractFloat, y0::AbstractFloat, z0::AbstractFloat,
-  nx::Int, ny::Int, nz::Int,
+  nx::Integer, ny::Integer, nz::Integer,
   hx::AbstractFloat, hy::AbstractFloat, hz::AbstractFloat,
   xa::AbstractFloat, xb::AbstractFloat,
   ya::AbstractFloat, yb::AbstractFloat,
   za::AbstractFloat, zb::AbstractFloat,
-  nf::Array{Int,1}, nc::Array{Int,1},
-  bsz::Int = 1)
+  nf::Vector, nc::Vector,
+  bsz::Integer = 1,::Type{Tn}=Int64,::Type{Tn2}=Int64) where {Tn <: Integer, Tn2 <:Integer}
+
+nx = Tn2(nx); ny = Tn2(ny); nz = Tn2(nz)
+try
+    nf = Convert(Vector{Tn2},nf)
+    nc = Convert(Vector{Tn2},nc)
+catch err
+    if isa(err,InexactError)
+        error("nf or nc could not be converted to integer vectors")
+    end
+end
+bsz = Tn(bsz)
+
 # S = createOcTreeFromBox( ...
 #   x0, y0, z0, nx, ny, nz, hx, hy, hz, xa, xb, ya, yb, za, zb, nf, nc)
 #
@@ -56,7 +68,8 @@ if nbsz < 1
 end
 
 # initialize (k,j,i,bsz) array
-S = Array{Int}((0,4))
+Sidx = Array{Tn2}((0,3))
+Sval = Vector{Tn}()
 
 # convert box to integer grid
 xa = (xa - x0) / hx + 1.0
@@ -67,12 +80,12 @@ za = (za - z0) / hz + 1.0
 zb = (zb - z0) / hz + 1.0
 
 # start with fine cells around box, allow for small tolerance
-i1 =     floor(Integer,xa)
-i2 = min(floor(Integer,xb), nx)
-j1 =     floor(Integer,ya)
-j2 = min(floor(Integer,yb), ny)
-k1 =     floor(Integer,za)
-k2 = min(floor(Integer,zb), nz)
+i1 =     floor(Tn2,xa)
+i2 = min(floor(Tn2,xb), nx)
+j1 =     floor(Tn2,ya)
+j2 = min(floor(Tn2,yb), ny)
+k1 =     floor(Tn2,za)
+k2 = min(floor(Tn2,zb), nz)
 t2 = sqrt(eps())
 t1 = 1.0 - t2
 if xa - i1 > t1 * i1
@@ -163,9 +176,9 @@ for m = 1:nbsz
   if m > 1
 
     # mask for inner region with finer cells, coordinate form
-    u = [trues(round.(Int64, (i1 - i3) / b)); falses(round.(Int64, (i2 - i1) / b + 1)); trues(round.(Int64, (i4 - i2) / b));]
-    v = [trues(round.(Int64, (j1 - j3) / b)); falses(round.(Int64, (j2 - j1) / b + 1)); trues(round.(Int64, (j4 - j2) / b));]
-    w = [trues(round.(Int64, (k1 - k3) / b)); falses(round.(Int64, (k2 - k1) / b + 1)); trues(round.(Int64, (k4 - k2) / b));]
+    u = [trues(round.(Tn2, (i1 - i3) / b)); falses(round.(Tn2, (i2 - i1) / b + 1)); trues(round.(Tn2, (i4 - i2) / b));]
+    v = [trues(round.(Tn2, (j1 - j3) / b)); falses(round.(Tn2, (j2 - j1) / b + 1)); trues(round.(Tn2, (j4 - j2) / b));]
+    w = [trues(round.(Tn2, (k1 - k3) / b)); falses(round.(Tn2, (k2 - k1) / b + 1)); trues(round.(Tn2, (k4 - k2) / b));]
 
     # we are done if mask is all false
     if !(any(u) || any(v) || any(w))
@@ -181,7 +194,7 @@ for m = 1:nbsz
   else
 
     # at the first, finest level, use all cells
-    q = trues(round.(Int64, (i4 - i3) / b + 1), round.(Int64, (j4 - j3) / b + 1), round.(Int64, (k4 - k3) / b + 1))
+    q = trues(round.(Tn2, (i4 - i3) / b + 1), round.(Tn2, (j4 - j3) / b + 1), round.(Tn2, (k4 - k3) / b + 1))
 
     # change to default number of cells
     nl = nc
@@ -189,11 +202,12 @@ for m = 1:nbsz
   end
 
   # index vectors for current cell size
-  i,j,k = ndgrid([i3:b:i4;], [j3:b:j4;], [k3:b:k4;])
-  s = fill(b, size(i))
+  i,j,k = ndgrid(Tn2[i3:b:i4;], Tn2[j3:b:j4;], Tn2[k3:b:k4;])
+  s = fill(convert(Tn,b), size(i))
 
   # add only those cells that pad the inner, finer core region using mask
-  S = [S; i[q] j[q] k[q] s[q];]
+  Sidx = [Sidx; i[q] j[q] k[q];]
+  Sval = [Sval; s[q]]
 
   # core region for next cell size, shift upper limit by current cell size
   # to position of next larger cell size
@@ -207,7 +221,7 @@ for m = 1:nbsz
 end
 
 # sanity check
-if sum(S[:,4].^3) != nx * ny * nz
+if sum(Sval.^3) != nx * ny * nz
   error("Internal error: cell volumes don't fill the domain")
 end
 
@@ -215,7 +229,7 @@ end
  # S = sortrows(S)
  # S = sparse3(S[:,1], S[:,2], S[:,3], S[:,4], [nx, ny, nz])
 
-S = sparse3(S[:,1], S[:,2], S[:,3], S[:,4], [nx; ny; nz;])
+S = sparse3(Sidx[:,1], Sidx[:,2], Sidx[:,3], Sval, (Tn2(nx), Tn2(ny), Tn2(nz)))
 
 return S
 
@@ -223,14 +237,15 @@ end
 
 createOcTreeFromBox(
   x0::AbstractFloat, y0::AbstractFloat, z0::AbstractFloat,
-  nx::Int, ny::Int, nz::Int,
+  nx::Integer, ny::Integer, nz::Integer,
   hx::AbstractFloat, hy::AbstractFloat, hz::AbstractFloat,
   xa::AbstractFloat, xb::AbstractFloat,
   ya::AbstractFloat, yb::AbstractFloat,
   za::AbstractFloat, zb::AbstractFloat,
-  nf::Int,
-  nc::Int,
-  bsz::Int = 1) =
+  nf::Integer,
+  nc::Integer,
+  bsz::Integer = 1,
+  ::Type{Tn}=Int64,::Type{Tn2}=Int64) where {Tn <: Integer, Tn2 <:Integer} =
 createOcTreeFromBox(
   x0, y0, z0,
   nx, ny, nz,
@@ -238,4 +253,4 @@ createOcTreeFromBox(
   xa, xb, ya, yb, za, zb,
   [nf; nf; nf; nf; nf; nf;],
   [nc; nc; nc; nc; nc; nc;],
-  bsz)
+  bsz,Tn,Tn2)

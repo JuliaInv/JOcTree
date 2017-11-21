@@ -15,7 +15,10 @@ export initializeOctree
         S::SparseArray3D
 
 """
-function initializeOctree( n::Vector{Int64}, bsz::Int64=0)
+initializeOctree(n::Tuple{Integer,Integer,Integer}, bsz::Integer=0) =
+                  initializeOctree(Int,Int,n,bsz)
+function initializeOctree{Tn<:Integer,Tn2<:Integer}(::Type{Tn}, ::Type{Tn2},
+                              n::Tuple{Integer,Integer,Integer}, bsz::Integer=0)
 
     if !(ispow2(n[1]) && ispow2(n[2]) && ispow2(n[3]))
         error("n must be power of 2.")
@@ -33,8 +36,10 @@ function initializeOctree( n::Vector{Int64}, bsz::Int64=0)
     end
 
     i,j,k = ndgrid(1:nb:n[1], 1:nb:n[2], 1:nb:n[3])
-    b = fill(nb, length(i))
-
-    S = sparse3(vec(i),vec(j),vec(k), b, n)
+    b = fill(Tn(nb), length(i))
+    i = convert(Vector{Tn2},vec(i))
+    j = convert(Vector{Tn2},vec(j))
+    k = convert(Vector{Tn2},vec(k))
+    S = sparse3(i,j,k, b, (Tn2(n[1]),Tn2(n[2]),Tn2(n[3])))
     return S
 end

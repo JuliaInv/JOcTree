@@ -123,15 +123,19 @@ end
 
 # Internal utilities
 
-function getNodesFromIndices(sv,mm,i0::Vector{Int},j0::Vector{Int},k0::Vector{Int})
-
+function getNodesFromIndices(sv,mm::Tuple,i0::Vector,j0::Vector,k0::Vector)
+    Ti = promote_type(eltype(mm),promote_type(eltype(i0),
+                      promote_type(eltype(j0),eltype(k0))))
+    mm = (Ti(mm[1]),Ti(mm[2]),Ti(mm[3]))
+    i0 = convert(Vector{Ti},i0)
+    j0 = convert(Vector{Ti},j0)
+    k0 = convert(Vector{Ti},k0)
 	jj = sub2ind(mm,i0,j0,k0)
-  v  = Array{Int64}(length(jj))
-  for i = 1:length(jj)
-    v[i] = sv[jj[i]]
-  end
+    v  = Array{eltype(sv)}(length(jj))
+    for i = 1:length(jj)
+        v[i] = sv[jj[i]]
+    end
 	return v
-
 end
 
 """
@@ -139,7 +143,7 @@ end
 
 Replace zero entries in `a` by values from `b`.
 """
-function merge!(a::Vector{Int64}, b::Vector{Int64})
+function merge!(a::Vector{T}, b::Vector{T}) where T <: Number
   n = length(a)
   (length(b) == n) || throw(DimensionMismatch("length(a) != length(b)"))
   @inbounds begin
@@ -149,4 +153,15 @@ function merge!(a::Vector{Int64}, b::Vector{Int64})
       end
     end
   end
+end
+
+import Base.speye
+speye(Tt::Type{T}, Tn::Type{N}, m::Integer) where T where N = speye(Tt, Tn, m, m)
+function speye(::Type{T}, ::Type{N}, m::Integer, n::Integer) where T where N
+    ((m < 0) || (n < 0)) && throw(ArgumentError("invalid array dimensions"))
+    nnz = min(m,n)
+    colptr = Vector{N}(1+n)
+    colptr[1:nnz+1] = 1:nnz+1
+    colptr[nnz+2:end] = nnz+1
+    SparseMatrixCSC(Int(m), Int(n), colptr, Vector{N}(1:nnz), ones(T,nnz))
 end

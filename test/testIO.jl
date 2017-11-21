@@ -4,17 +4,19 @@ println("Testing: exportUBCOcTreeMesh, importUBCOcTreeMesh, exportUBCOcTreeModel
 if hasHDF5
   println("Testing: exportHDF5OcTreeMesh, importHDF5OcTreeMesh")
 end
-
 @testset "IO" begin
+for Tn2 in intTypes
+for Tn in intTypes
+@testset "IO with intType1=$Tn, intType2=$Tn2" begin
 
-n = [128, 128, 128]
+n = (128, 128, 128)
 h = rand(1.:100.0,3)   # cell size
 x0 = rand(1.:100.0,3)
 
 nrand = 5
-S  = randomOctreeMesh(n, nrand)
-S2 = randomOctreeMesh(n, nrand)
-S3 = randomOctreeMesh(n, nrand)
+S  = randomOctreeMesh(Tn, Tn2, n, nrand)
+S2 = randomOctreeMesh(Tn, Tn2, n, nrand)
+S3 = randomOctreeMesh(Tn, Tn2, n, nrand)
 
 meshOut = getOcTreeMeshFV(S, h; x0=x0)
 
@@ -23,7 +25,7 @@ meshInUBC = importUBCOcTreeMesh("mesh.msh")
 @test meshInUBC==meshOut
 
 if hasHDF5
-  
+
   exportHDF5OcTreeMesh("meshHDF5.msh",meshOut)
   meshInHDF5 = importHDF5OcTreeMesh("meshHDF5.msh")
   @test meshInHDF5==meshOut
@@ -34,10 +36,10 @@ if hasHDF5
   m3 = getOcTreeMeshFV(S3, h; x0=x0)
   meshVec = [m1;m2;m3]
   meshDict = Dict([("m1",m1);("m2",m2);("m3",m3)])
-  
+
   exportHDF5OcTreeMesh("vecinHDF5.msh",meshVec)
   exportHDF5OcTreeMesh("dictinHDF5.msh",meshDict)
-  
+
   vecIn = importHDF5OcTreeMesh("vecinHDF5.msh")
   dictIn = importHDF5OcTreeMesh("dictinHDF5.msh")
   for (id,mesh) in zip(["1";"2";"3"],meshVec)
@@ -55,7 +57,7 @@ if hasHDF5
   for (id,mesh) in meshDict
     @test dictIn[id] == mesh
   end
-  
+
   for id = 1:3
     meshInHDF5 = importHDF5OcTreeMesh("vecinHDF5.msh",id)
     @test meshInHDF5 == meshVec[id]
@@ -64,9 +66,9 @@ if hasHDF5
     meshInHDF5 = importHDF5OcTreeMesh("dictinHDF5.msh",id)
     @test meshInHDF5 == meshDict[id]
   end
-  
-  @test_throws ErrorException importHDF5OcTreeMesh("dictinHDF5.msh",1)  
-  @test_throws ErrorException importHDF5OcTreeMesh("dictinHDF5.msh",[1,2,3])  
+
+  @test_throws ErrorException importHDF5OcTreeMesh("dictinHDF5.msh",1)
+  @test_throws ErrorException importHDF5OcTreeMesh("dictinHDF5.msh",[1,2,3])
 
 end
 
@@ -104,4 +106,7 @@ if hasHDF5
   rm("meshHDF5.msh")
 end
 
+end
+end
+end
 end

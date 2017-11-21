@@ -7,15 +7,17 @@ function getCellCenterXGradientMatrix(Mesh::OcTreeMeshFV)
     CN = getCellNumbering(Mesh)
     FXN, FYN, FZN = getFaceNumbering(Mesh)
     i, j, k, bsz = find3(Mesh.S)
+    Tn  = eltype(bsz)
+    Tf  = eltype(Mesh.h)
 
     upper, lower, left, right, front, back = getSizeOfNeighbors(Mesh.S)
 
     ######################################################################
     #### GRAD ON X-FACES
     ######################################################################
-    ii = Int[]
-    jj = Int[]
-    vv = Float64[]
+    ii = Tn[]
+    jj = Tn[]
+    vv = Tf[]
 
     # cells with the same size
     I = (upper .== 1)
@@ -87,8 +89,8 @@ function getCellCenterXGradientMatrix(Mesh::OcTreeMeshFV)
         end
     end
 
-    mii = Array{Int}(length(ii))
-    mjj = Array{Int}(length(jj))
+    mii = Array{Tn}(length(ii))
+    mjj = Array{Tn}(length(jj))
     for c in 1:length(ii)
         mii[c] = FXN.SV[ii[c]]
         mjj[c] = CN.SV[jj[c]]
@@ -103,15 +105,17 @@ function getCellCenterYGradientMatrix(Mesh::OcTreeMeshFV)
     CN = getCellNumbering(Mesh)
     FXN, FYN, FZN = getFaceNumbering(Mesh)
     i, j, k, bsz = find3(Mesh.S)
+    Tn  = eltype(bsz)
+    Tf  = eltype(Mesh.h)
 
     upper, lower, left, right, front, back = getSizeOfNeighbors(Mesh.S)
 
     ######################################################################
     #### GRAD ON Y-FACES
     ######################################################################
-    ii = Int[]
-    jj = Int[]
-    vv = Float64[]
+    ii = Tn[]
+    jj = Tn[]
+    vv = Tf[]
 
     # cells with the same size
     I = (left .== 1)
@@ -184,8 +188,8 @@ function getCellCenterYGradientMatrix(Mesh::OcTreeMeshFV)
     end
 
 
-    mii = Array{Int}(length(ii))
-    mjj = Array{Int}(length(jj))
+    mii = Array{Tn}(length(ii))
+    mjj = Array{Tn}(length(jj))
     for c in 1:length(ii)
         mii[c] = FYN.SV[ii[c]]
         mjj[c] = CN.SV[jj[c]]
@@ -200,15 +204,16 @@ function getCellCenterZGradientMatrix(Mesh::OcTreeMeshFV)
     CN = getCellNumbering(Mesh)
     FXN, FYN, FZN = getFaceNumbering(Mesh)
     i, j, k, bsz = find3(Mesh.S)
-
+    Tn  = eltype(bsz)
+    Tf  = eltype(Mesh.h)
     upper, lower, left, right, front, back = getSizeOfNeighbors(Mesh.S)
 
     ######################################################################
     #### GRAD ON Z-FACES
     ######################################################################
-    ii = Int[]
-    jj = Int[]
-    vv = Float64[]
+    ii = Tn[]
+    jj = Tn[]
+    vv = Tf[]
 
     # cells with the same size
     I = (front .== 1)
@@ -280,8 +285,8 @@ function getCellCenterZGradientMatrix(Mesh::OcTreeMeshFV)
         end
     end
 
-    mii = Array{Int}(length(ii))
-    mjj = Array{Int}(length(jj))
+    mii = Array{Tn}(length(ii))
+    mjj = Array{Tn}(length(jj))
     for c in 1:length(ii)
         mii[c] = FZN.SV[ii[c]]
         mjj[c] = CN.SV[jj[c]]
@@ -297,10 +302,11 @@ function getCellCenterGradientMatrix(Mesh::OcTreeMeshFV)
     GX = getCellCenterXGradientMatrix(Mesh)
     GY = getCellCenterYGradientMatrix(Mesh)
     GZ = getCellCenterZGradientMatrix(Mesh)
-
+    Tn = eltype(Gx.colptr)
+    Tf = eltype(Gx.nzval)
     nx, ny, nz = Mesh.nf
 
-    GRAD = spzeros(sum(Mesh.nf), Mesh.nc)
+    GRAD = spzeros(Tf,Tn,sum(Mesh.nf), Mesh.nc)
     GRAD[1:nx, :] = GX
     GRAD[nx+1:nx+ny, :] = GY
     GRAD[nx+ny+1:nx+ny+nz, :] = GZ

@@ -36,82 +36,83 @@ function getInterpolationMatrix(S1::SparseArray3D, S2::SparseArray3D)
   # cell numberings
   C1 = getCellNumbering(S1)
   C2 = getCellNumbering(S2)
-  
+
   # number of cells
   n1 = nnz(S1)
   n2 = nnz(S2)
-  
+
   ## Step 1: Find parents of S1 in S2
-  
+
   # cells in S1
   i1,j1,k1,b1 = find3(S1)
-  
+
   # initialize sparse interpolation matrix
-  irow = Array{Int}(n1)
+  Tn   = promote_type(eltype(S1.SV.nzval),eltype(S2.SV.nzval))
+  irow = Array{Tn}(n1)
   jcol = nonzeros(C1)
   nzval = ones(n1)
-  
+
   # mark cells in S2 that we visit
   l2 = trues(n2)
-  
+
   # loop over all cells in S1
   for p1 = 1:n1
-    
+
     # find parent in S2
     bi,bj,bk,bb = findBlocks(S2,i1[p1],j1[p1],k1[p1])
     c2 = C2[bi,bj,bk]
-    
+
     # copy cell number to interpolation matrix
     irow[p1] = c2
-    
+
     # mark parent as done
     l2[c2] = false
-    
+
     # change interpolation weight only if S1 < S2
     if b1[p1] < bb
       nzval[p1] = (b1[p1] / bb)^3
     end
-    
+
   end
-  
+
   ## Step2: For all remaining cells in S2, find parents of S2 in S1
   m2 = countnz(l2)
   if m2 > 0
 
     # cells in S2
-    i2,j2,k2, = find3(S2)    
+    i2,j2,k2, = find3(S2)
     c2 = nonzeros(C2)
-    
+
     # need only those which we didn't visit in step 1
     i2 = i2[l2]
     j2 = j2[l2]
     k2 = k2[l2]
-    
+
     # initialize sparse interpolation matrix
     irowl = c2[l2]
-    jcoll = Array{Int}(m2)
+    jcoll = Array{Tn}(m2)
     nzvall = ones(m2)
-    
+
     # loop over all remaining cells in S2
     for p2 = 1:m2
-      
+
       # find parent in S1
       bi,bj,bk,bb = findBlocks(S1,i2[p2],j2[p2],k2[p2])
-      
+
       # copy cell number to interpolation matrix
       jcoll[p2] = C1[bi,bj,bk]
-      
+
     end
-    
+
     # merge with interpolation matrix from step 1
     irow = vcat(irow,irowl)
     jcol = vcat(jcol,jcoll)
     nzval = vcat(nzval,nzvall)
-    
+
   end
-  
+
   return sparse(irow,jcol,nzval,n2,n1)
-  
+
 end
 
 
@@ -137,11 +138,11 @@ function getInterpolationMatrixFilter(S1::SparseArray3D,S2::SparseArray3D,N::Int
 
 n  = 2^N
 
-C1 = getCellNumbering(S1)
-C2 = getCellNumbering(S2)
-
-ii  = Array{Int}(0)
-jj  = Array{Int}(0)
+C1  = getCellNumbering(S1)
+C2  = getCellNumbering(S2)
+Tn  = promote_type(eltype(S1.SV.nzval),eltype(S2.SV.nzval))
+ii  = Array{Tn}(0)
+jj  = Array{Tn}(0)
 val = Array{Float64}(0)
 
 I1 = S1.SV.nzind

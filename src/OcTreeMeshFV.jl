@@ -13,19 +13,19 @@ Internal storage for mass matrix integration
  - `M = getFaceMassMatrix(mesh, sigma)`
 
 Fields
- - `n::Int64`: size of mass matrix `M` (number of nodes, edges, faces in `mesh`)
- - `A::SparseMatrixCSC{Float64,Int64}`: map coefficient vector `sigma` to
+ - `n::Integer`: size of mass matrix `M` (number of nodes, edges, faces in `mesh`)
+ - `A::SparseMatrixCSC{Float64,Integer}`: map coefficient vector `sigma` to
       nonzero entries in mass matrix `M` (numerical integration)
- - `rowval::Array{Int64,1}`: row indices of nonzero entries in `M`
- - `colptr::Array{Int64,1}`: CSC format column pointers in `M`
- - `colval::Array{Int64,1}`: column indices of nonzero entries in `M`
+ - `rowval::Array{Integer,1}`: row indices of nonzero entries in `M`
+ - `colptr::Array{Integer,1}`: CSC format column pointers in `M`
+ - `colval::Array{Integer,1}`: column indices of nonzero entries in `M`
 """
-struct MassMatrix
-    n::Int64
-    A::SparseMatrixCSC{Float64,Int64}
-    rowval::Array{Int64,1}
-    colptr::Array{Int64,1}
-    colval::Array{Int64,1}
+struct MassMatrix{T<:Number,N<:Integer}
+    n::Int
+    A::SparseMatrixCSC{T,N}
+    rowval::Array{N,1}
+    colptr::Array{N,1}
+    colval::Array{N,1}
 end
 
 
@@ -34,91 +34,93 @@ end
 
 Default constructor for `MassMatrix`
 """
-function MassMatrix()
-    F = Array{Float64}(0)
-    I = Array{Int64}(0)
-    S = SparseMatrixCSC(0, 0, [1], I, F)
+function MassMatrix(T::Type{t},N::Type{n}) where t <: Number where n <: Integer
+    F = Array{T}(0)
+    I = Array{T}(0)
+    S = SparseMatrixCSC(0, 0, N[1], I, F)
     return MassMatrix(0, S, I, I, I)
 end
 
 
-mutable struct OcTreeMeshFV <: OcTreeMesh
-	S::SparseArray3D    # i,j,k, bsz
-	h::Vector{Float64}  # (3) underlying cell size
-	x0::Vector{Float64} # coordinates of corner of mesh
-	n::Vector{Int64} # underlying mesh
-	nc::Int          # number of cells
-	nf::Vector{Int}  # (3) number of faces
-	ne::Vector{Int}  # (3) number of edges
-  nn::Int          # number of nodes
-	Div::SparseMatrixCSC
-	Grad::SparseMatrixCSC
-	Curl::SparseMatrixCSC
-	Pf::Dict{Int64,MassMatrix} # face mass matrix integration storage
-	Pe::Dict{Int64,MassMatrix} # edge mass matrix integration storage
-	Pn::Dict{Int64,MassMatrix} # nodal mass matrix integration storage
-	Af::SparseMatrixCSC # Face to cell-centre matrix
-	Ae::SparseMatrixCSC # Edge to cell-centre matrix
-	An::SparseMatrixCSC # Node to cell-centre matrix
-	V::SparseMatrixCSC # cell volume
-	L::SparseMatrixCSC # edge lengths
-	Ne::SparseMatrixCSC # Edge nullspace matrix
-	Qe::SparseMatrixCSC # Edge projection matrix
-	activeEdges::Vector{Int64}   # lookup table for new edge enumeration
-	activeFaces::Vector{Int64}   # lookup table for new face enumeration
-	activeNodes::Vector{Int64}   # lookup table for new node enumeration
-	Nn::SparseMatrixCSC # Node nullspace matrix
-	Qn::SparseMatrixCSC # Node projection matrix
-	Nf::SparseMatrixCSC # Face nullspace matrix
-	Qf::SparseMatrixCSC # Face projection matrix
-	FX::SparseArray3D  # X face size
-	FY::SparseArray3D  # Y face size
-	FZ::SparseArray3D  # Z face size
-	EX::SparseArray3D  # X edge size
-	EY::SparseArray3D  # Y edge size
-	EZ::SparseArray3D  # Z edge size
-  NC::SparseArray3D  # CellNumbering
-	NFX::SparseArray3D # X FaceNumbering
-	NFY::SparseArray3D # Y FaceNumbering
-	NFZ::SparseArray3D # Z FaceNumbering
-	NEX::SparseArray3D # X EdgeNumbering
-	NEY::SparseArray3D # Y EdgeNumbering
-	NEZ::SparseArray3D # Z EdgeNumbering
-  NN::SparseArray3D  # NodalNumbering
-	dim::Int           # Mesh dimension
+mutable struct OcTreeMeshFV{T<:Number,N<:Integer,N2<:Integer} <: OcTreeMesh
+	S::SparseArray3D{N,N2}    # i,j,k, bsz
+	h::Vector{T}  # (3) underlying cell size
+	x0::Vector{T} # coordinates of corner of mesh
+	n::Vector{N2} # underlying mesh
+	nc::N          # number of cells
+	nf::Vector{N}  # (3) number of faces
+	ne::Vector{N}  # (3) number of edges
+    nn::N          # number of nodes
+	Div::SparseMatrixCSC{T,N}
+	Grad::SparseMatrixCSC{T,N}
+	Curl::SparseMatrixCSC{T,N}
+	Pf::Dict{Int64,MassMatrix{T,N}} # face mass matrix integration storage
+	Pe::Dict{Int64,MassMatrix{T,N}} # edge mass matrix integration storage
+	Pn::Dict{Int64,MassMatrix{T,N}} # nodal mass matrix integration storage
+	Af::SparseMatrixCSC{T,N} # Face to cell-centre matrix
+	Ae::SparseMatrixCSC{T,N} # Edge to cell-centre matrix
+	An::SparseMatrixCSC{T,N} # Node to cell-centre matrix
+	V::SparseMatrixCSC{T,N} # cell volume
+	L::SparseMatrixCSC{T,N} # edge lengths
+	Ne::SparseMatrixCSC{T,N} # Edge nullspace matrix
+	Qe::SparseMatrixCSC{T,N} # Edge projection matrix
+	activeEdges::Vector{N}   # lookup table for new edge enumeration
+	activeFaces::Vector{N}   # lookup table for new face enumeration
+	activeNodes::Vector{N}   # lookup table for new node enumeration
+	Nn::SparseMatrixCSC{T,N} # Node nullspace matrix
+	Qn::SparseMatrixCSC{T,N} # Node projection matrix
+	Nf::SparseMatrixCSC{T,N} # Face nullspace matrix
+	Qf::SparseMatrixCSC{T,N} # Face projection matrix
+	FX::SparseArray3D{N,N2}  # X face size
+	FY::SparseArray3D{N,N2}  # Y face size
+	FZ::SparseArray3D{N,N2}  # Z face size
+	EX::SparseArray3D{N,N2}  # X edge size
+	EY::SparseArray3D{N,N2}  # Y edge size
+	EZ::SparseArray3D{N,N2}  # Z edge size
+    NC::SparseArray3D{N,N2}  # CellNumbering
+	NFX::SparseArray3D{N,N2} # X FaceNumbering
+	NFY::SparseArray3D{N,N2} # Y FaceNumbering
+	NFZ::SparseArray3D{N,N2} # Z FaceNumbering
+	NEX::SparseArray3D{N,N2} # X EdgeNumbering
+	NEY::SparseArray3D{N,N2} # Y EdgeNumbering
+	NEZ::SparseArray3D{N,N2} # Z EdgeNumbering
+    NN::SparseArray3D{N,N2}  # NodalNumbering
+	dim::N           # Mesh dimension
 end # type OcTreeMeshFV
 
 
-function getOcTreeMeshFV(S,h;x0=zeros(3))
+function getOcTreeMeshFV{T<:Number,N<:Integer,N2<:Integer}(S::SparseArray3D{N,N2},
+                         h::Vector{T};x0::Vector{T}=zeros(T,3))
 
     # get number of cells
     NC = getCellNumbering(S)
-    nc = nnz(NC)
+    nc = N(nnz(NC))
 
-		# get number of faces
+	# get number of faces
     FX,FY,FZ, NFX, NFY, NFZ = getFaceSizeNumbering(S)
-		nf = [nnz(FX), nnz(FY), nnz(FZ)]
+	nf = convert(Vector{N},[nnz(FX), nnz(FY), nnz(FZ)])
 
-		# get number of edges
+	# get number of edges
     EX,EY,EZ, NEX, NEY, NEZ = getEdgeSizeNumbering(S)
-		ne = [nnz(EX), nnz(EY), nnz(EZ)]
+	ne = convert(Vector{N},[nnz(EX), nnz(EY), nnz(EZ)])
 
-		# get number of nodes
+	# get number of nodes
     NN = getNodalNumbering(S)
-		nn = nnz(NN)
+	nn = N(nnz(NN))
 
-		empt = spzeros(0,0)
-		empt3 = sparse3([size(S,1),size(S,2),size(S,3)])
+	empt  = spzeros(T,N,0,0)
+    sz    = (size(S,1),size(S,2),size(S,3))
+	empt3 = SparseArray3D(spzeros(N,N2,prod(sz)),sz)
 
-		return OcTreeMeshFV(S, h, x0, S.sz,
+		return OcTreeMeshFV(S, h, x0, collect(S.sz),
                         nc,nf,ne,nn,
                         empt,empt,empt,       # no Div, Grad, Curl
-                        Dict{Int64,MassMatrix}(), # no Pf
-                        Dict{Int64,MassMatrix}(), # no Pe
-                        Dict{Int64,MassMatrix}(), # no Pn
+                        Dict{Int64,MassMatrix{T,N}}(), # no Pf
+                        Dict{Int64,MassMatrix{T,N}}(), # no Pe
+                        Dict{Int64,MassMatrix{T,N}}(), # no Pn
                         empt,empt,empt,   # no Af,Ae,An
                         empt,empt,empt,empt, # no V,L,Ne,Qe,
-                        Int64[],Int64[],Int64[],  # no active edges, active faces, active nodes
+                        N[],N[],N[],  # no active edges, active faces, active nodes
                         empt,empt,empt,empt, #no Nn,Qn,Nf,Qf
                         FX,FY,FZ,
                         EX,EY,EZ,
@@ -126,12 +128,12 @@ function getOcTreeMeshFV(S,h;x0=zeros(3))
                         NFX, NFY, NFZ,
                         NEX, NEY, NEZ,
                         NN,
-                        3)
+                        N(3))
 end  # function getOcTreeMeshFV
 
 import Base.clear!
 function clear!(M::OcTreeMeshFV; exclude::Vector{Symbol} = Vector{Symbol}())
-  
+
   # Don't clear the essential mesh information:
   # if !(:S           in exclude) M.S           = sparse3([0,0,0]);        end
   # if !(:h           in exclude) M.h           = zeros(3);                end
@@ -141,7 +143,7 @@ function clear!(M::OcTreeMeshFV; exclude::Vector{Symbol} = Vector{Symbol}())
   # if !(:nf          in exclude) M.nf          = [0,0,0];                 end
   # if !(:ne          in exclude) M.ne          = [0,0,0];                 end
   # if !(:nn          in exclude) M.nn          = 0;                       end
-  
+
   # Clear all derived variables
   if !(:Div         in exclude) M.Div         = spzeros(0,0);             end
   if !(:Grad        in exclude) M.Grad        = spzeros(0,0);             end
@@ -163,20 +165,20 @@ function clear!(M::OcTreeMeshFV; exclude::Vector{Symbol} = Vector{Symbol}())
   if !(:Qn          in exclude) M.Qn          = spzeros(0,0);             end
   if !(:Nf          in exclude) M.Nf          = spzeros(0,0);             end
   if !(:Qf          in exclude) M.Qf          = spzeros(0,0);             end
-  if !(:FX          in exclude) M.FX          = sparse3([0,0,0]);         end
-  if !(:FY          in exclude) M.FY          = sparse3([0,0,0]);         end
-  if !(:FZ          in exclude) M.FZ          = sparse3([0,0,0]);         end
-  if !(:EX          in exclude) M.EX          = sparse3([0,0,0]);         end
-  if !(:EY          in exclude) M.EY          = sparse3([0,0,0]);         end
-  if !(:EZ          in exclude) M.EZ          = sparse3([0,0,0]);         end
-  if !(:NC          in exclude) M.NC          = sparse3([0,0,0]);         end
-  if !(:NFX         in exclude) M.NFX         = sparse3([0,0,0]);         end
-  if !(:NFY         in exclude) M.NFY         = sparse3([0,0,0]);         end
-  if !(:NFZ         in exclude) M.NFZ         = sparse3([0,0,0]);         end
-  if !(:NEX         in exclude) M.NEX         = sparse3([0,0,0]);         end
-  if !(:NEY         in exclude) M.NEY         = sparse3([0,0,0]);         end
-  if !(:NEZ         in exclude) M.NEZ         = sparse3([0,0,0]);         end
-  if !(:NN          in exclude) M.NN          = sparse3([0,0,0]);         end
+  if !(:FX          in exclude) M.FX          = sparse3((0,0,0));         end
+  if !(:FY          in exclude) M.FY          = sparse3((0,0,0));         end
+  if !(:FZ          in exclude) M.FZ          = sparse3((0,0,0));         end
+  if !(:EX          in exclude) M.EX          = sparse3((0,0,0));         end
+  if !(:EY          in exclude) M.EY          = sparse3((0,0,0));         end
+  if !(:EZ          in exclude) M.EZ          = sparse3((0,0,0));         end
+  if !(:NC          in exclude) M.NC          = sparse3((0,0,0));         end
+  if !(:NFX         in exclude) M.NFX         = sparse3((0,0,0));         end
+  if !(:NFY         in exclude) M.NFY         = sparse3((0,0,0));         end
+  if !(:NFZ         in exclude) M.NFZ         = sparse3((0,0,0));         end
+  if !(:NEX         in exclude) M.NEX         = sparse3((0,0,0));         end
+  if !(:NEY         in exclude) M.NEY         = sparse3((0,0,0));         end
+  if !(:NEZ         in exclude) M.NEZ         = sparse3((0,0,0));         end
+  if !(:NN          in exclude) M.NN          = sparse3((0,0,0));         end
 
   return
 

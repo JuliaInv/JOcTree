@@ -2,18 +2,20 @@ export getEdgeConstraints
 
 function getEdgeConstraints(M::OcTreeMesh)
 	if isempty(M.Ne)
+		T = eltype(M.h)
 		if all(M.S.SV.nzval.==M.S.SV.nzval[1]) # uniform mesh
-			M.Ne = speye(sum(M.ne))
-			M.Qe = speye(sum(M.ne))
-                        M.activeEdges = [1:sum(M.ne);]
+			N = typeof(M.nc)
+			M.Ne = speye(T,N,sum(M.ne))
+			M.Qe = speye(T,N,sum(M.ne))
+            M.activeEdges = collect(N,1:sum(M.ne))
 		else
-			M.Ne,M.Qe, Ce, M.activeEdges = getEdgeConstraints(M.S)
+			M.Ne,M.Qe, Ce, M.activeEdges = getEdgeConstraints(T,M.S)
 		end
 	end
 	return M.Ne,M.Qe, M.activeEdges
 end
 
-function getEdgeConstraints(S::SparseArray3D)
+function getEdgeConstraints(::Type{Tf},S::SparseArray3D) where Tf
 # N,Q,C,p = getEdgeConstraints
 # Eliminates the hanging edges
 #   C ... constraint matrix
@@ -28,12 +30,14 @@ function getEdgeConstraints(S::SparseArray3D)
 #
 
 i0,j0,k0,bsz = find3(S)
+Tn2 = eltype(i0)
+bsz = convert(Vector{Tn2},bsz)
 
-i1 = i0 + div.(bsz, 2)
+i1 = i0 + div.(bsz, Tn2(2))
 i2 = i0 + bsz
-j1 = j0 + div.(bsz, 2)
+j1 = j0 + div.(bsz, Tn2(2))
 j2 = j0 + bsz
-k1 = k0 + div.(bsz, 2)
+k1 = k0 + div.(bsz, Tn2(2))
 k2 = k0 + bsz
 
 upper,lower,left,right,front,back = getNumberOfNeighbors(S)
@@ -43,9 +47,10 @@ if ~all( (nn .== 0) .| (nn .== 1) .| (nn .== 4) )
 end
 ENX,ENY,ENZ = getEdgeNumbering(S)
 
-ex1 = Int64[]; ex2 = Int64[]; ex3 = Int64[]; ex4 = Int64[]; ex5 = Int64[]; ex6 = Int64[];
-ey1 = Int64[]; ey2 = Int64[]; ey3 = Int64[]; ey4 = Int64[]; ey5 = Int64[]; ey6 = Int64[];
-ez1 = Int64[]; ez2 = Int64[]; ez3 = Int64[]; ez4 = Int64[]; ez5 = Int64[]; ez6 = Int64[];
+Tn  = eltype(ENX.SV.nzval)
+ex1 = Tn[]; ex2 = Tn[]; ex3 = Tn[]; ex4 = Tn[]; ex5 = Tn[]; ex6 = Tn[];
+ey1 = Tn[]; ey2 = Tn[]; ey3 = Tn[]; ey4 = Tn[]; ey5 = Tn[]; ey6 = Tn[];
+ez1 = Tn[]; ez2 = Tn[]; ez3 = Tn[]; ez4 = Tn[]; ez5 = Tn[]; ez6 = Tn[];
 
 
 #    ^ k z
@@ -189,10 +194,11 @@ ez1 = vec(ez1); ez2 = vec(ez2); ez3 = vec(ez3)
 ez4 = vec(ez4); ez5 = vec(ez5); ez6 = vec(ez6)
 
 #e7 are the edges neither in e1, e2, e3, e4, e5 or e6
-nx = nnz(ENX); ny = nnz(ENY);  nz = nnz(ENZ)
-ex7 = setdiff([1:nx;], [ex1; ex2; ex3; ex4; ex5; ex6])
-ey7 = setdiff([1:ny;], [ey1; ey2; ey3; ey4; ey5; ey6])
-ez7 = setdiff([1:nz;], [ez1; ez2; ez3; ez4; ez5; ez6])
+nx  = Tn(nnz(ENX)); ny = Tn(nnz(ENY));  nz = Tn(nnz(ENZ))
+Tn1 = one(Tn)
+ex7 = setdiff([Tn1:nx;], [ex1; ex2; ex3; ex4; ex5; ex6])
+ey7 = setdiff([Tn1:ny;], [ey1; ey2; ey3; ey4; ey5; ey6])
+ez7 = setdiff([Tn1:nz;], [ez1; ez2; ez3; ez4; ez5; ez6])
 
 # look up table for new edge numbering
 bx = falses(nx)
@@ -208,10 +214,10 @@ mx = sum(bx);
 my = sum(by);
 mz = sum(bz);
 
-px = zeros(Int64,nx)
-py = zeros(Int64,ny)
-pz = zeros(Int64,nz)
-p  = zeros(Int64,nx+ny+nz)
+px = zeros(Tn,nx)
+py = zeros(Tn,ny)
+pz = zeros(Tn,nz)
+p  = zeros(Tn,nx+ny+nz)
 
 px[bx] = 1:mx;
 py[by] = 1:my;
@@ -239,67 +245,64 @@ p[b]   = 1:mx+my+mz;
 #    e4 I/2  I/2
 
 
-## X edges
-
+# X edges
 # remove duplicates in [ex1; ex5]
-I    = speye(nx)
 ex15 = [ex1; ex5]
 ex26 = [ex2; ex6]
 ex15 = unique(ex15)
 i15  = indexin(ex15,[ex1;ex5])
 ex26 = ex26[i15]
 
-k  = length(ex15)
-m  = length(ex1)
-n  = length(ex7)
+k  = Tn(length(ex15))
+m  = Tn(length(ex1))
+n  = Tn(length(ex7))
 
 # constraint matrix
-i  = [1:k; k+(1:2*m); k+(1:2*m); 1:k; k+(1:2*m)]
+i  = [Tn1:k; k+(Tn1:Tn(2*m)); k+(Tn1:Tn(2*m)); Tn1:k; k+(Tn1:Tn(2*m))]
 j  = [ex15; ex1; ex1; ex5; ex5; ex26; ex3; ex4]
-v  = [ones(k); 0.5*ones(4*m); -ones(k+2*m)]
+v  = [ones(Tf,k); 0.5*ones(Tf,4*m); -ones(Tf,k+2*m)]
 Cx = sparse(i,j,v,k+2*m,nx)
 
 # null space matrix
 i  = [ex15; ex26; ex3; ex4; ex3; ex4; ex7]
 j  = px[[ex15; ex15; ex1; ex1; ex5; ex5; ex7]]
-v  = [ones(2*k); 0.5*ones(4*m); ones(n)]
+v  = [ones(Tf,2*k); 0.5*ones(Tf,4*m); ones(Tf,n)]
 Nx = sparse(i,j,v,nx,mx)
 
 # projection matrix
 i  = px[[ex15; ex7; ex15]]
 j  = [ex15; ex7; ex26];
-v  = [0.5*ones(k); ones(n); 0.5*ones(k)]
+v  = [0.5*ones(Tf,k); ones(Tf,n); 0.5*ones(Tf,k)]
 Qx = sparse(i,j,v,mx,nx)
 
 # Y edges
 # remove duplicates in [ey1; ey5]
-I    = speye(ny)
 ey15 = [ey1; ey5];
 ey26 = [ey2; ey6];
 ey15 = unique(ey15);
 i15  = indexin(ey15,[ey1;ey5])
 ey26 = ey26[i15]
 
-k  = length(ey15);
-m  = length(ey1);
-n  = length(ey7);
+k  = Tn(length(ey15))
+m  = Tn(length(ey1))
+n  = Tn(length(ey7))
 
 # constraint matrix
-i  = [1:k; k+(1:2*m); k+(1:2*m); 1:k; k+(1:2*m)]
+i  = [Tn1:k; k+(Tn1:Tn(2*m)); k+(Tn1:Tn(2*m)); Tn1:k; k+(Tn1:Tn(2*m))]
 j  = [ey15; ey1; ey1; ey5; ey5; ey26; ey3; ey4]
-v  = [ones(k); 0.5*ones(4*m); -ones(k+2*m)]
+v  = [ones(Tf,k); 0.5*ones(Tf,4*m); -ones(Tf,k+2*m)]
 Cy = sparse(i,j,v,k+2*m,ny)
 
 # null space matrix
 i  = [ey15; ey26; ey3; ey4; ey3; ey4; ey7]
 j  = py[[ey15; ey15; ey1; ey1; ey5; ey5; ey7]]
-v  = [ones(2*k); 0.5*ones(4*m); ones(n)]
+v  = [ones(Tf,2*k); 0.5*ones(Tf,4*m); ones(Tf,n)]
 Ny = sparse(i,j,v,ny,my)
 
 # projection matrix
 i  = py[[ey15; ey7; ey15]]
 j  = [ey15; ey7; ey26]
-v  = [0.5*ones(k); ones(n); 0.5*ones(k)]
+v  = [0.5*ones(Tf,k); ones(Tf,n); 0.5*ones(Tf,k)]
 Qy = sparse(i,j,v,my,ny)
 
 ## Z edges
@@ -310,26 +313,26 @@ ez15 = unique(ez15);
 i15  = indexin(ez15,[ez1;ez5])
 ez26 = ez26[i15]
 
-k  = length(ez15);
-m  = length(ez1);
-n  = length(ez7);
+k  = Tn(length(ez15))
+m  = Tn(length(ez1))
+n  = Tn(length(ez7))
 
 # constraint matrix
-i  = [1:k; k+(1:2*m); k+(1:2*m); 1:k; k+(1:2*m)]
+i  = [Tn1:k; k+(Tn1:Tn(2*m)); k+(Tn1:Tn(2*m)); Tn1:k; k+(Tn1:Tn(2*m))]
 j  = [ez15; ez1; ez1; ez5; ez5; ez26; ez3; ez4]
-v  = [ones(k); 0.5*ones(4*m); -ones(k+2*m)]
+v  = [ones(Tf,k); 0.5*ones(Tf,4*m); -ones(Tf,k+2*m)]
 Cz = sparse(i,j,v,k+2*m,nz)
 
 # null space matrix
-i  = [ez15; ez26; ez3; ez4; ez3; ez4; ez7];
+i  = [ez15; ez26; ez3; ez4; ez3; ez4; ez7]
 j  = pz[[ez15; ez15; ez1; ez1; ez5; ez5; ez7]]
-v  = [ones(2*k); 0.5*ones(4*m); ones(n)]
+v  = [ones(Tf,2*k); 0.5*ones(Tf,4*m); ones(Tf,n)]
 Nz = sparse(i,j,v,nz,mz)
 
 # projection matrix
 i  = pz[[ez15; ez7; ez15]]
 j  = [ez15; ez7; ez26];
-v  = [0.5*ones(k); ones(n); 0.5*ones(k)]
+v  = [0.5*ones(Tf,k); ones(Tf,n); 0.5*ones(Tf,k)]
 Qz = sparse(i,j,v,mz,nz)
 
 ## Put it all together

@@ -1,15 +1,16 @@
 println("Testing: getNodalMassMatrix, getEdgeMassMatrix, getFaceMassMatrix")
-
-@testset "Mass matrices" begin
+for Tn2 in intTypes
+for Tn in intTypes
+@testset "Mass matrices with intType1=$Tn, intType2=$Tn2" begin
 
 # Get random mesh
-n = [256, 128, 64]
+n = (256, 128, 64)
 L = exp.(randn(3))
 h = L ./ n
 x0 = randn(3)
 xn = x0 + L
 nrand = 5 # local refinement at nrand random locations
-S = randomOctreeMesh(n, nrand)
+S = randomOctreeMesh(Tn, Tn2, n, nrand)
 mesh = getOcTreeMeshFV(S, h, x0=x0)
 
 ### Check exact integration of constant and linear coefficient
@@ -192,3 +193,5 @@ Mf6 = getFaceMassMatrix(mesh, c6)
 @test Mf3 ≈ Mf6
 
 end # end of testset
+end
+end

@@ -54,7 +54,8 @@ function getdFaceMassMatrix{T<:Number}(mesh::OcTreeMeshFV, sigma::Vector, v::Vec
         dM = SparseMatrixCSC(P.A.m, P.A.n, copy(P.A.colptr), copy(P.A.rowval), T.(P.A.nzval))
         DiagTimesM(v, dM)
     else # generally anisotropic
-        V = SparseMatrixCSC(P.n, nz, collect(1:nz+1), P.rowval, v[P.colval])
+        N = eltype(P.A.colptr)
+        V = SparseMatrixCSC(P.n, nz, collect(N,1:nz+1), P.rowval, v[P.colval])
         dM = V * P.A
     end
     return dM
@@ -90,7 +91,8 @@ function dFaceMassMatrixTimesVector{T<:Number}(mesh::OcTreeMeshFV, sigma::Vector
         dMx = T.(P.A * x)
         dMx .*= v
     else # generally anisotropic
-        V = SparseMatrixCSC(P.n, nz, collect(1:nz+1), P.rowval, v[P.colval])
+        N = eltype(P.rowval)
+        V = SparseMatrixCSC(P.n, nz, collect(N,1:nz+1), P.rowval, v[P.colval])
         dMx = V * (P.A * x)
     end
     return dMx
@@ -124,7 +126,8 @@ function dFaceMassMatrixTrTimesVector{T<:Number}(mesh::OcTreeMeshFV, sigma::Vect
         u = conj.(v) .* x
         dMTx = P.A' * u
     else # generally anisotropic
-        V = SparseMatrixCSC(P.n, nz, collect(1:nz+1), P.rowval, v[P.colval])
+        N = eltype(P.rowval)
+        V = SparseMatrixCSC(P.n, nz, collect(N,1:nz+1), P.rowval, v[P.colval])
         u = V' * x
         dMTx = P.A' * u
     end
@@ -142,7 +145,8 @@ for isotropic, diagonally anisotropic or generally anisotropic coefficient.
 function setupFaceMassMatrix(mesh, sigma)
 
     na = length(sigma)
-    nc = mesh.nc
+    N = eltype(mesh.nc)
+    nc = N(mesh.nc)
 
     @assert in(na, [nc, 3*nc, 6*nc]) "Invalid size of sigma"
 
@@ -154,24 +158,24 @@ function setupFaceMassMatrix(mesh, sigma)
         if na == nc
 
             i = vcat(fx, fy, fz)
-            j = repmat(1:nc, 24)
+            j = repmat(one(N):nc, 24)
             a = repmat(w, 24)
             A = sparse(i, j, a, n, na)
-            colptr = collect(1:n+1)
-            rowval = collect(1:n)
-            colval = Array{Int64}(0) # unused
+            colptr = collect(N,1:n+1)
+            rowval = collect(N,1:n)
+            colval = Array{N}(0) # unused
 
         elseif na == 3 * nc
 
             i = vcat(fx, fy, fz)
-            j = vcat(repmat(     1:  nc, 8),
-                     repmat(  nc+1:2*nc, 8),
-                     repmat(2*nc+1:3*nc, 8))
+            j = vcat(repmat(UnitRange{N}(     1:  nc), 8),
+                     repmat(UnitRange{N}(  nc+1:2*nc), 8),
+                     repmat(UnitRange{N}(2*nc+1:3*nc), 8))
             a = repmat(w, 24)
             A = sparse(i, j, a, n, na)
-            colptr = collect(1:n+1)
-            rowval = collect(1:n)
-            colval = Array{Int64}(0) # unused
+            colptr = collect(N,1:n+1)
+            rowval = collect(N,1:n)
+            colval = Array{N}(0) # unused
 
         elseif na == 6 * nc
 
@@ -193,15 +197,15 @@ function setupFaceMassMatrix(mesh, sigma)
 
             # construct mapping of anisotropic cell property to
             # nonzero entries in mass matrix
-            j = vcat(repmat(     1:  nc, 8),
-                     repmat(  nc+1:2*nc, 8),
-                     repmat(2*nc+1:3*nc, 8),
-                     repmat(3*nc+1:4*nc, 8),
-                     repmat(4*nc+1:5*nc, 8),
-                     repmat(5*nc+1:6*nc, 8),
-                     repmat(3*nc+1:4*nc, 8),
-                     repmat(4*nc+1:5*nc, 8),
-                     repmat(5*nc+1:6*nc, 8))
+            j = vcat(repmat(UnitRange{N}(     1:  nc), 8),
+                     repmat(UnitRange{N}(  nc+1:2*nc), 8),
+                     repmat(UnitRange{N}(2*nc+1:3*nc), 8),
+                     repmat(UnitRange{N}(3*nc+1:4*nc), 8),
+                     repmat(UnitRange{N}(4*nc+1:5*nc), 8),
+                     repmat(UnitRange{N}(5*nc+1:6*nc), 8),
+                     repmat(UnitRange{N}(3*nc+1:4*nc), 8),
+                     repmat(UnitRange{N}(4*nc+1:5*nc), 8),
+                     repmat(UnitRange{N}(5*nc+1:6*nc), 8))
             a = repmat(w, 72)
             A = sparse(i, j, a, nz, na)
 

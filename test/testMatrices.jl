@@ -1,4 +1,6 @@
-@testset "Matrices" begin
+for Tn2 in intTypes
+for Tn in intTypes
+@testset "Matrices with intType1=$Tn, intType2=$Tn2" begin
 using JOcTree
 using Base.Test
 
@@ -15,12 +17,12 @@ println("Testing: getNodalGradientMatrix, getCurlMatrix, getDivergenceMatrix")
 
 #-------------------------------------------
 
-n = [64, 64, 32]   # underlying mesh
-h = 1 ./ n   # cell size
+n = (64, 64, 32)   # underlying mesh
+h = 1 ./ collect(n)   # cell size
 x0 = [0. , 0. , 0.]
 
 nrand = 5
-S = randomOctreeMesh( n, nrand )
+S = randomOctreeMesh(Tn, Tn2, n, nrand )
 
 M = getOcTreeMeshFV(S, h, x0=x0)
 
@@ -64,7 +66,7 @@ ncells = Array{Int64}(ntests)
 
 for i = 1:ntests
    ncells[i] = nnz(S)
-   
+
 
    GRAD = getNodalGradientMatrix(M)
    xyz = getNodalGrid(M)
@@ -76,7 +78,7 @@ for i = 1:ntests
    dfx = getdFdX( EX[:,1], EX[:,2], EX[:,3] )
    dfy = getdFdY( EY[:,1], EY[:,2], EY[:,3] )
    dfz = getdFdZ( EZ[:,1], EZ[:,2], EZ[:,3] )
-   
+
    aGf = [ dfx; dfy; dfz ]
    difGRAD = Gf - aGf
    NdifGRAD[i] = norm(difGRAD, Inf)
@@ -88,7 +90,7 @@ for i = 1:ntests
    fx = getF( EX[:,1], EX[:,2], EX[:,3] )
    fy = getF( EY[:,1], EY[:,2], EY[:,3] )
    fz = getF( EZ[:,1], EZ[:,2], EZ[:,3] )
-   
+
    f = [fx ; fy ; fz]  # on faces
    Df = DIV * f   # Divergence on cell centres
 
@@ -109,7 +111,7 @@ for i = 1:ntests
    fx = getF( EX[:,1], EX[:,2], EX[:,3] )
    fy = getF( EY[:,1], EY[:,2], EY[:,3] )
    fz = getF( EZ[:,1], EZ[:,2], EZ[:,3] )
-   
+
    f = [fx ; fy ; fz]  # on edges
    Cf = CURL * f   # Curl on faces
 
@@ -128,8 +130,8 @@ for i = 1:ntests
 
 
    @printf("%8i  %.3e  %.3e  %.3e \n",
-               ncells[i], NdifGRAD[i], 
-                          NdifDIV[i],  
+               ncells[i], NdifGRAD[i],
+                          NdifDIV[i],
                           NdifCURL[i] )
 
    if i < ntests
@@ -155,4 +157,6 @@ end  # i
 # loglog( ncells, NdifGRAD, "r.-")
 # loglog( ncells, NdifDIV,  "g.-")
 # loglog( ncells, NdifCURL, "b.-")
+end
+end
 end

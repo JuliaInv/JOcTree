@@ -2,28 +2,28 @@ export importUBCOcTreeMesh, importUBCOcTreeModel
 
 """
     mesh = importUBCOcTreeMesh(meshfile)
-    
+
     Reads an OcTree mesh in UBC format from disk.
 
     Input:
-    
+
         meshfile::AbstractString - File to read
 
     Output:
 
         mesh::OcTreeMesh - The mesh
-            
+
 """
-function importUBCOcTreeMesh(meshfile::AbstractString)
+function importUBCOcTreeMesh(meshfile::AbstractString;Tn::Type{N}=Int64,Tn2::Type{N2}=Int64) where N <: Integer where N2 <: Integer
 
     # open file (throws error if file doesn't exist)
     f    = open(meshfile,"r")
 
     # number of cells of underlying tensor mesh along dimension 1, 2, 3
     line = split(readline(f))
-    m1 = parse(Int64,line[1])
-    m2 = parse(Int64,line[2])
-    m3 = parse(Int64,line[3])
+    m1 = parse(Tn2,line[1])
+    m2 = parse(Tn2,line[2])
+    m3 = parse(Tn2,line[3])
 
     # top corner coordinates
     line = split(readline(f))
@@ -39,7 +39,7 @@ function importUBCOcTreeMesh(meshfile::AbstractString)
 
     # number of OcTree cells
     line = split(readline(f))
-    n = parse(Int64,line[1])
+    n = parse(Tn,line[1])
 
     # read rest of file at ones
     lines = readlines(f)
@@ -53,19 +53,19 @@ function importUBCOcTreeMesh(meshfile::AbstractString)
     end
 
     # allocate space
-    i1  = zeros(Int64, n)
-    i2  = zeros(Int64, n)
-    i3  = zeros(Int64, n)
-    bsz = zeros(Int64, n)
+    i1  = zeros(Tn2, n)
+    i2  = zeros(Tn2, n)
+    i3  = zeros(Tn2, n)
+    bsz = zeros(Tn , n)
 
     # convert string array to numbers
     for i = 1:n
         line   = split(lines[i])
 
-        i1[i]  = parse(Int64,line[1])
-        i2[i]  = parse(Int64,line[2])
-        i3[i]  = parse(Int64,line[3])
-        bsz[i] = parse(Int64,line[4])
+        i1[i]  = parse(Tn2,line[1])
+        i2[i]  = parse(Tn2,line[2])
+        i3[i]  = parse(Tn2,line[3])
+        bsz[i] = parse(Tn ,line[4])
     end
 
     # Roman's code starts the OcTree at the top corner. Change to bottom
@@ -83,18 +83,18 @@ function importUBCOcTreeMesh(meshfile::AbstractString)
     bsz = bsz[p] #S[:,4]
 
     # create mesh object
-    S = sparse3(i1,i2,i3,bsz,[m1,m2,m3])
+    S = sparse3(i1,i2,i3,bsz,(m1,m2,m3))
     mesh = getOcTreeMeshFV(S,[h1,h2,h3];x0=[x1,x2,x3])
     return mesh
 end
 
 """
     model = importUBCOcTreeModel(modelfile, mesh, DataType=Float64)
-    
+
     Reads an OcTree model in UBC format from disk.
 
     Input:
-    
+
         modelfile::AbstractString - File to read
         mesh::OcTreeMeshFV        - The corresponding mesh
         T::DataType               - Data type of model (Float64, Int64, Bool, ...)
@@ -103,7 +103,7 @@ end
 
         model::Array{Float64,1} - The model
         model::Array{Float64,2}
-            
+
 """
 function importUBCOcTreeModel(modelfile::AbstractString, mesh::OcTreeMesh, T::DataType=Float64)
 
@@ -128,11 +128,11 @@ function importUBCOcTreeModel(modelfile::AbstractString, mesh::OcTreeMesh, T::Da
     i3 = m3 + 2 .- i3 - bsz
     S = sub2ind( (m1,m2,m3), i1,i2,i3 )
     p = sortpermFast(S)[1]
-	
+
     # check for multiple values per cell
   	d = split(s[1])
   	ncol = length(d)
-	
+
   	# convert to numbers
     if ncol == 1
         model = Array{T}(n)

@@ -2,7 +2,7 @@ export getEdgeIntegralOfPolygonalChain
 
 using Base.BLAS
 
-function getEdgeIntegralOfPolygonalChain(mesh::OcTreeMesh, polygon::Array{Float64,2}; normalize=false)
+function getEdgeIntegralOfPolygonalChain(mesh::OcTreeMesh, polygon::Array{Tf,2}; normalize=false) where Tf <: Real
 # s = getEdgeIntegralPolygonalChain(mesh,polygon)
 # s = getEdgeIntegralPolygonalChain(mesh,polygon,normalize)
 #
@@ -120,15 +120,16 @@ z = float([1:nz+1;])
 nnX = nnz(EX)
 nnY = nnz(EY)
 nnZ = nnz(EZ)
-ss = spzeros(nnX+nnY+nnZ,1)
+Tn  = eltype(EX.SV.nzval)
+ss  = spzeros(Tf,Tn,nnX+nnY+nnZ,1)
 
 # allocate local variables
-sxloc = zeros(4)
-syloc = zeros(4)
-szloc = zeros(4)
-kx    = zeros(Int64,4)
-ky    = zeros(Int64,4)
-kz    = zeros(Int64,4)
+sxloc = zeros(Tf,4)
+syloc = zeros(Tf,4)
+szloc = zeros(Tf,4)
+kx    = zeros(Tn,4)
+ky    = zeros(Tn,4)
+kz    = zeros(Tn,4)
 tol   = 0.0
 
 # integrate each line segment
