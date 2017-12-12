@@ -1,7 +1,7 @@
-export importUBCOcTreeMesh, importUBCOcTreeModel
+export importUBCOcTreeMeshLite, importUBCOcTreeMesh, importUBCOcTreeModel
 
 """
-    mesh = importUBCOcTreeMesh(meshfile)
+    S, h, x0 = importUBCOcTreeMeshLite(meshfile)
 
     Reads an OcTree mesh in UBC format from disk.
 
@@ -11,10 +11,12 @@ export importUBCOcTreeMesh, importUBCOcTreeModel
 
     Output:
 
-        mesh::OcTreeMesh - The mesh
+        S::SparseArray3D     - OcTree
+        h::Vector{Float64}   - Base cell size
+        x0::Vector{Float64}  - Coordinate origin
 
 """
-function importUBCOcTreeMesh(meshfile::AbstractString;Tn::Type{N}=Int64,Tn2::Type{N2}=Int64) where N <: Integer where N2 <: Integer
+function importUBCOcTreeMeshLite(meshfile::AbstractString;Tn::Type{N}=Int64,Tn2::Type{N2}=Int64) where N <: Integer where N2 <: Integer
 
     # open file (throws error if file doesn't exist)
     f    = open(meshfile,"r")
@@ -84,7 +86,28 @@ function importUBCOcTreeMesh(meshfile::AbstractString;Tn::Type{N}=Int64,Tn2::Typ
 
     # create mesh object
     S = sparse3(i1,i2,i3,bsz,(m1,m2,m3))
-    mesh = getOcTreeMeshFV(S,[h1,h2,h3];x0=[x1,x2,x3])
+    h = [h1,h2,h3]
+    x0 = [x1,x2,x3]
+    return S, h, x0
+end
+
+"""
+    mesh = importUBCOcTreeMesh(meshfile)
+
+    Reads an OcTree mesh in UBC format from disk.
+
+    Input:
+
+        meshfile::AbstractString - File to read
+
+    Output:
+
+        mesh::OcTreeMesh - The mesh
+
+"""
+function importUBCOcTreeMesh(meshfile::AbstractString;Tn::Type{N}=Int64,Tn2::Type{N2}=Int64) where N <: Integer where N2 <: Integer
+    S, h, x0 = importUBCOcTreeMeshLite(meshfile; Tn=Tn, Tn2=Tn2)
+    mesh = getOcTreeMeshFV(S, h; x0=x0)
     return mesh
 end
 
@@ -105,7 +128,10 @@ end
         model::Array{Float64,2}
 
 """
-function importUBCOcTreeModel(modelfile::AbstractString, mesh::OcTreeMesh, T::DataType=Float64)
+
+importUBCOcTreeModel(modelfile::AbstractString, mesh::OcTreeMesh, T::DataType=Float64) = importUBCOcTreeModel(modelfile, mesh.S, T)
+
+function importUBCOcTreeModel(modelfile::AbstractString, S::SparseArray3D, T::DataType=Float64)
 
     # open file (throws error if file doesn't exist)
     f = open(modelfile,"r")
@@ -117,14 +143,14 @@ function importUBCOcTreeModel(modelfile::AbstractString, mesh::OcTreeMesh, T::Da
     close(f)
 
     # check if we have the correct number of cell values
-    n = mesh.nc
+    n = nnz(S)
     if length(s) != n
         error("Incorrect number of cell values")
     end
 
     # Roman's code starts the OcTree at the top corner. Here, we start with the bottom corner. Therefore, we need to permute the cells values.
-    m1,m2,m3 = mesh.n
-    i1,i2,i3,bsz = find3(mesh.S)
+    m1,m2,m3 = size(S)
+    i1,i2,i3,bsz = find3(S)
     i3 = m3 + 2 .- i3 - bsz
     S = sub2ind( (m1,m2,m3), i1,i2,i3 )
     p = sortpermFast(S)[1]
