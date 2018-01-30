@@ -36,9 +36,9 @@ Pz2 = ez.SV[sub2ind(nez,i,j,k+bsz),1]
 
 Tn = eltype(S.SV.nzval)
 Tn1 = one(Tn)
-sp1(Q) = sparse(Tn1:Tn(Base.nnz(Q)),Tn(Base.nonzeros(Q)),ones(Base.nnz(Q)),nc,nx)
-sp2(Q) = sparse(Tn1:Tn(Base.nnz(Q)),Tn(Base.nonzeros(Q)),ones(Base.nnz(Q)),nc,ny)
-sp3(Q) = sparse(Tn1:Tn(Base.nnz(Q)),Tn(Base.nonzeros(Q)),ones(Base.nnz(Q)),nc,nz)
+sp1(Q) = sparse(Tn1:Tn(Base.nnz(Q)),Tn.(Base.nonzeros(Q)),ones(Base.nnz(Q)),nc,nx)
+sp2(Q) = sparse(Tn1:Tn(Base.nnz(Q)),Tn.(Base.nonzeros(Q)),ones(Base.nnz(Q)),nc,ny)
+sp3(Q) = sparse(Tn1:Tn(Base.nnz(Q)),Tn.(Base.nonzeros(Q)),ones(Base.nnz(Q)),nc,nz)
 
 Ax = 0.5*(sp1(Px1) + sp1(Px2))
 Ay = 0.5*(sp2(Py1) + sp2(Py2))
@@ -50,6 +50,7 @@ return Af, Ax, Ay, Az
 
 end
 
+getFaceToCellCenteredMatrix(S) = getFaceToCellCenteredMatrix(Float64, S)
 function getFaceToCellCenteredMatrix(::Type{Tf},S) where Tf <: Number
 # [A, A1, A2, A3] = getFaceToCellCenteredMatrix(S)
 

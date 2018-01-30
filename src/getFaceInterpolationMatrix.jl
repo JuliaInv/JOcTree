@@ -19,7 +19,7 @@ function getFaceInterpolationMatrix(mesh::OcTreeMesh, x::Array{Tf,1}, y::Array{T
 	nz = nnz(Fz)
 
 	# locate points within cells
-	i,j,k,bsz = findBlocks(mesh.S, floor(Integer,x), floor(Integer,y), floor(Integer,z))
+	i,j,k,bsz = findBlocks(mesh.S, floor.(Integer,x), floor.(Integer,y), floor.(Integer,z))
 
 	# x-face numbers
 	I  = [i, i+bsz;]
