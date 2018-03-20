@@ -132,7 +132,7 @@ function getOcTreeMeshFV{T<:Number,N<:Integer,N2<:Integer}(S::SparseArray3D{N,N2
 end  # function getOcTreeMeshFV
 
 import Base.clear!
-function clear!(M::OcTreeMeshFV; exclude::Vector{Symbol} = Vector{Symbol}())
+function clear!{T<:Number,N<:Integer,N2<:Integer}(M::OcTreeMeshFV{T,N,N2}; exclude::Vector{Symbol} = Vector{Symbol}())
 
   # Don't clear the essential mesh information:
   # if !(:S           in exclude) M.S           = sparse3([0,0,0]);        end
@@ -145,40 +145,40 @@ function clear!(M::OcTreeMeshFV; exclude::Vector{Symbol} = Vector{Symbol}())
   # if !(:nn          in exclude) M.nn          = 0;                       end
 
   # Clear all derived variables
-  if !(:Div         in exclude) M.Div         = spzeros(0,0);             end
-  if !(:Grad        in exclude) M.Grad        = spzeros(0,0);             end
-  if !(:Curl        in exclude) M.Curl        = spzeros(0,0);             end
-  if !(:Pf          in exclude) M.Pf          = Dict{Int64,MassMatrix}(); end
-  if !(:Pe          in exclude) M.Pe          = Dict{Int64,MassMatrix}(); end
-  if !(:Pn          in exclude) M.Pn          = Dict{Int64,MassMatrix}(); end
-  if !(:Af          in exclude) M.Af          = spzeros(0,0);             end
-  if !(:Ae          in exclude) M.Ae          = spzeros(0,0);             end
-  if !(:An          in exclude) M.An          = spzeros(0,0);             end
-  if !(:V           in exclude) M.V           = spzeros(0,0);             end
-  if !(:L           in exclude) M.L           = spzeros(0,0);             end
-  if !(:Ne          in exclude) M.Ne          = spzeros(0,0);             end
-  if !(:Qe          in exclude) M.Qe          = spzeros(0,0);             end
-  if !(:activeEdges in exclude) M.activeEdges = Array{Int64}(0);          end
-  if !(:activeFaces in exclude) M.activeFaces = Array{Int64}(0);          end
-  if !(:activeNodes in exclude) M.activeNodes = Array{Int64}(0);          end
-  if !(:Nn          in exclude) M.Nn          = spzeros(0,0);             end
-  if !(:Qn          in exclude) M.Qn          = spzeros(0,0);             end
-  if !(:Nf          in exclude) M.Nf          = spzeros(0,0);             end
-  if !(:Qf          in exclude) M.Qf          = spzeros(0,0);             end
-  if !(:FX          in exclude) M.FX          = sparse3((0,0,0));         end
-  if !(:FY          in exclude) M.FY          = sparse3((0,0,0));         end
-  if !(:FZ          in exclude) M.FZ          = sparse3((0,0,0));         end
-  if !(:EX          in exclude) M.EX          = sparse3((0,0,0));         end
-  if !(:EY          in exclude) M.EY          = sparse3((0,0,0));         end
-  if !(:EZ          in exclude) M.EZ          = sparse3((0,0,0));         end
-  if !(:NC          in exclude) M.NC          = sparse3((0,0,0));         end
-  if !(:NFX         in exclude) M.NFX         = sparse3((0,0,0));         end
-  if !(:NFY         in exclude) M.NFY         = sparse3((0,0,0));         end
-  if !(:NFZ         in exclude) M.NFZ         = sparse3((0,0,0));         end
-  if !(:NEX         in exclude) M.NEX         = sparse3((0,0,0));         end
-  if !(:NEY         in exclude) M.NEY         = sparse3((0,0,0));         end
-  if !(:NEZ         in exclude) M.NEZ         = sparse3((0,0,0));         end
-  if !(:NN          in exclude) M.NN          = sparse3((0,0,0));         end
+  if !(:Div         in exclude) M.Div         = spzeros(T,N,0,0);               end
+  if !(:Grad        in exclude) M.Grad        = spzeros(T,N,0,0);               end
+  if !(:Curl        in exclude) M.Curl        = spzeros(T,N,0,0);               end
+  if !(:Pf          in exclude) M.Pf          = Dict{Int64,MassMatrix}();       end
+  if !(:Pe          in exclude) M.Pe          = Dict{Int64,MassMatrix}();       end
+  if !(:Pn          in exclude) M.Pn          = Dict{Int64,MassMatrix}();       end
+  if !(:Af          in exclude) M.Af          = spzeros(T,N,0,0);               end
+  if !(:Ae          in exclude) M.Ae          = spzeros(T,N,0,0);               end
+  if !(:An          in exclude) M.An          = spzeros(T,N,0,0);               end
+  if !(:V           in exclude) M.V           = spzeros(T,N,0,0);               end
+  if !(:L           in exclude) M.L           = spzeros(T,N,0,0);               end
+  if !(:Ne          in exclude) M.Ne          = spzeros(T,N,0,0);               end
+  if !(:Qe          in exclude) M.Qe          = spzeros(T,N,0,0);               end
+  if !(:activeEdges in exclude) M.activeEdges = Array{N}(0);                    end
+  if !(:activeFaces in exclude) M.activeFaces = Array{N}(0);                    end
+  if !(:activeNodes in exclude) M.activeNodes = Array{N}(0);                    end
+  if !(:Nn          in exclude) M.Nn          = spzeros(T,N,0,0);               end
+  if !(:Qn          in exclude) M.Qn          = spzeros(T,N,0,0);               end
+  if !(:Nf          in exclude) M.Nf          = spzeros(T,N,0,0);               end
+  if !(:Qf          in exclude) M.Qf          = spzeros(T,N,0,0);               end
+  if !(:FX          in exclude) M.FX          = sparse3(N,(N2(0),N2(0),N2(0))); end
+  if !(:FY          in exclude) M.FY          = sparse3(N,(N2(0),N2(0),N2(0))); end
+  if !(:FZ          in exclude) M.FZ          = sparse3(N,(N2(0),N2(0),N2(0))); end
+  if !(:EX          in exclude) M.EX          = sparse3(N,(N2(0),N2(0),N2(0))); end
+  if !(:EY          in exclude) M.EY          = sparse3(N,(N2(0),N2(0),N2(0))); end
+  if !(:EZ          in exclude) M.EZ          = sparse3(N,(N2(0),N2(0),N2(0))); end
+  if !(:NC          in exclude) M.NC          = sparse3(N,(N2(0),N2(0),N2(0))); end
+  if !(:NFX         in exclude) M.NFX         = sparse3(N,(N2(0),N2(0),N2(0))); end
+  if !(:NFY         in exclude) M.NFY         = sparse3(N,(N2(0),N2(0),N2(0))); end
+  if !(:NFZ         in exclude) M.NFZ         = sparse3(N,(N2(0),N2(0),N2(0))); end
+  if !(:NEX         in exclude) M.NEX         = sparse3(N,(N2(0),N2(0),N2(0))); end
+  if !(:NEY         in exclude) M.NEY         = sparse3(N,(N2(0),N2(0),N2(0))); end
+  if !(:NEZ         in exclude) M.NEZ         = sparse3(N,(N2(0),N2(0),N2(0))); end
+  if !(:NN          in exclude) M.NN          = sparse3(N,(N2(0),N2(0),N2(0))); end
 
   return
 

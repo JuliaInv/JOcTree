@@ -8,7 +8,7 @@ import Base.setindex!
 import Base.ndims
 import Base.convert
 
-struct SparseArray3D{N<:Integer,N2<:Integer}
+mutable struct SparseArray3D{N<:Integer,N2<:Integer}
         SV::SparseVector{N,N2}
         sz::Tuple{N2,N2,N2}    # size of fine mesh
 end
@@ -120,9 +120,7 @@ function ==(S1::SparseArray3D,S2::SparseArray3D)
 end
 
 import Base.clear!
-function clear!(S::SparseArray3D)
-    N  = eltype(S.SV.nzval)
-    N2 = eltype(S.SV.nzind)
-    sz = (size(S,1),size(S,2),size(S,3))
-    return SparseArray3D(spzeros(N,N2,prod(sz)),sz)
+function clear!{N<:Integer,N2<:Integer}(S::SparseArray3D{N,N2})
+  S.SV = spzeros(N,N2,prod(S.sz))
+  return
 end
