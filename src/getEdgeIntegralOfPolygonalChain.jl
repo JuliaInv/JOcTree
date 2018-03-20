@@ -112,9 +112,9 @@ end  # normalize
 
 
 # fine mesh nodal grid
-x = float([1:nx+1;])
-y = float([1:ny+1;])
-z = float([1:nz+1;])
+# x = float([1:nx+1;])
+# y = float([1:ny+1;])
+# z = float([1:nz+1;])
 
 # allocate space for source vector
 nnX = nnz(EX)
@@ -149,31 +149,38 @@ for ip = 1:np
 	dz  = bz - az
 	d   = sqrt(dx*dx + dy*dy + dz*dz)
 	tol = d * eps()
+  t = [0.0,1.0]
 	# x-planes
 	if bx > ax + tol
-		tx = ([ceil(ax):floor(bx);] .- ax) ./ dx
+    for tx = ceil(ax):floor(bx)
+      push!(t, (tx - ax) / dx)
+    end
 	elseif ax > bx + tol
-		tx = ([floor(ax):-1.0:ceil(bx);] .- ax) ./ dx
-	else
-		tx = zeros(0)
+    for tx = floor(ax):-1.0:ceil(bx)
+      push!(t, (tx - ax) / dx)
+    end
 	end
 	# y-planes
 	if by > ay + tol
-		ty = ([ceil(ay):floor(by);] .- ay) ./ dy
+    for ty = ceil(ay):floor(by)
+      push!(t, (ty - ay) / dy)
+    end
 	elseif ay > by + tol
-		ty = ([floor(ay):-1.0:ceil(by);] .- ay) ./ dy
-	else
-		ty = zeros(0)
+    for ty = floor(ay):-1.0:ceil(by)
+      push!(t, (ty - ay) / dy)
+    end
 	end
 	# z-planes
 	if bz > az + tol
-		tz = ([ceil(az):floor(bz);] .- az) ./ dz
+    for tz = ceil(az):floor(bz)
+      push!(t, (tz - az) / dz)
+    end
 	elseif az > bz + tol
-		tz = ([floor(az):-1.0:ceil(bz);] .- az) ./ dz
-	else
-		tz = zeros(0)
+    for tz = floor(az):-1.0:ceil(bz)
+      push!(t, (tz - az) / dz)
+    end
 	end
-	t = unique(sort([0.0; tx; ty; tz; 1.0;]))
+	t = unique(sort(t))
 
 	# number of cells that the current line segment crosses
 	nq = length(t) - 1
@@ -191,12 +198,12 @@ for ip = 1:np
 		ix,iy,iz,bsz = findBlocks(S,ix,iy,iz)
 
 		# integration limits in local coordinates
-		axloc = ax + t[iq]   * dx - x[ix]
-		ayloc = ay + t[iq]   * dy - y[iy]
-		azloc = az + t[iq]   * dz - z[iz]
-		bxloc = ax + t[iq+1] * dx - x[ix]
-		byloc = ay + t[iq+1] * dy - y[iy]
-		bzloc = az + t[iq+1] * dz - z[iz]
+		axloc = ax + t[iq]   * dx - ix # x[ix]
+		ayloc = ay + t[iq]   * dy - iy # y[iy]
+		azloc = az + t[iq]   * dz - iz # z[iz]
+		bxloc = ax + t[iq+1] * dx - ix # x[ix]
+		byloc = ay + t[iq+1] * dy - iy # y[iy]
+		bzloc = az + t[iq+1] * dz - iz # z[iz]
 
 		# basis functions are defined on cube of size bsz^3
 		b = bsz * 1.0
