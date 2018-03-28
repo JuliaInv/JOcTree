@@ -2,6 +2,11 @@ export getEdgeIntegralOfPolygonalChain
 
 using Base.BLAS
 
+function getEdgeIntegralOfPolygonalChain(mesh::OcTreeMesh, polygons::Vector{Array{Tf,2}}; normalize=false) where Tf <: Real
+  s = [ getEdgeIntegralOfPolygonalChain(mesh, p, normalize=normalize) for p in polygons ]
+  return hcat(s...)
+end
+
 function getEdgeIntegralOfPolygonalChain(mesh::OcTreeMesh, polygon::Array{Tf,2}; normalize=false) where Tf <: Real
 # s = getEdgeIntegralPolygonalChain(mesh,polygon)
 # s = getEdgeIntegralPolygonalChain(mesh,polygon,normalize)
