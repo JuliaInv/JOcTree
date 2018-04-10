@@ -171,13 +171,16 @@ function getFaceConstraints(::Type{Tf},S::SparseArray3D) where Tf
     px = zeros(Tn,nx)
     px[i] = j
 
-    tmp = intersect(fx1,i)
-    k   = indexin(tmp,i)
+    k   = indexin(fx1,i)
     j   = [j; vec(repmat(j[k], 3, 1))]
     i   = [i; fx2; fx3; fx4];
     v   = ones(Tf,length(i))
     Nx  = sparse(i,j,v,nx,n)
-    Qx  = spdiagm(vec(one(Tf)./sum(Nx,1))) * Nx'
+    
+    s   = sum(Nx,1)
+    v ./= s[j]
+    Qx  = sparse(j,i,v,n,nx)
+
 
     ## Y faces
     n  = Tn(length(fy1)*3)
@@ -192,13 +195,15 @@ function getFaceConstraints(::Type{Tf},S::SparseArray3D) where Tf
     py    = zeros(Tn,ny)
     py[i] = j + maximum(px);
 
-    tmp = intersect(fy1, i)
-    k   = indexin(tmp,i)
+    k   = indexin(fy1,i)
     j   = [j; vec(repmat(j[k], 3, 1))]
     i   = [i; fy2; fy3; fy4]
     v   = ones(Tf,length(i))
     Ny  = sparse(i,j,v,ny,n)
-    Qy  = spdiagm(vec(1./sum(Ny,1))) * Ny'
+    
+    s   = sum(Ny,1)
+    v ./= s[j]
+    Qy  = sparse(j,i,v,n,ny)
 
     ## Z faces
     n  = Tn(length(fz1)*3)
@@ -213,13 +218,15 @@ function getFaceConstraints(::Type{Tf},S::SparseArray3D) where Tf
     pz    = zeros(Tn,nz)
     pz[i] = j + maximum(py)
 
-    tmp = intersect(fz1, i)
-    k   = indexin(tmp,i)
+    k   = indexin(fz1,i)
     j   = [j; vec(repmat(j[k], 3, 1))]
     i   = [i; fz2; fz3; fz4]
     v   = ones(Tf,length(i))
     Nz  = sparse(i,j,v,nz,n)
-    Qz  = spdiagm(vec(one(Tf)./sum(Nz,1))) * Nz'
+    
+    s   = sum(Nz,1)
+    v ./= s[j]
+    Qz  = sparse(j,i,v,n,nz)
 
     ## Put it all together
 
