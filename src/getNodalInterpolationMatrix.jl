@@ -7,6 +7,14 @@ function getNodalInterpolationMatrix(mesh::OcTreeMesh, x::Array{Tf,1}, y::Array{
 	y = (y - mesh.x0[2]) / mesh.h[2] + 1.0
 	z = (z - mesh.x0[3]) / mesh.h[3] + 1.0
 
+    # Handle case that point is on an end boundary
+	ixb = find( x .≈ mesh.S.sz[1] + 1)
+	iyb = find( y .≈ mesh.S.sz[2] + 1)
+	izb = find( z .≈ mesh.S.sz[3] + 1)
+	x2  = floor.(Integer, x); x2[ixb] = mesh.S.sz[1]
+	y2  = floor.(Integer, y); y2[iyb] = mesh.S.sz[2]
+	z2  = floor.(Integer, z); z2[izb] = mesh.S.sz[3]
+
 	# interpolation point numbers
 	Tn = eltype(mesh.S.SV.nzval)
 	n  = Tn(length(x))
@@ -17,7 +25,7 @@ function getNodalInterpolationMatrix(mesh::OcTreeMesh, x::Array{Tf,1}, y::Array{
 	nn = nnz(N)
 
 	# locate points within cells
-	i,j,k,bsz = findBlocks(mesh.S, floor.(Integer,x), floor.(Integer,y), floor.(Integer,z))
+	i,j,k,bsz = findBlocks(mesh.S, x2, y2, z2)
 
 	# node numbers
 	I = [i, i+bsz, i, i+bsz, i, i+bsz, i, i+bsz;]
