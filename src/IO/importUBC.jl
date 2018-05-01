@@ -1,4 +1,4 @@
-export importUBCOcTreeMeshLite, importUBCOcTreeMesh, importUBCOcTreeModel
+export importUBCOcTreeMeshLite, importUBCOcTreeMeshHeader, importUBCOcTreeMesh, importUBCOcTreeModel
 
 """
     S, h, x0 = importUBCOcTreeMeshLite(meshfile)
@@ -90,6 +90,53 @@ function importUBCOcTreeMeshLite(meshfile::AbstractString;Tn::Type{N}=Int64,Tn2:
     x0 = [x1,x2,x3]
     return S, h, x0
 end
+
+"""
+    n, h, x0 = importUBCOcTreeMeshHeader(meshfile)
+
+    Reads the underlying base mesh information from a UBC OcTree mesh file.
+
+    Input:
+
+        meshfile::AbstractString - File to read
+
+    Output:
+
+        n::Vector{Int64}     - Size of the underlying mesh
+        h::Vector{Float64}   - Base cell size
+        x0::Vector{Float64}  - Coordinate origin
+
+"""
+function importUBCOcTreeMeshHeader(meshfile::AbstractString;Tn::Type{N}=Int64,Tn2::Type{N2}=Int64) where N <: Integer where N2 <: Integer
+    # open file (throws error if file doesn't exist)
+    f    = open(meshfile,"r")
+
+    # number of cells of underlying tensor mesh along dimension 1, 2, 3
+    line = split(readline(f))
+    n1 = parse(Tn2,line[1])
+    n2 = parse(Tn2,line[2])
+    n3 = parse(Tn2,line[3])
+
+    # top corner coordinates
+    line = split(readline(f))
+    x1 = parse(Float64,line[1])
+    x2 = parse(Float64,line[2])
+    x3 = parse(Float64,line[3])
+
+    # cell size
+    line = split(readline(f))
+    h1 = parse(Float64,line[1])
+    h2 = parse(Float64,line[2])
+    h3 = parse(Float64,line[3])
+
+    h = [h1,h2,h3]
+    n = [n1, n2, n3]
+    x0 = [x1,x2,x3]
+    return n, h, x0
+end
+
+
+
 
 """
     mesh = importUBCOcTreeMesh(meshfile)
