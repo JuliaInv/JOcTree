@@ -129,6 +129,10 @@ function importUBCOcTreeMeshHeader(meshfile::AbstractString;Tn::Type{N}=Int64,Tn
     h2 = parse(Float64,line[2])
     h3 = parse(Float64,line[3])
 
+    # Roman's code starts the OcTree at the top corner. 
+    # Change to bottom corner.
+    x3 = x3 - n3 * h3
+
     h = [h1,h2,h3]
     n = [n1, n2, n3]
     x0 = [x1,x2,x3]
