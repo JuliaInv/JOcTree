@@ -1,6 +1,7 @@
 
 export getCellCenterGradientMatrix, getCellCenterXGradientMatrix
 export getCellCenterYGradientMatrix, getCellCenterZGradientMatrix
+export getCellCenterGradientMatrix
 
 function getCellCenterXGradientMatrix(Mesh::OcTreeMeshFV)
 
@@ -302,8 +303,8 @@ function getCellCenterGradientMatrix(Mesh::OcTreeMeshFV)
     GX = getCellCenterXGradientMatrix(Mesh)
     GY = getCellCenterYGradientMatrix(Mesh)
     GZ = getCellCenterZGradientMatrix(Mesh)
-    Tn = eltype(Gx.colptr)
-    Tf = eltype(Gx.nzval)
+    Tn = eltype(GX.colptr)
+    Tf = eltype(GX.nzval)
     nx, ny, nz = Mesh.nf
 
     GRAD = spzeros(Tf,Tn,sum(Mesh.nf), Mesh.nc)
