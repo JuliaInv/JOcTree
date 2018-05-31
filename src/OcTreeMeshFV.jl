@@ -46,7 +46,7 @@ mutable struct OcTreeMeshFV{T<:Number,N<:Integer,N2<:Integer} <: OcTreeMesh
 	S::SparseArray3D{N,N2}    # i,j,k, bsz
 	h::Vector{T}  # (3) underlying cell size
 	x0::Vector{T} # coordinates of corner of mesh
-	n::Vector{N2} # underlying mesh
+	n::Tuple{Integer,Integer,Integer} # underlying mesh
 	nc::N          # number of cells
 	nf::Vector{N}  # (3) number of faces
 	ne::Vector{N}  # (3) number of edges
@@ -112,7 +112,7 @@ function getOcTreeMeshFV{T<:Number,N<:Integer,N2<:Integer}(S::SparseArray3D{N,N2
     sz    = (size(S,1),size(S,2),size(S,3))
 	empt3 = SparseArray3D(spzeros(N,N2,prod(sz)),sz)
 
-		return OcTreeMeshFV(S, h, x0, collect(S.sz),
+		return OcTreeMeshFV(S, h, x0, S.sz,
                         nc,nf,ne,nn,
                         empt,empt,empt,       # no Div, Grad, Curl
                         Dict{Int64,MassMatrix{T,N}}(), # no Pf
@@ -138,7 +138,7 @@ function clear!{T<:Number,N<:Integer,N2<:Integer}(M::OcTreeMeshFV{T,N,N2}; exclu
   # if !(:S           in exclude) M.S           = sparse3([0,0,0]);        end
   # if !(:h           in exclude) M.h           = zeros(3);                end
   # if !(:x0          in exclude) M.x0          = zeros(3);                end
-  # if !(:n           in exclude) M.n           = [0,0,0];                 end
+  # if !(:n           in exclude) M.n           = (0,0,0);                 end
   # if !(:nc          in exclude) M.nc          = 0;                       end
   # if !(:nf          in exclude) M.nf          = [0,0,0];                 end
   # if !(:ne          in exclude) M.ne          = [0,0,0];                 end

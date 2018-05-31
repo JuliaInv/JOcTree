@@ -68,7 +68,7 @@ function getSingleMeshHDF5group!(fid,juliaMesh::OcTreeMesh,id,compressAlg,compre
     attrs(hdf5Mesh)["isMesh"] = "true"
 
     # Add underlying mesh info
-    hdf5Mesh["n"]  = juliaMesh.n
+    hdf5Mesh["n"]  = collect(juliaMesh.n)
     hdf5Mesh["h"]  = juliaMesh.h
     hdf5Mesh["x0"] = juliaMesh.x0
     hdf5Mesh["nc"] = juliaMesh.nc
