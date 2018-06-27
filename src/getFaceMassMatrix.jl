@@ -88,7 +88,7 @@ function dFaceMassMatrixTimesVector{T<:Number}(mesh::OcTreeMeshFV, sigma::Vector
     P = setupFaceMassMatrix(mesh, sigma)
     nz = length(P.colval)
     if nz == 0 # isotropic or diagonally anisotropic
-        dMx = T.(P.A * x)
+        dMx = convert(Vector{T}, P.A * x)
         dMx .*= v
     else # generally anisotropic
         N = eltype(P.rowval)

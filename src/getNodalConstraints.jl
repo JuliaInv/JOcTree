@@ -5,7 +5,7 @@ function getNodalConstraints(M::OcTreeMesh)
         T = eltype(M.h)
         if all(M.S.SV.nzval.==M.S.SV.nzval[1]) # uniform mesh
             N = typeof(M.nc)
-            Nn = prod(M.n+1)
+            Nn = prod(collect(M.n)+1)
             M.Nn = speye(Nn)
             M.Qn = speye(Nn)
         else

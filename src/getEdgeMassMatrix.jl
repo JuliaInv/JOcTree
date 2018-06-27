@@ -95,7 +95,7 @@ function dEdgeMassMatrixTimesVector{T<:Number}(mesh::OcTreeMeshFV, sigma::Vector
     P = setupEdgeMassMatrix(mesh, sigma)
     nz = length(P.colval)
     if nz == 0 # isotropic or diagonally anisotropic
-        dMx = T.(P.A * x)
+        dMx = convert(Vector{T},P.A * x)
         dMx .*= v
     else # generally anisotropic
         V = SparseMatrixCSC(P.n, nz, collect(eltype(P.rowval),1:nz+1), P.rowval, v[P.colval])

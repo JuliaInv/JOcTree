@@ -9,4 +9,5 @@ intTypes = (Int32,Int64)
     include("testMassMatrices.jl")
     include("testMassMatrixDerivatives.jl")
     include("testInterpolationMatrix.jl")
+    include("testConstraints.jl")
 end
